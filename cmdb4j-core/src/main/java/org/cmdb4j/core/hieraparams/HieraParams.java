@@ -1,7 +1,8 @@
 package org.cmdb4j.core.hieraparams;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,15 +60,31 @@ public class HieraParams {
 		return path2OverrideParams.get(path);
 	}
 	
-	public Map<String,String> resolveAllParamsFor(List<HieraPath> paths) {
+	public Map<String,String> resolveAllParamsFor(HieraPath... paths) {
+		return resolveAllParamsFor(Arrays.asList(paths));
+	}
+	
+	public Map<String,String> resolveAllParamsFor(Collection<HieraPath> paths) {
 		Map<String,String> res = new HashMap<String,String>();
+		collectAllParamsFor(res, paths);
+		return res;
+	}
+
+	private void collectAllParamsFor(Map<String, String> res, Collection<HieraPath> paths) {
 		for(HieraPath path : paths) {
-			Map<String, String> params = path2OverrideParams.get(path);
+			collectAllParamsFor(res, path);
+		}
+	}
+
+	public void collectAllParamsFor(Map<String, String> res, HieraPath path) {
+		int len = path.size();
+		for (int i = 0; i <= len; i++) {
+			HieraPath ancestorPath = path.subPath(0, i);
+			Map<String, String> params = path2OverrideParams.get(ancestorPath);
 			if (params != null) {
 				res.putAll(params);
 			}
 		}
-		return res;
 	}
 
 	// ------------------------------------------------------------------------

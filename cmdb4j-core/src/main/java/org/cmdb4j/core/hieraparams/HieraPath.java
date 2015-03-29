@@ -30,6 +30,7 @@ public final class HieraPath implements Comparable<HieraPath> {
 	public static HieraPath emptyPath() {
 		return new HieraPath(EMPTY_PATH_ELEMENTS);
 	}
+
 	// ------------------------------------------------------------------------
 
 	public HieraPath child(String... childPathElements) {
@@ -46,6 +47,13 @@ public final class HieraPath implements Comparable<HieraPath> {
 		return new HieraPath(res);
 	}
 
+	public HieraPath subPath(int from, int to) {
+		if (from == 0 && to == pathElements.length) return this;
+		int len = to - from;
+		String[] res = new String[len];
+		System.arraycopy(pathElements, from, res, 0, len);
+		return new HieraPath(res);
+	}
 	
 	private static void splitAddElts(List<String> res, String... elts) {
 		for(String elt : elts) {
