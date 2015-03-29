@@ -11,7 +11,6 @@ import java.util.Properties;
 
 import org.cmdb4j.core.hieraparams.HieraParams;
 import org.cmdb4j.core.hieraparams.HieraPath;
-import org.cmdb4j.core.repo.dir.propfiles.HieraParamPropertiesDef.HieraParamPropertiesFileDef;
 import org.cmdb4j.core.util.IOUtils;
 
 /**
@@ -75,19 +74,19 @@ import org.cmdb4j.core.util.IOUtils;
  */
 public class HieraParamsPropertiesFileDirParser {
 
-	private HieraParamPropertiesDef propDef;
+	private HieraParamsPropertiesFilesDef propDef;
 	
 	// ------------------------------------------------------------------------
 	
-	public HieraParamsPropertiesFileDirParser(HieraParamPropertiesDef propDef) {
+	public HieraParamsPropertiesFileDirParser(HieraParamsPropertiesFilesDef propDef) {
 		this.propDef = propDef;
 	}
 
 	public static HieraParamsPropertiesFileDirParser defaultParamsPropParser() {
 		HieraParamPropertiesFileDef paramPropFileDef = 
-				new HieraParamPropertiesFileDef("param.properties", null, null);
+				new HieraParamPropertiesFileDef("param.properties", null, null, null);
 		HieraParamPropertiesFileDef[] propFilesDef = new HieraParamPropertiesFileDef[] { paramPropFileDef  };
-		HieraParamPropertiesDef propDef = new HieraParamPropertiesDef(propFilesDef);
+		HieraParamsPropertiesFilesDef propDef = new HieraParamsPropertiesFilesDef(propFilesDef);
 		return new HieraParamsPropertiesFileDirParser(propDef);
 	}
 	
@@ -117,37 +116,26 @@ public class HieraParamsPropertiesFileDirParser {
 					// chlid is dir => recurse
 					recursiveLoadPropertiesFromDir(res, childFile, childPath);
 				} else {
-					// child is regular file => load properties + add as params override
-					String inlinedName = propDef.nameMatchToInlinedName(fileName);
-					if (inlinedName != null) {
-						if (inlinedName.isEmpty()) {
-							childPath = currPath;
-						} else {
-							childPath = currPath.parent().child(inlinedName);
-						}
+					// child is regular file => check for match, load properties + add as params override
+					HieraParamPropertiesFileDef propFileDef = propDef.findFirstMatchPropFileDef(fileName);
+					if (propFileDef == null) {
+						// ignore file
+					} else {
+						Properties props = IOUtils.loadPropertiesFile(childFile);
+						@SuppressWarnings("unchecked")
+						Map<String,String> propMap = (Map<String,String>) (Map<?,?>) props;
+						propFileDef.putPropertiesOverrideToHieraParams(res, childPath, fileName, propMap);
 					}
-					
-					Properties props = loadPropertiesFile(childFile);
-					Map<String,String> params = new HashMap<String,String>();
-					params.putAll((Map<String,String>) (Map) props);
-					res.putAllOverrides(childPath, params);
 				}
 			}
 		}
 	}
+
 	
-	private static Properties loadPropertiesFile(File file) {
-		Properties props = new Properties();
-		InputStream inStream = null;
-		try {
-			inStream = new BufferedInputStream(new FileInputStream(file));
-			props.load(inStream);
-		} catch(IOException ex) {
-			throw new RuntimeException("Failed to read prop file '" + file + "'", ex);
-		} finally {
-			IOUtils.closeQuietly(inStream);
-		}
-		return props;
+	@Override
+	public String toString() {
+		return "HieraParamsPropertiesFileDirParser [propDef=" + propDef + "]";
 	}
-	
+
+
 }

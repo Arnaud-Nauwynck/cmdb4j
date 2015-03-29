@@ -14,18 +14,7 @@ public class PatternFileFilter implements FileFilter {
 	}
 
 	public boolean accept(File pathname) {
-		boolean res = null != findFirstMatches(pathname.getName(), patterns);
-		return res;
-	}
-
-	public static Pattern findFirstMatches(String text, List<Pattern> patterns) {
-		Pattern res = null;
-		for(Pattern pattern : patterns) {
-			if (pattern.matcher(text).matches()) {
-				res = pattern;
-				break;
-			}
-		}
+		boolean res = null != StringListUtils.findFirstMatches(pathname.getName(), patterns);
 		return res;
 	}
 	

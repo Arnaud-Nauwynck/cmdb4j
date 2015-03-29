@@ -13,18 +13,7 @@ public class SuffixNameFileFilter implements FileFilter {
 	}
 
 	public boolean accept(File pathname) {
-		boolean res = null != findFirstEndsWith(pathname.getName(), noEndsWith);
-		return res;
-	}
-
-	public static String findFirstEndsWith(String text, List<String> ends) {
-		String res = null;
-		for(String end : ends) {
-			if (text.endsWith(end)) {
-				res = end;
-				break;
-			}
-		}
+		boolean res = null != StringListUtils.findFirstEndsWith(pathname.getName(), noEndsWith);
 		return res;
 	}
 	
