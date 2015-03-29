@@ -84,8 +84,33 @@ public final class HieraPath implements Comparable<HieraPath> {
 		return Arrays.asList(pathElements);
 	}
 
+	public boolean startsWith(HieraPath prefix) {
+	    final int prefixSize = prefix.size();
+        if (size() < prefixSize) return false;
+	    boolean res = true;
+	    for(int i = 0; i < prefixSize; i++) {
+	        if (! get(i).equals(prefix.get(i))) {
+	            res = false;
+	            break;
+	        }
+	    }
+	    return res;
+	}
+
+	public boolean endsWith(HieraPath suffix) {
+        final int suffixSize = suffix.size();
+        if (size() < suffixSize) return false;
+        boolean res = true;
+        for(int i = size() - 1, suffixI = suffixSize - 1; suffixI >= 0; i--,suffixI--) {
+            if (! get(i).equals(suffix.get(suffixI))) {
+                res = false;
+                break;
+            }
+        }
+        return res;
+    }
+
 	// ------------------------------------------------------------------------
-	
 	
 	@Override
 	public int hashCode() {

@@ -59,7 +59,10 @@ public class HieraParams {
 	public Map<String, String> getPathOverridesOrNull(HieraPath path) {
 		return path2OverrideParams.get(path);
 	}
-	
+
+	// resolve Params
+   // ------------------------------------------------------------------------
+
 	public Map<String,String> resolveAllParamsFor(HieraPath... paths) {
 		return resolveAllParamsFor(Arrays.asList(paths));
 	}
@@ -87,6 +90,21 @@ public class HieraParams {
 		}
 	}
 
-	// ------------------------------------------------------------------------
+	
+	public static interface HieraPathParamsVisitor {
+	    public void visit(HieraPath path, Map<String, String> resolvedParams);
+	}
+
+	public void scanPathWithResolveParams(HieraPathParamsVisitor visitor, HieraPath ancestorPath) {
+	    // TODO inneficient implementation ... but fast enough for very small data 
+	    for(Map.Entry<HieraPath,Map<String,String>> e : path2OverrideParams.entrySet()) {
+	        HieraPath path = e.getKey();
+	        if (ancestorPath != null && ! path.startsWith(ancestorPath)) {
+	            return;
+	        }
+	        Map<String,String> resolvedParams = resolveAllParamsFor(path);
+	        visitor.visit(path, resolvedParams);
+	    }
+	}
 	
 }

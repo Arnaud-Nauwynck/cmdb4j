@@ -1,9 +1,7 @@
 package org.cmdb4j.core.repo.dir.propfiles;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.cmdb4j.core.hieraparams.HieraParams;
 import org.cmdb4j.core.hieraparams.HieraPath;

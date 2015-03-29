@@ -1,11 +1,6 @@
 package org.cmdb4j.core.repo.dir.propfiles;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -89,7 +84,15 @@ public class HieraParamsPropertiesFileDirParser {
 		HieraParamsPropertiesFilesDef propDef = new HieraParamsPropertiesFilesDef(propFilesDef);
 		return new HieraParamsPropertiesFileDirParser(propDef);
 	}
-	
+
+	public static HieraParamsPropertiesFileDirParser defaultObjPropParser() {
+	    HieraParamPropertiesFileDef objPropFileDef = 
+	            new HieraParamPropertiesFileDef("obj.properties", null, null, null);
+	    HieraParamPropertiesFileDef[] propFilesDef = new HieraParamPropertiesFileDef[] { objPropFileDef  };
+	    HieraParamsPropertiesFilesDef propDef = new HieraParamsPropertiesFilesDef(propFilesDef);
+	    return new HieraParamsPropertiesFileDirParser(propDef);
+	}
+
 	// ------------------------------------------------------------------------
 	
 	public HieraParams loadHieraFromDir(File rootDir) {
@@ -124,7 +127,7 @@ public class HieraParamsPropertiesFileDirParser {
 						Properties props = IOUtils.loadPropertiesFile(childFile);
 						@SuppressWarnings("unchecked")
 						Map<String,String> propMap = (Map<String,String>) (Map<?,?>) props;
-						propFileDef.putPropertiesOverrideToHieraParams(res, childPath, fileName, propMap);
+						propFileDef.putPropertiesOverrideToHieraParams(res, currPath, fileName, propMap);
 					}
 				}
 			}

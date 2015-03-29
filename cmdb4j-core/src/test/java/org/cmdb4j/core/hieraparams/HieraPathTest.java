@@ -14,6 +14,8 @@ public class HieraPathTest {
 	protected HieraPath abcPath = rootPath.child("a", "b", "c");
 
 	protected HieraPath bPath = rootPath.child("b");
+    protected HieraPath bcPath = rootPath.child("b", "c");
+    protected HieraPath adPath = rootPath.child("a", "d");
 
 	@Test
 	public void testValueOf() {
@@ -92,6 +94,17 @@ public class HieraPathTest {
 		Assert.assertEquals("a", aPath.toString());
 		Assert.assertEquals("a/b", abPath.toString());
 	}
+	
+    @Test
+    public void testStartsWith() {
+        Assert.assertTrue(abcPath.startsWith(abPath));
+        Assert.assertFalse(abcPath.startsWith(adPath));
+    }
 
+    @Test
+    public void testEndsWith() {
+        Assert.assertTrue(abcPath.endsWith(bcPath));
+        Assert.assertFalse(abcPath.endsWith(abPath));
+    }
 
 }
