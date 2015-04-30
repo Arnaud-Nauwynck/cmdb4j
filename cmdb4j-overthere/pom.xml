@@ -8,7 +8,7 @@
   </parent>
 
 
-  <artifactId>cmdb4j-core</artifactId>
+  <artifactId>cmdb4j-overthere</artifactId>
   <packaging>jar</packaging>
  
   <properties>
@@ -16,16 +16,13 @@
   </properties>
   
   <dependencies>
-  	<dependency>
-	    <groupId>com.samskivert</groupId>
-	    <artifactId>jmustache</artifactId>
-	</dependency>
-	
 	<dependency>
-	    <groupId>com.typesafe</groupId>
-	    <artifactId>config</artifactId>
+	    <groupId>com.xebialabs.overthere</groupId>
+	    <artifactId>overthere</artifactId>
+	    <version>4.0.0</version>
 	</dependency>
 
+	<!-- external dependencies -->  	
 	<dependency>
 		<groupId>org.slf4j</groupId>
 		<artifactId>slf4j-api</artifactId>
@@ -35,13 +32,12 @@
 		<artifactId>logback-classic</artifactId>
 	</dependency>
 
-		
+	<!-- Test dependencies -->	
 	<dependency>
 	    <groupId>junit</groupId>
 	    <artifactId>junit</artifactId>
 	    <scope>test</scope>
 	</dependency>
-		
-	
   </dependencies>
+
 </project>

@@ -1,47 +1,60 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
-  <parent>
   <groupId>org.cmdb4j</groupId>
   <artifactId>cmdb4j-parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  </parent>
-
-
-  <artifactId>cmdb4j-core</artifactId>
-  <packaging>jar</packaging>
- 
+  <packaging>pom</packaging>
+  
   <properties>
-  		
+  	<overthere.version>4.0.0</overthere.version>
   </properties>
   
+  <dependencyManagement> 
   <dependencies>
   	<dependency>
 	    <groupId>com.samskivert</groupId>
 	    <artifactId>jmustache</artifactId>
+	    <version>1.10</version>
 	</dependency>
 	
 	<dependency>
 	    <groupId>com.typesafe</groupId>
 	    <artifactId>config</artifactId>
+	    <version>1.2.1</version>
 	</dependency>
 
 	<dependency>
 		<groupId>org.slf4j</groupId>
 		<artifactId>slf4j-api</artifactId>
+		<version>1.7.10</version>
 	</dependency>
 	<dependency>
 		<groupId>ch.qos.logback</groupId>
 		<artifactId>logback-classic</artifactId>
+		<version>1.1.2</version>
+	</dependency>
+
+	<dependency>
+	    <groupId>com.xebialabs.overthere</groupId>
+	    <artifactId>overthere</artifactId>
+	    <version>${overthere.version}</version>
 	</dependency>
 
 		
 	<dependency>
 	    <groupId>junit</groupId>
 	    <artifactId>junit</artifactId>
-	    <scope>test</scope>
+	    <version>4.12</version>
+		<scope>test</scope>
 	</dependency>
 		
 	
   </dependencies>
+  </dependencyManagement>
+
+  <modules>
+    <module>cmdb4j-core</module>
+    <module>cmdb4j-overthere</module>
+  </modules>
+
 </project>
