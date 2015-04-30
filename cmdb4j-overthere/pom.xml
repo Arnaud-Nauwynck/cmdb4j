@@ -19,8 +19,44 @@
 	<dependency>
 	    <groupId>com.xebialabs.overthere</groupId>
 	    <artifactId>overthere</artifactId>
-	    <version>4.0.0</version>
 	</dependency>
+	<dependency>
+	    <groupId>com.hierynomus</groupId>
+	    <artifactId>sshj</artifactId>
+	    <version>0.12.0</version>
+	</dependency>
+	<dependency>
+	    <groupId>com.jcraft</groupId>
+	    <artifactId>jzlib</artifactId>
+	    <version>1.0.7</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.bouncycastle</groupId>
+	    <artifactId>bcprov-jdk15on</artifactId>
+	    <version>1.51</version>
+	    <scope>runtime</scope>
+	</dependency>
+
+
+	<!-- 
+	 compile 'jcifs:jcifs:1.3.17'
+		compile('dom4j:dom4j:1.6.1') {
+		exclude group: 'xml-apis', module: 'xml-apis'
+compile('jaxen:jaxen:1.1.6') {
+exclude group: 'xml-apis', module: 'xml-apis'
+exclude group: 'xalan', module: 'xalan'
+exclude group: 'xerces', module: 'xmlParserAPIs'
+exclude group: 'xerces', module: 'xercesImpl'
+}
+compile('org.apache.httpcomponents:httpclient:4.4.1') {
+exclude group: 'commons-logging', module: 'commons-logging'
+}
+compile 'org.apache.httpcomponents:httpcore:4.4.1'
+compile 'commons-codec:commons-codec:1.6'
+	 -->
+
+
+
 
 	<!-- external dependencies -->  	
 	<dependency>
