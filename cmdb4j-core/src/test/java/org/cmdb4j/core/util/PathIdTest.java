@@ -1,25 +1,26 @@
-package org.cmdb4j.core.hieraparams;
+package org.cmdb4j.core.util;
 
 import java.util.List;
 
+import org.cmdb4j.core.util.PathId;
 import org.junit.Assert;
 import org.junit.Test;
 
 
-public class HieraPathTest {
+public class PathIdTest {
 
-	protected HieraPath rootPath = HieraPath.emptyPath();
-	protected HieraPath aPath = rootPath.child("a");
-	protected HieraPath abPath = rootPath.child("a", "b");
-	protected HieraPath abcPath = rootPath.child("a", "b", "c");
+	protected PathId rootPath = PathId.emptyPath();
+	protected PathId aPath = rootPath.child("a");
+	protected PathId abPath = rootPath.child("a", "b");
+	protected PathId abcPath = rootPath.child("a", "b", "c");
 
-	protected HieraPath bPath = rootPath.child("b");
-    protected HieraPath bcPath = rootPath.child("b", "c");
-    protected HieraPath adPath = rootPath.child("a", "d");
+	protected PathId bPath = rootPath.child("b");
+    protected PathId bcPath = rootPath.child("b", "c");
+    protected PathId adPath = rootPath.child("a", "d");
 
 	@Test
 	public void testValueOf() {
-		Assert.assertEquals(HieraPath.valueOf("a/b/c/d/e"), HieraPath.valueOf("a/b/c", "d/e"));
+		Assert.assertEquals(PathId.valueOf("a/b/c/d/e"), PathId.valueOf("a/b/c", "d/e"));
 	}
 	
 	@Test
@@ -65,7 +66,7 @@ public class HieraPathTest {
 	
 	@Test
 	public void testHashcode() {
-		Assert.assertEquals(abPath.hashCode(), HieraPath.valueOf("a", "b").hashCode());
+		Assert.assertEquals(abPath.hashCode(), PathId.valueOf("a", "b").hashCode());
 		Assert.assertNotEquals(aPath.hashCode(), abPath.hashCode());
 	}
 
@@ -75,7 +76,7 @@ public class HieraPathTest {
 		Assert.assertFalse(abPath.equals("a/b"));
 		Assert.assertFalse(abPath.equals(null));
 		Assert.assertTrue(abPath.equals(abPath));
-		Assert.assertEquals(abPath, HieraPath.valueOf("a", "b"));
+		Assert.assertEquals(abPath, PathId.valueOf("a", "b"));
 		Assert.assertNotEquals(abPath, aPath);
 	}
 

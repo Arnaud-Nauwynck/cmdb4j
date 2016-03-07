@@ -5,10 +5,12 @@ package org.cmdb4j.core.util;
  * (cf JavaBean PropertyEditor ?)
  *
  */
-public class StdTextValueParsers {
+public final class StdTextValueParsers {
 
-    @SuppressWarnings("unchecked")
-    public static <T> TextValueParser<T> stdParserFor(Class<T> clss) {
+    private StdTextValueParsers() {        
+    }
+    
+    public static TextValueParser<?> stdParserFor(Class<?> clss) {
         TextValueParser<?> res = null;
         if (clss.getName().startsWith("java.lang.")) {
             if (clss == String.class) {
@@ -21,7 +23,7 @@ public class StdTextValueParsers {
                 res = null; // unrecognized
             }
         }
-        return (TextValueParser<T>) res;
+        return res;
     }
     
     public static class StringValueParser implements TextValueParser<String> {

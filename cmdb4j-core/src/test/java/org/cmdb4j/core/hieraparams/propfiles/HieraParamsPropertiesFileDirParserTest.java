@@ -1,4 +1,4 @@
-package org.cmdb4j.core.repo.dir.propfiles;
+package org.cmdb4j.core.hieraparams.propfiles;
 
 import static org.cmdb4j.core.hieraparams.MapTstUtils.assertEqualsOverride;
 import static org.cmdb4j.core.hieraparams.MapTstUtils.map;
@@ -6,7 +6,7 @@ import static org.cmdb4j.core.hieraparams.MapTstUtils.map;
 import java.io.File;
 
 import org.cmdb4j.core.hieraparams.HieraParams;
-import org.cmdb4j.core.hieraparams.HieraPath;
+import org.cmdb4j.core.util.PathId;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,19 +22,19 @@ public class HieraParamsPropertiesFileDirParserTest {
 		HieraParams res = sut.loadHieraFromDir(rootDir);
 		// Post-check
 		Assert.assertNotNull(res);
-		HieraPath rootPath = HieraPath.emptyPath();
+		PathId rootPath = PathId.emptyPath();
 		assertEqualsOverride(map("global.key", "global.key from /"), res, rootPath);
 		
-		HieraPath defaultPath = rootPath.child("Default");
-		HieraPath defaultTeam1Path = defaultPath.child("team1");
+		PathId defaultPath = rootPath.child("Default");
+		PathId defaultTeam1Path = defaultPath.child("team1");
 		assertEqualsOverride(map("app.key1", "app.key1 value from Default/team1"), res, defaultTeam1Path); 
-		HieraPath defaultTeam1App1Path = defaultTeam1Path.child("app1");
+		PathId defaultTeam1App1Path = defaultTeam1Path.child("app1");
 		assertEqualsOverride(map("app.key1", "app.key1 value from Default/team1/app1"), res, defaultTeam1App1Path); 
 		
-		HieraPath dev1Path = rootPath.child("DEV1");
-		HieraPath dev1Team1Path = dev1Path.child("team1");
+		PathId dev1Path = rootPath.child("DEV1");
+		PathId dev1Team1Path = dev1Path.child("team1");
 		assertEqualsOverride(map("app.key1", "app.key1 value from DEV1/team1"), res, dev1Team1Path); 
-		HieraPath dev1Team1App1Path = dev1Team1Path.child("app1");
+		PathId dev1Team1App1Path = dev1Team1Path.child("app1");
 		assertEqualsOverride(map("app.key1", "app.key1 value from DEV1/team1/app1"), res, dev1Team1App1Path); 
 	}
 

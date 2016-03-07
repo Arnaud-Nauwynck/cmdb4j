@@ -5,36 +5,38 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cmdb4j.core.util.PathId;
+
 /**
  * 
  */
 public class HieraParams {
 
-	private Map<HieraPath,Map<String,String>> path2OverrideParams;
+	private Map<PathId,Map<String,String>> path2OverrideParams;
 
 	// ------------------------------------------------------------------------
 
-	public HieraParams(Map<HieraPath, Map<String, String>> path2OverrideParams) {
+	public HieraParams(Map<PathId, Map<String, String>> path2OverrideParams) {
 		this.path2OverrideParams = path2OverrideParams;
 	}
 	
 	public HieraParams() {
-		this(new HashMap<HieraPath,Map<String,String>>());
+		this(new HashMap<PathId,Map<String,String>>());
 	}
 	
 	// ------------------------------------------------------------------------
 	
-	public String putOverride(HieraPath path, String key, String value) {
+	public String putOverride(PathId path, String key, String value) {
 		Map<String, String> overrides = getOrCreatePathOverrides(path);
 		return overrides.put(key, value);
 	}
 	
-	public void putAllOverrides(HieraPath path, Map<String, String> params) {
+	public void putAllOverrides(PathId path, Map<String, String> params) {
 		Map<String, String> overrides = getOrCreatePathOverrides(path);
 		overrides.putAll(params);
 	}
 	
-	public String removeOverride(HieraPath path, String key) {
+	public String removeOverride(PathId path, String key) {
 		Map<String, String> overrides = getPathOverridesOrNull(path);
 		if (overrides == null) {
 			return null;
@@ -42,12 +44,12 @@ public class HieraParams {
 		return overrides.remove(key);
 	}
 
-	public String getOverride(HieraPath path, String key) {
+	public String getOverride(PathId path, String key) {
 		Map<String, String> overrides = getPathOverridesOrNull(path);
 		return (overrides != null)? overrides.get(key) : null;
 	}
 
-	public Map<String, String> getOrCreatePathOverrides(HieraPath path) {
+	public Map<String, String> getOrCreatePathOverrides(PathId path) {
 		Map<String, String> res = path2OverrideParams.get(path);
 		if (res == null) {
 			res = new HashMap<String,String>();
@@ -56,33 +58,33 @@ public class HieraParams {
 		return res;
 	}
 	
-	public Map<String, String> getPathOverridesOrNull(HieraPath path) {
+	public Map<String, String> getPathOverridesOrNull(PathId path) {
 		return path2OverrideParams.get(path);
 	}
 
 	// resolve Params
    // ------------------------------------------------------------------------
 
-	public Map<String,String> resolveAllParamsFor(HieraPath... paths) {
+	public Map<String,String> resolveAllParamsFor(PathId... paths) {
 		return resolveAllParamsFor(Arrays.asList(paths));
 	}
 	
-	public Map<String,String> resolveAllParamsFor(Collection<HieraPath> paths) {
+	public Map<String,String> resolveAllParamsFor(Collection<PathId> paths) {
 		Map<String,String> res = new HashMap<String,String>();
 		collectAllParamsFor(res, paths);
 		return res;
 	}
 
-	private void collectAllParamsFor(Map<String, String> res, Collection<HieraPath> paths) {
-		for(HieraPath path : paths) {
+	private void collectAllParamsFor(Map<String, String> res, Collection<PathId> paths) {
+		for(PathId path : paths) {
 			collectAllParamsFor(res, path);
 		}
 	}
 
-	public void collectAllParamsFor(Map<String, String> res, HieraPath path) {
+	public void collectAllParamsFor(Map<String, String> res, PathId path) {
 		int len = path.size();
 		for (int i = 0; i <= len; i++) {
-			HieraPath ancestorPath = path.subPath(0, i);
+			PathId ancestorPath = path.subPath(0, i);
 			Map<String, String> params = path2OverrideParams.get(ancestorPath);
 			if (params != null) {
 				res.putAll(params);
@@ -92,13 +94,13 @@ public class HieraParams {
 
 	
 	public static interface HieraPathParamsVisitor {
-	    public void visit(HieraPath path, Map<String, String> resolvedParams);
+	    public void visit(PathId path, Map<String, String> resolvedParams);
 	}
 
-	public void scanPathWithResolveParams(HieraPathParamsVisitor visitor, HieraPath ancestorPath) {
+	public void scanPathWithResolveParams(HieraPathParamsVisitor visitor, PathId ancestorPath) {
 	    // TODO inneficient implementation ... but fast enough for very small data 
-	    for(Map.Entry<HieraPath,Map<String,String>> e : path2OverrideParams.entrySet()) {
-	        HieraPath path = e.getKey();
+	    for(Map.Entry<PathId,Map<String,String>> e : path2OverrideParams.entrySet()) {
+	        PathId path = e.getKey();
 	        if (ancestorPath != null && ! path.startsWith(ancestorPath)) {
 	            return;
 	        }

@@ -1,12 +1,12 @@
-package org.cmdb4j.core.repo.dir.propfiles;
+package org.cmdb4j.core.hieraparams.propfiles;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
 import org.cmdb4j.core.hieraparams.HieraParams;
-import org.cmdb4j.core.hieraparams.HieraPath;
 import org.cmdb4j.core.util.IOUtils;
+import org.cmdb4j.core.util.PathId;
 
 /**
  * HieraParams directory properties files parser for "* * / *.properties"
@@ -97,7 +97,7 @@ public class HieraParamsPropertiesFileDirParser {
 	
 	public HieraParams loadHieraFromDir(File rootDir) {
 		HieraParams res = new HieraParams();
-		HieraPath rootPath = HieraPath.emptyPath();
+		PathId rootPath = PathId.emptyPath();
 		IOUtils.checkDirExists(rootDir);
 
 		recursiveLoadPropertiesFromDir(res, rootDir, rootPath);
@@ -105,7 +105,7 @@ public class HieraParamsPropertiesFileDirParser {
 	}
 
 	private void recursiveLoadPropertiesFromDir(HieraParams res, 
-			File currDir, HieraPath currPath) {
+			File currDir, PathId currPath) {
 		File[] childFiles = currDir.listFiles();
 		if (childFiles != null && childFiles.length != 0) {
 			for(File childFile : childFiles) {
@@ -113,7 +113,7 @@ public class HieraParamsPropertiesFileDirParser {
 				if (fileName.startsWith(".")) {
 					continue; // ignore metadata .git, .svn, etc...
 				}
-				HieraPath childPath = currPath.child(fileName);
+				PathId childPath = currPath.child(fileName);
 				
 				if (childFile.isDirectory()) {
 					// chlid is dir => recurse

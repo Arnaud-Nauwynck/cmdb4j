@@ -1,4 +1,4 @@
-package org.cmdb4j.core.hieraparams;
+package org.cmdb4j.core.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +11,7 @@ import java.util.List;
  * not to root dir where repo may be stored
  * 
  */
-public final class HieraPath implements Comparable<HieraPath> {
+public final class PathId implements Comparable<PathId> {
 
 	private static final String[] EMPTY_PATH_ELEMENTS = new String[0];
 	
@@ -19,40 +19,40 @@ public final class HieraPath implements Comparable<HieraPath> {
 
 	// ------------------------------------------------------------------------
 	
-	private HieraPath(String[] pathElements) {
+	private PathId(String[] pathElements) {
 		this.pathElements = pathElements;
 	}
 	
-	public static HieraPath valueOf(String... pathElements) {
-		return new HieraPath(splitEltsToArray(pathElements));
+	public static PathId valueOf(String... pathElements) {
+		return new PathId(splitEltsToArray(pathElements));
 	}
 	
-	public static HieraPath emptyPath() {
-		return new HieraPath(EMPTY_PATH_ELEMENTS);
+	public static PathId emptyPath() {
+		return new PathId(EMPTY_PATH_ELEMENTS);
 	}
 
 	// ------------------------------------------------------------------------
 
-	public HieraPath child(String... childPathElements) {
+	public PathId child(String... childPathElements) {
 		List<String> tmp = new ArrayList<String>(pathElements.length + childPathElements.length);
 		tmp.addAll(toList());
 		splitAddElts(tmp, childPathElements);
-		return new HieraPath(tmp.toArray(new String[tmp.size()]));
+		return new PathId(tmp.toArray(new String[tmp.size()]));
 	}
 
-	public HieraPath parent() {
+	public PathId parent() {
 		if (pathElements.length == 0) return this;
 		String[] res = new String[pathElements.length - 1];
 		System.arraycopy(pathElements, 0, res, 0, pathElements.length - 1);
-		return new HieraPath(res);
+		return new PathId(res);
 	}
 
-	public HieraPath subPath(int from, int to) {
+	public PathId subPath(int from, int to) {
 		if (from == 0 && to == pathElements.length) return this;
 		int len = to - from;
 		String[] res = new String[len];
 		System.arraycopy(pathElements, from, res, 0, len);
-		return new HieraPath(res);
+		return new PathId(res);
 	}
 	
 	private static void splitAddElts(List<String> res, String... elts) {
@@ -68,7 +68,7 @@ public final class HieraPath implements Comparable<HieraPath> {
 	}
 
 	
-	public HieraPath child(HieraPath childPath) {
+	public PathId child(PathId childPath) {
 		return child(childPath.pathElements);
 	}
 	
@@ -84,7 +84,7 @@ public final class HieraPath implements Comparable<HieraPath> {
 		return Arrays.asList(pathElements);
 	}
 
-	public boolean startsWith(HieraPath prefix) {
+	public boolean startsWith(PathId prefix) {
 	    final int prefixSize = prefix.size();
         if (size() < prefixSize) return false;
 	    boolean res = true;
@@ -97,7 +97,7 @@ public final class HieraPath implements Comparable<HieraPath> {
 	    return res;
 	}
 
-	public boolean endsWith(HieraPath suffix) {
+	public boolean endsWith(PathId suffix) {
         final int suffixSize = suffix.size();
         if (size() < suffixSize) return false;
         boolean res = true;
@@ -128,14 +128,14 @@ public final class HieraPath implements Comparable<HieraPath> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		HieraPath other = (HieraPath) obj;
+		PathId other = (PathId) obj;
 		if (!Arrays.equals(pathElements, other.pathElements))
 			return false;
 		return true;
 	}
 
 	
-	public int compareTo(HieraPath other) {
+	public int compareTo(PathId other) {
 		int res = 0;
 		int len = Math.min(pathElements.length, other.pathElements.length);
 		for(int i = 0; i < len; i++) {

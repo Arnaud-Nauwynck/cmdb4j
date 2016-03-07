@@ -3,6 +3,7 @@ package org.cmdb4j.core.hieraparams;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cmdb4j.core.util.PathId;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -11,10 +12,10 @@ public class HieraParamsTest {
 
 	protected HieraParams sut = new HieraParams();
 
-	protected HieraPath abPath = HieraPath.valueOf("a", "b");
-	protected HieraPath abcPath = abPath.child("c");
-	protected HieraPath dPath = HieraPath.valueOf("d");
-	protected HieraPath dePath = dPath.child("e");
+	protected PathId abPath = PathId.valueOf("a", "b");
+	protected PathId abcPath = abPath.child("c");
+	protected PathId dPath = PathId.valueOf("d");
+	protected PathId dePath = dPath.child("e");
 
 	@Test
 	public void testGetOverride() {

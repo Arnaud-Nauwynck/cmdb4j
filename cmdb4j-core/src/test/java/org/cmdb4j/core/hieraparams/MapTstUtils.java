@@ -3,6 +3,7 @@ package org.cmdb4j.core.hieraparams;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cmdb4j.core.util.PathId;
 import org.junit.Assert;
 
 public class MapTstUtils {
@@ -18,7 +19,7 @@ public class MapTstUtils {
 		return res;
 	}
 	
-	public static void assertEqualsOverride(Map<String,String> expected, HieraParams actualParams, HieraPath path){
+	public static void assertEqualsOverride(Map<String,String> expected, HieraParams actualParams, PathId path){
 		Map<String, String> actualOverrides = actualParams.getPathOverridesOrNull(path);
 		if (expected == null || expected.isEmpty()) {
 			Assert.assertTrue(actualOverrides == null || actualOverrides.isEmpty());

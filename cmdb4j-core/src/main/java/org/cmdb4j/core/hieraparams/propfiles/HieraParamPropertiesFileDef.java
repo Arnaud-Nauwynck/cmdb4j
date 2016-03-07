@@ -1,10 +1,10 @@
-package org.cmdb4j.core.repo.dir.propfiles;
+package org.cmdb4j.core.hieraparams.propfiles;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.cmdb4j.core.hieraparams.HieraParams;
-import org.cmdb4j.core.hieraparams.HieraPath;
+import org.cmdb4j.core.util.PathId;
 import org.cmdb4j.core.util.StringListUtils;
 
 public class HieraParamPropertiesFileDef {
@@ -61,8 +61,8 @@ public class HieraParamPropertiesFileDef {
 		return res;
 	}
 
-	public void putPropertiesOverrideToHieraParams(HieraParams res, HieraPath currPath, String fileName, Map<String,String> props) {
-		HieraPath hieraPath;
+	public void putPropertiesOverrideToHieraParams(HieraParams res, PathId currPath, String fileName, Map<String,String> props) {
+		PathId hieraPath;
 		String inlinedName = nameMatchToInlinedName(fileName);
 		if (inlinedName == null) {
 			return; // should not occur

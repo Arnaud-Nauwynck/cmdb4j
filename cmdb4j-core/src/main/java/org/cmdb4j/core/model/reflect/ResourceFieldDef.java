@@ -1,22 +1,22 @@
-package org.cmdb4j.core.objs;
+package org.cmdb4j.core.model.reflect;
 
 import org.cmdb4j.core.util.StdTextValueParsers;
 import org.cmdb4j.core.util.TextValueParser;
 
-public class ConfPropDef<T> {
+public class ResourceFieldDef {
 
-    private final ConfClass ownerClass;
-    private final String propertyName;
+    private final ResourceType ownerType;
+    private final String name;
     
     private final boolean readOnlyProp;
 
-    private final Class<?> propertyType; 
-    private final TextValueParser<T> valueParser;
+    private final Class<?> valueType; 
+    private final TextValueParser<?> valueParser;
     
     private final boolean allowNull;
     
     private final String defaultValueExpr;
-    private final T defaultResolvedValue;
+    private final Object defaultResolvedValue;
     
     
     
@@ -24,12 +24,12 @@ public class ConfPropDef<T> {
     // ------------------------------------------------------------------------
 
     /** called from owner ConfClass.putProperty() */
-    /*pp*/ ConfPropDef(ConfClass ownerClass, String propertyName, Builder<T> builder) {
+    ResourceFieldDef(ResourceType ownerClass, String propertyName, Builder builder) {
         super();
-        this.ownerClass = ownerClass;
-        this.propertyName = propertyName;
+        this.ownerType = ownerClass;
+        this.name = propertyName;
         this.readOnlyProp = builder.isReadOnlyProp();
-        this.propertyType = builder.getPropertyType();
+        this.valueType = builder.getValueType();
         this.valueParser = builder.getValueParser();
         this.allowNull = builder.isAllowNull();
         this.defaultValueExpr = builder.getDefaultValueExpr();
@@ -38,12 +38,12 @@ public class ConfPropDef<T> {
 
     // ------------------------------------------------------------------------
     
-    public ConfClass getOwnerClass() {
-        return ownerClass;
+    public ResourceType getOwnerClass() {
+        return ownerType;
     }
 
     public String getPropertyName() {
-        return propertyName;
+        return name;
     }
 
     public boolean isReadOnlyProp() {
@@ -51,10 +51,10 @@ public class ConfPropDef<T> {
     }
 
     public Class<?> getPropertyType() {
-        return propertyType;
+        return valueType;
     }
     
-    public TextValueParser<T> getValueParser() {
+    public TextValueParser<?> getValueParser() {
         return valueParser;
     }
 
@@ -66,7 +66,7 @@ public class ConfPropDef<T> {
         return defaultValueExpr;
     }
     
-    public T getDefaultResolvedValue() {
+    public Object getDefaultResolvedValue() {
         return defaultResolvedValue;
     }
     
@@ -74,8 +74,8 @@ public class ConfPropDef<T> {
 
     @Override
     public String toString() {
-        return propertyName 
-                + " (" + propertyType + ")"
+        return name 
+                + " (" + valueType + ")"
                 + ((!readOnlyProp)? " read-write" : "") 
                 ;
     }
@@ -83,40 +83,40 @@ public class ConfPropDef<T> {
     // ------------------------------------------------------------------------
 
     /**
-     * Builder-like design-patter ... simplify API usage + chicken & egg pb creating ConfClass<->ConfPropDef
+     * Builder-like design-patter
      */
-    public static class Builder<T> {
+    public static class Builder {
     
-        private Class<?> propertyType; 
-        private TextValueParser<T> valueParser;
+        private Class<?> valueType; 
+        private TextValueParser<?> valueParser;
         
         private boolean readOnlyProp;
         private boolean allowNull;
         
         private String defaultValueExpr;
-        private T defaultResolvedValue;
+        private Object defaultResolvedValue;
         
         // ------------------------------------------------------------------------
 
-        public Builder(Class<T> propertyType) {
-            this(propertyType, StdTextValueParsers.stdParserFor(propertyType));
+        public Builder(Class<?> valueType) {
+            this(valueType, StdTextValueParsers.stdParserFor(valueType));
         }
         
-        public Builder(Class<T> propertyType, TextValueParser<T> valueParser) {
-            this.propertyType = propertyType;
+        public Builder(Class<?> valueType, TextValueParser<?> valueParser) {
+            this.valueType = valueType;
             this.valueParser = valueParser;
         }
         
         // ------------------------------------------------------------------------
 
-        // build() => cf ConfClass.putProperty(String,ConfPropDef)
+        // build() => cf ResourceType.putField(String,ResourceFieldDef)
         
         
-        public Class<?> getPropertyType() {
-            return propertyType;
+        public Class<?> getValueType() {
+            return valueType;
         }
         
-        public TextValueParser<T> getValueParser() {
+        public TextValueParser<?> getValueParser() {
             return valueParser;
         }
 
@@ -124,7 +124,7 @@ public class ConfPropDef<T> {
             return readOnlyProp;
         }
         
-        public Builder<T> withReadOnlyProp(boolean readOnlyProp) {
+        public Builder withReadOnlyProp(boolean readOnlyProp) {
             this.readOnlyProp = readOnlyProp;
             return this;
         }
@@ -133,7 +133,7 @@ public class ConfPropDef<T> {
             return allowNull;
         }
         
-        public Builder<T> withAllowNull(boolean allowNull) {
+        public Builder withAllowNull(boolean allowNull) {
             this.allowNull = allowNull;
             return this;
         }
@@ -142,16 +142,16 @@ public class ConfPropDef<T> {
             return defaultValueExpr;
         }
         
-        public Builder<T> withDefaultValueExpr(String defaultValueExpr) {
+        public Builder withDefaultValueExpr(String defaultValueExpr) {
             this.defaultValueExpr = defaultValueExpr;
             return this;
         }
 
-        public T getDefaultResolvedValue() {
+        public Object getDefaultResolvedValue() {
             return defaultResolvedValue;
         }
 
-        public Builder<T> withDefaultResolvedValue(T defaultResolvedValue) {
+        public Builder withDefaultResolvedValue(Object defaultResolvedValue) {
             this.defaultResolvedValue = defaultResolvedValue;
             return this;
         }
