@@ -14,6 +14,11 @@ public class ResourceTypeRepository {
     private Map<String,ResourceType> name2types = new HashMap<String,ResourceType>();
     
     private InnerTypeHierarchy innerTypeHierarchy = new InnerTypeHierarchy();
+    
+    /**
+     * Manager for AdapterFactory .. to register new interface capabilities on existing types
+     * (similar to eclipse PlaftormObject / IAdaptable / AdapterManager ... but with dynamic support)
+     */
     private AdapterAlternativesManager<ResourceType> adapterManager = new AdapterAlternativesManager<>(innerTypeHierarchy);
     
     // ------------------------------------------------------------------------
@@ -68,7 +73,7 @@ public class ResourceTypeRepository {
 
         @Override
         public ResourceType[] computeSuperTypesOrder(ResourceType type) {
-            return new ResourceType[] { type }; // TODO "extends", "implements" not implemented yet
+            return type.computeSuperTypesOrder();
         }
 
         @Override
