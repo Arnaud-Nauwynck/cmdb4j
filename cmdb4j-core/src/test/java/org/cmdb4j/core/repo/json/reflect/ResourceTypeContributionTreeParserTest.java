@@ -78,9 +78,10 @@ public class ResourceTypeContributionTreeParserTest {
     };
     
     protected ResourceTypeRepository target = new ResourceTypeRepository();
-    
     protected ResourceTypeContributionTreeParser sut = new ResourceTypeContributionTreeParser(target, true, afLookup);
-    protected ResourceTypeContributionTreeParser sutNotStrict = new ResourceTypeContributionTreeParser(target, false, afLookup);
+    
+    protected ResourceTypeRepository targetNotStrict = new ResourceTypeRepository();
+    protected ResourceTypeContributionTreeParser sutNotStrict = new ResourceTypeContributionTreeParser(targetNotStrict, false, afLookup);
     
     @Test
     public void testAddParseContributions() {
@@ -113,11 +114,12 @@ public class ResourceTypeContributionTreeParserTest {
         // Prepare
         File file = new File("src/test/data/test-ResourceTypeContributions-errClassNotFound.json");
         // Perform
+        LOG.info("testing errors with not-strict parser => WARN on next log line");
         sutNotStrict.addParseContributions(file);
         try {
             sut.addParseContributions(file);
             Assert.fail();
-        } catch(Exception ex) {
+        } catch(IllegalArgumentException ex) {
             String err = ex.getMessage();
             Assert.assertTrue(err.startsWith("Failed to parse decl 'adapterFactoryDecl'"));
         }
