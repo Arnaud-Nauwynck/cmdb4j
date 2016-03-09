@@ -1,35 +1,7 @@
 [
   {
-   type: "resourceTypeDecl",
-   resourceTypeName: "Webserver"
-  },
-  
-  {
-    type: "resourceTypeDecl",
+    type: "adapterFactoryDecl",
     resourceTypeName: "Tomcat",
-    superTypeName: "Webserver",
-    superInterfaceNames: [ "TomcatWebAppManager" ],
-    fields: {
-      port: {
-        description: "http port number of tomcat server (default 8080)",
-        defaultValue: 8080 
-      },
-      httpsPort: {
-        description: "https port number of tomcat server (default 8443)",
-        defaultValue: 8443 
-      }
-    }
-  },
-  
-  {
-    type: "resourceTypeDecl",
-    resourceTypeName: "Tomcat",
-    superInterfaceNames: [ "SSLKeyStoreSupport" ],
-    fields: {
-      sslKeystoreFile: {
-        description: "SSL keystore file"
-      }
-    }
+    adapterFactoryClassName: "org.cmdb4j.core.repo.json.reflect.ResourceTypeContributionTreeParserTest.DummyTstTomcatStopSupportAdapterFactory"
   }
-  
  ]

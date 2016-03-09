@@ -1,17 +1,27 @@
 package org.cmdb4j.core.model.reflect;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.util.CmdbObjectNotFoundException;
 
 import fr.an.dynadapter.alt.AdapterAlternativesManager;
+import fr.an.dynadapter.alt.IAdapterAlternativeFactory;
+import fr.an.dynadapter.alt.IAdapterAlternativesManager;
+import fr.an.dynadapter.alt.IAdapterAlternativesManagerSPI;
+import fr.an.dynadapter.alt.ItfAlternativeId;
+import fr.an.dynadapter.alt.ItfId;
 import fr.an.dynadapter.typehiera.ITypeHierarchy;
 
 public class ResourceTypeRepository {
 
-    private Map<String,ResourceType> name2types = new HashMap<String,ResourceType>();
+    /**
+     * thread safety: copy on write
+     */
+    private Map<String,ResourceType> name2types = Collections.emptyMap();
     
     private InnerTypeHierarchy innerTypeHierarchy = new InnerTypeHierarchy();
     
@@ -28,10 +38,6 @@ public class ResourceTypeRepository {
 
     // ------------------------------------------------------------------------
     
-    public AdapterAlternativesManager<ResourceType> getAdapterManager() {
-        return adapterManager;
-    }
-    
     public ResourceType getOrCreateType(String name) {
         ResourceType res = name2types.get(name);
         if (res == null) {
@@ -40,7 +46,7 @@ public class ResourceTypeRepository {
                 if (res == null) {
                     res = new ResourceType(name);
                     
-                    HashMap<String,ResourceType> copyOnWrite = new HashMap<>(name2types);
+                    HashMap<String,ResourceType> copyOnWrite = new LinkedHashMap<>(name2types);
                     copyOnWrite.put(name, res);
                     this.name2types = copyOnWrite;
                 }
@@ -61,6 +67,32 @@ public class ResourceTypeRepository {
         return res;
     }
 
+    // management of adapter / AdaptterFactory / ItfId
+    // ------------------------------------------------------------------------
+    
+    public IAdapterAlternativesManager<ResourceType> getAdapterManager() {
+        return adapterManager;
+    }
+
+    public <T> T getAdapter(Resource adaptable, ItfId<T> interfaceId) {
+        return adapterManager.getAdapter(adaptable, interfaceId);
+    }
+
+    public <T> T getAdapter(Resource adaptable, ItfAlternativeId<T> interfaceAlternativeId) {
+        return adapterManager.getAdapter(adaptable, interfaceAlternativeId);
+    }
+
+    
+    
+    public IAdapterAlternativesManagerSPI<ResourceType> getAdapterManagerSPI() {
+        return adapterManager;
+    }
+
+    public void registerAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
+        adapterManager.registerAdapters(factory, adaptableType);
+    }
+
+    
     // ------------------------------------------------------------------------
 
     private class InnerTypeHierarchy implements ITypeHierarchy<ResourceType> {

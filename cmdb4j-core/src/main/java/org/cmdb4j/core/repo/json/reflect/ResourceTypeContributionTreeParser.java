@@ -2,6 +2,7 @@ package org.cmdb4j.core.repo.json.reflect;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Function;
 
 import org.cmdb4j.core.model.reflect.ResourceFieldDef;
 import org.cmdb4j.core.model.reflect.ResourceType;
@@ -9,6 +10,7 @@ import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.an.dynadapter.alt.IAdapterAlternativeFactory;
 import fr.an.fxtree.format.FxFileUtils;
 import fr.an.fxtree.impl.helper.FxNodeValueUtils;
 import fr.an.fxtree.impl.helper.FxObjNodeWithTypeTreeScanner;
@@ -54,7 +56,13 @@ import fr.an.fxtree.model.FxObjNode;
  *        description: "SSL keystore file"
  *      }
  *   }
- *  }  
+ *  },
+ *  
+ *  {
+ *    type: "adapterFactoryDecl",
+ *    resourceTypeName: "Tomcat",
+ *    adapterFactoryClassName: "com.foo.plugins.tomcat.TomcatStartSupportAdapterFactory"
+ *  }
  * ]
  * </PRE>
  */
@@ -64,11 +72,18 @@ public class ResourceTypeContributionTreeParser {
     
     protected ResourceTypeRepository target;
     protected boolean strict;
+    protected Function<String,IAdapterAlternativeFactory> adapterFactoryLookup;
     
-    public ResourceTypeContributionTreeParser(ResourceTypeRepository target, boolean strict) {
+    // ------------------------------------------------------------------------
+    
+    public ResourceTypeContributionTreeParser(ResourceTypeRepository target, boolean strict, 
+            Function<String,IAdapterAlternativeFactory> adapterFactoryLookup) {
         this.target = target;
         this.strict = strict;
+        this.adapterFactoryLookup = adapterFactoryLookup;
     }
+
+    // ------------------------------------------------------------------------
 
     public void addParseContributions(File file) {
         FxNode content = FxFileUtils.readTree(file);
@@ -84,6 +99,9 @@ public class ResourceTypeContributionTreeParser {
                 case "resourceTypeDecl":
                     addParseResourceTypeDecl(obj);
                     break;
+                case "adapterFactoryDecl":
+                    addParseAdapterFactoryDecl(obj);
+                    break;
                 default:
                     if (strict) {
                         throw new IllegalArgumentException("unrecognised type '" + declType + "', expecting resourceTypeDecl");
@@ -92,7 +110,12 @@ public class ResourceTypeContributionTreeParser {
                     break;
                 }
             } catch(Exception ex) {
-                
+                String err = "Failed to parse decl '" + declType + "', ex:" + ex.getMessage() + ", data:" + obj;
+                if (strict) {
+                    throw new IllegalArgumentException(err, ex);
+                } else {
+                    LOG.warn(err + " ...ignore, no rethrow! ex:" + ex.getMessage());
+                }
             }
         };
     }
@@ -152,5 +175,61 @@ public class ResourceTypeContributionTreeParser {
         
         resourceType.registerFieldDef(fieldname, b);
     }
-    
+
+    public void addParseAdapterFactoryDecl(FxObjNode obj) {
+        String resourceTypeName = FxNodeValueUtils.getStringOrThrow(obj, "resourceTypeName");
+        ResourceType resourceType = target.getOrCreateType(resourceTypeName);
+        
+        IAdapterAlternativeFactory factory;  
+        String adapterFactoryClassName = FxNodeValueUtils.getOrDefault(obj, "adapterFactoryClassName", null);
+        if (adapterFactoryClassName != null) {
+            Class<?> adapterFactoryClass = classForNameOrRethrow(adapterFactoryClassName);
+            Object factoryObj;
+            try {
+                factoryObj = adapterFactoryClass.newInstance();
+            } catch (Exception ex) {
+                throw new RuntimeException("Failed to instanciate object for class '" + adapterFactoryClass + "'", ex);
+            }
+            factory = (IAdapterAlternativeFactory) factoryObj;
+        } else if (adapterFactoryLookup != null) {
+            String adapterFactoryName = FxNodeValueUtils.getStringOrThrow(obj, "adapterFactoryName");
+            factory = adapterFactoryLookup.apply(adapterFactoryName);
+            if (factory == null) {
+                String err = "Failed to lookup adapterFactory by name: '" + adapterFactoryName + "'";
+                LOG.error(err);
+                if (strict) {
+                    throw new IllegalStateException(err); 
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("adapterFactory argument not set");
+        }
+        
+        target.registerAdapters(factory, resourceType);
+    }
+
+//    protected ItfId<?> parseIItfId(FxObjNode obj, String fieldPrefix) {
+//        String interfaceIdJavaClassName = FxNodeValueUtils.getStringOrThrow(obj, fieldPrefix + "JavaClassName");
+//        String interfaceIdName = FxNodeValueUtils.getOrDefault(obj, fieldPrefix + "Name", "");
+//        if (interfaceIdJavaClassName == null && interfaceIdName.isEmpty()) {
+//            throw new IllegalArgumentException("invalid interfaceId: javaClass & name empty!");
+//        }
+//        Class<?> interfaceIdJavaClass = null;
+//        if (interfaceIdJavaClassName != null) {
+//            interfaceIdJavaClass = classForNameOrRethrow(interfaceIdJavaClassName);
+//        } else {
+//            interfaceIdJavaClass = Object.class;
+//        }
+//        return ItfId.of(interfaceIdJavaClass, interfaceIdName);
+//    }
+
+    protected Class<?> classForNameOrRethrow(String className) {
+        Class<?> res;
+        try {
+            res = Class.forName(className);
+        } catch(Exception ex) {
+            throw new RuntimeException("Failed to get class for name '" + className + "'", ex);
+        }
+        return res;
+    }
 }
