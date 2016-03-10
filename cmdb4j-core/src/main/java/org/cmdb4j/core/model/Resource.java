@@ -29,10 +29,10 @@ public class Resource {
     protected Map<ResourceId,Resource> subscribeResources = new LinkedHashMap<ResourceId,Resource>();
 
     /** inverse of requireResources */ 
-    protected Map<ResourceId,Resource> invRequireFromResources = new LinkedHashMap<ResourceId,Resource>();
+    protected Map<ResourceId,Resource> invRequiredFromResources = new LinkedHashMap<ResourceId,Resource>();
 
     /** inverse of subscribeResources */ 
-    protected Map<ResourceId,Resource> invSubscribeFromResources = new LinkedHashMap<ResourceId,Resource>();
+    protected Map<ResourceId,Resource> invSubscribedFromResources = new LinkedHashMap<ResourceId,Resource>();
     
     protected Set<String> tags = new LinkedHashSet<String>();
 
@@ -61,25 +61,25 @@ public class Resource {
     public void addRequireResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
         requireResources.put(p.getId(), p);
-        p.invRequireFromResources.put(this.getId(), this);
+        p.invRequiredFromResources.put(this.getId(), this);
     }
 
     public void removeRequireResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
         requireResources.remove(p.getId());
-        p.invRequireFromResources.remove(this.getId());
+        p.invRequiredFromResources.remove(this.getId());
     }
 
     public void addSubscribeResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
         subscribeResources.put(p.getId(), p);
-        p.invSubscribeFromResources.put(this.getId(), this);
+        p.invSubscribedFromResources.put(this.getId(), this);
     }
 
     public void removeSubscribeResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
         subscribeResources.remove(p.getId());
-        p.invSubscribeFromResources.remove(this.getId());
+        p.invSubscribedFromResources.remove(this.getId());
     }
     
     
@@ -91,12 +91,12 @@ public class Resource {
         return Collections.unmodifiableMap(subscribeResources);
     }
 
-    public Map<ResourceId, Resource> getInvRequireFromResources() {
-        return Collections.unmodifiableMap(invRequireFromResources);
+    public Map<ResourceId, Resource> getInvRequiredFromResources() {
+        return Collections.unmodifiableMap(invRequiredFromResources);
     }
 
-    public Map<ResourceId, Resource> getInvSubscribeFromResources() {
-        return Collections.unmodifiableMap(invSubscribeFromResources);
+    public Map<ResourceId, Resource> getInvSubscribedFromResources() {
+        return Collections.unmodifiableMap(invSubscribedFromResources);
     }
 
     public Set<String> getTags() {

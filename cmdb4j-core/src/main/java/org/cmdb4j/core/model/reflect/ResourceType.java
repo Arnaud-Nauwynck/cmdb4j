@@ -2,6 +2,7 @@ package org.cmdb4j.core.model.reflect;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -15,7 +16,19 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
+ * dynamic definition of resource type 
  * 
+ * <p> 
+ * fields  definition are optionnals ... and can be added/removed dynamically
+ * superType / superInterfaces can also be added/removed dynamically
+ * 
+ * It is expected that types are loaded at startup from plugin conributions fragments,
+ * then type should not change often but this is perfectly valid to do so, 
+ * in particular for adding new optional fields, and adding new adapterFactories (pluggin support)
+ * 
+ * changes on fields/hieritance will fire corresponding change events on owner ResourceTypeRepository
+ * 
+ * Thread safety: name (id) is immutable, all other fields are copy-on-write (immutable list) 
  */
 public class ResourceType {
     
@@ -105,6 +118,8 @@ public class ResourceType {
         Map<String,ResourceFieldDef> tmp = new LinkedHashMap<String,ResourceFieldDef>(fields);
         tmp.put(fieldname, res);
         this.fields = ImmutableMap.copyOf(tmp);
+        
+        owner.fireChangeEvent(ResourceTypeRepositoryChange.newResourceTypeFieldsChange(this, null, res));
         return res;
     }
 
@@ -117,8 +132,14 @@ public class ResourceType {
                     " : type already inherit from '" + superType.name + "', trying to add '" + type.name + "'");
         }
         // check non circular loop...
+        if (type.computeSuperTypesSet().contains(this)) {
+            throw new IllegalArgumentException("can not set superType '" + superType + "' to resourceType '" + this + "' ... would cause cyclic loop");
+        }
         
         this.superType = type;
+        
+        owner.fireChangeEvent(ResourceTypeRepositoryChange.newResourceTypeHierarchyChange(this,
+            null, superType, Collections.emptyList(), Collections.emptyList()));
     }
     
     public void registerSuperInterfaceType(ResourceType superType) {
@@ -126,16 +147,30 @@ public class ResourceType {
             return; // already registered
         }
         // check non circular loop...
+        if (superType.computeSuperTypesSet().contains(this)) {
+            throw new IllegalArgumentException("can not add superInterface '" + superType + "' to resourceType '" + this + "' ... would cause cyclic loop");
+        }
         
+        List<ResourceType> prevSuperInterfaces = superInterfaces;
         List<ResourceType> tmp = new ArrayList<ResourceType>(this.superInterfaces);
         tmp.add(superType);
         this.superInterfaces = ImmutableList.copyOf(tmp);
+
+        owner.fireChangeEvent(ResourceTypeRepositoryChange.newResourceTypeHierarchyChange(this,
+            null, null, prevSuperInterfaces, superInterfaces));
     }
 
+    
     /**
      * Returns the super-type search order starting with this type
+     * same signature for ITypeHierarchy  (orders matter)
      */
     public ResourceType[] computeSuperTypesOrder() {
+        Set<ResourceType> seen = computeSuperTypesSet();
+        return (ResourceType[]) seen.toArray(new ResourceType[seen.size()]);
+    }
+
+    private Set<ResourceType> computeSuperTypesSet() {
         Set<ResourceType> seen = new LinkedHashSet<>(4);
         // first traverse type hierarchy
         List<ResourceType> allSuperTypes = new ArrayList<ResourceType>();
@@ -149,7 +184,7 @@ public class ResourceType {
         for (ResourceType type : allSuperTypes) {
             computeInterfaceOrder(type.superInterfaces, seen);
         }
-        return (ResourceType[]) seen.toArray(new ResourceType[seen.size()]);
+        return seen;
     }
 
     private void computeInterfaceOrder(Collection<ResourceType> superInterfaces, Set<ResourceType> seen) {
@@ -162,9 +197,7 @@ public class ResourceType {
         for (ResourceType e : superInterfaces) {
             computeInterfaceOrder(e.superInterfaces, seen);
         }
-    }
-
-    
+    }    
     
     // ------------------------------------------------------------------------
 

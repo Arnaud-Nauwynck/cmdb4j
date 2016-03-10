@@ -1,5 +1,7 @@
 package org.cmdb4j.core.model.reflect;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -9,6 +11,8 @@ import java.util.Map;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.util.CmdbObjectNotFoundException;
 import org.cmdb4j.core.util.CopyOnWriteUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 
@@ -24,7 +28,9 @@ import fr.an.dynadapter.typehiera.ITypeHierarchy;
  * 
  */
 public class ResourceTypeRepository {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ResourceTypeRepository.class);
+    
     /**
      * thread safety: copy on write
      */
@@ -53,6 +59,7 @@ public class ResourceTypeRepository {
     public ResourceType getOrCreateType(String name) {
         ResourceType res = name2types.get(name);
         if (res == null) {
+            ResourceTypeRepositoryChange eventToSend = null;
             synchronized(this) {
                 res = name2types.get(name);
                 if (res == null) {
@@ -61,7 +68,12 @@ public class ResourceTypeRepository {
                     HashMap<String,ResourceType> copyOnWrite = new LinkedHashMap<>(name2types);
                     copyOnWrite.put(name, res);
                     this.name2types = copyOnWrite;
+                    
+                    eventToSend = ResourceTypeRepositoryChange.newResourceTypeDeclChange(res, true); 
                 }
+            }
+            if (eventToSend != null) { // fire out of synchronized
+                fireChangeEvent(eventToSend);
             }
         }
         return res;
@@ -90,9 +102,20 @@ public class ResourceTypeRepository {
         this.listeners = CopyOnWriteUtils.immutableCopyWithRemove(listeners, listener);
     }
 
+    /*pp*/ void fireChangeEvent(ResourceTypeRepositoryChange change) {
+        final List<ResourceTypeRepositoryListener> tmp = listeners;
+        if (tmp != null && !tmp.isEmpty()) {
+            for(ResourceTypeRepositoryListener e : listeners) {
+                try {
+                    e.onChange(change);
+                } catch(Exception ex) {
+                    LOG.error("Failure occured on listener onChange ..ignore, no rethrow!", ex);
+                }
+            }
+        }
+    }
     
-    
-    // management of adapter / AdaptterFactory / ItfId
+    // management of adapter / AdapterFactory / ItfId
     // ------------------------------------------------------------------------
     
     public IAdapterAlternativesManager<ResourceType> getAdapterManager() {
@@ -108,15 +131,52 @@ public class ResourceTypeRepository {
     }
 
     
+    // expose IAdapterAlternativesManagerSPI (wrap with proxy to fire change events)
+    // => delegate all methods + fire events
+    // ------------------------------------------------------------------------
     
     public IAdapterAlternativesManagerSPI<ResourceType> getAdapterManagerSPI() {
-        return adapterManager;
+        return new IAdapterAlternativesManagerSPI<ResourceType>() {
+            @Override
+            public void registerAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
+                adapterManager.registerAdapters(factory, adaptableType);
+                fireChangeEvent(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(null, factory, adaptableType));
+            }
+            @Override
+            public void unregisterAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
+                adapterManager.unregisterAdapters(factory, adaptableType);
+                fireChangeEvent(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(factory, null, adaptableType));
+            }
+            @Override
+            public void registerAdapters(Collection<AdapterAltFactoryRegistration<ResourceType>> registrations) {
+                adapterManager.registerAdapters(registrations);
+                List<ResourceTypeRepositoryChange> chgs = new ArrayList<>();
+                for(AdapterAltFactoryRegistration<ResourceType> e : registrations) {
+                    chgs.add(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(null, e.factory, e.adaptableDataType));
+                }
+                fireChangeEvent(ResourceTypeRepositoryChange.newCompositeResourceTypeRepositoryChange(chgs));
+            }
+            @Override
+            public void unregisterAdapters(Collection<AdapterAltFactoryRegistration<ResourceType>> registrations) {
+                adapterManager.unregisterAdapters(registrations);
+                List<ResourceTypeRepositoryChange> chgs = new ArrayList<>();
+                for(AdapterAltFactoryRegistration<ResourceType> e : registrations) {
+                    chgs.add(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(e.factory, null, e.adaptableDataType));
+                }
+                fireChangeEvent(ResourceTypeRepositoryChange.newCompositeResourceTypeRepositoryChange(chgs));
+            }
+            @Override
+            public void flushLookup() {
+                adapterManager.flushLookup();
+                // fire event?
+            }
+        };
     }
-
+    
+    /** same as getAdapterManagerSPI().registerAdapters() */
     public void registerAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
-        adapterManager.registerAdapters(factory, adaptableType);
+        getAdapterManagerSPI().registerAdapters(factory, adaptableType);
     }
-
     
     // ------------------------------------------------------------------------
 
