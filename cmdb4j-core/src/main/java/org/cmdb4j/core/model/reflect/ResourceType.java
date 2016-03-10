@@ -21,6 +21,8 @@ public class ResourceType {
     
     private static final Logger LOG = LoggerFactory.getLogger(ResourceType.class);
     
+    private final ResourceTypeRepository owner;
+    
     private final String name;
     
     
@@ -49,11 +51,16 @@ public class ResourceType {
 
     // ------------------------------------------------------------------------
     
-    public ResourceType(String name) {
+    public ResourceType(ResourceTypeRepository owner, String name) {
+        this.owner = owner;
         this.name = name;
     }
     
     // ------------------------------------------------------------------------
+    
+    public ResourceTypeRepository getOwner() {
+        return owner;
+    }
     
     public String getName() {
         return name;

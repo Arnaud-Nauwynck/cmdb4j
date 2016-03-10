@@ -1,13 +1,18 @@
 package org.cmdb4j.core.util;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.regex.Pattern;
 
-public class StringListUtils {
+/**
+ * utility methods on string list
+ */
+public final class StringListUtils {
 
-
-	public static Pattern findFirstMatches(String text, List<Pattern> patterns) {
+    private StringListUtils() {
+    }
+    
+	public static Pattern findFirstMatches(String text, Collection<Pattern> patterns) {
 		Pattern res = null;
 		for(Pattern pattern : patterns) {
 			if (pattern.matcher(text).matches()) {
@@ -18,7 +23,7 @@ public class StringListUtils {
 		return res;
 	}
 
-	public static String findFirstEndsWith(String text, List<String> ends) {
+	public static String findFirstEndsWith(String text, Collection<String> ends) {
 		String res = null;
 		for(String end : ends) {
 			if (text.endsWith(end)) {
@@ -33,7 +38,7 @@ public class StringListUtils {
 		return findFirstEndsWith(text, Arrays.asList(ends));
 	}
 
-	public static String findFirstStartsWith(String text, List<String> starts) {
+	public static String findFirstStartsWith(String text, Collection<String> starts) {
 		String res = null;
 		for(String start : starts) {
 			if (text.startsWith(start)) {
@@ -48,5 +53,5 @@ public class StringListUtils {
 		return findFirstStartsWith(text, Arrays.asList(starts));
 	}
 
-	
+
 }

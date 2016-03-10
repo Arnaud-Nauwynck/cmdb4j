@@ -3,10 +3,14 @@ package org.cmdb4j.core.model.reflect;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.util.CmdbObjectNotFoundException;
+import org.cmdb4j.core.util.CopyOnWriteUtils;
+
+import com.google.common.collect.ImmutableList;
 
 import fr.an.dynadapter.alt.AdapterAlternativesManager;
 import fr.an.dynadapter.alt.IAdapterAlternativeFactory;
@@ -16,6 +20,9 @@ import fr.an.dynadapter.alt.ItfAlternativeId;
 import fr.an.dynadapter.alt.ItfId;
 import fr.an.dynadapter.typehiera.ITypeHierarchy;
 
+/**
+ * 
+ */
 public class ResourceTypeRepository {
 
     /**
@@ -31,6 +38,11 @@ public class ResourceTypeRepository {
      */
     private AdapterAlternativesManager<ResourceType> adapterManager = new AdapterAlternativesManager<>(innerTypeHierarchy);
     
+    /**
+     * thread safety: copy on write
+     */
+    private List<ResourceTypeRepositoryListener> listeners = ImmutableList.of();
+    
     // ------------------------------------------------------------------------
 
     public ResourceTypeRepository() {
@@ -44,7 +56,7 @@ public class ResourceTypeRepository {
             synchronized(this) {
                 res = name2types.get(name);
                 if (res == null) {
-                    res = new ResourceType(name);
+                    res = new ResourceType(this, name);
                     
                     HashMap<String,ResourceType> copyOnWrite = new LinkedHashMap<>(name2types);
                     copyOnWrite.put(name, res);
@@ -67,6 +79,19 @@ public class ResourceTypeRepository {
         return res;
     }
 
+    // management of listeners
+    // ------------------------------------------------------------------------
+
+    public void addistener(ResourceTypeRepositoryListener listener) {
+        this.listeners = CopyOnWriteUtils.immutableCopyWithAdd(listeners, listener);
+    }
+
+    public void removeListener(ResourceTypeRepositoryListener listener) {
+        this.listeners = CopyOnWriteUtils.immutableCopyWithRemove(listeners, listener);
+    }
+
+    
+    
     // management of adapter / AdaptterFactory / ItfId
     // ------------------------------------------------------------------------
     
