@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.util.CmdbObjectNotFoundException;
@@ -31,11 +32,26 @@ public class ResourceTypeRepository {
     
     private static final Logger LOG = LoggerFactory.getLogger(ResourceTypeRepository.class);
     
+    private final Object lock = new Object();
+    
     /**
-     * thread safety: copy on write
+     * thread safety: immutable with copy-on-write, @ProtectedBy(lock)
      */
     private Map<String,ResourceType> name2types = Collections.emptyMap();
     
+    /**
+     * TODO .. not implemented yet..
+     */
+    private Map<ResourceType,Set<ResourceType>> cacheTypeToSuperTypes = new HashMap<>();
+
+    /**
+     * TODO .. not implemented yet..
+     */
+    private Map<ResourceType,Set<ResourceType>> cacheTypeToSubTypes = new HashMap<>();
+    
+    /**
+     * internal for AdapterAlternativesManager
+     */
     private InnerTypeHierarchy innerTypeHierarchy = new InnerTypeHierarchy();
     
     /**
@@ -60,7 +76,7 @@ public class ResourceTypeRepository {
         ResourceType res = name2types.get(name);
         if (res == null) {
             ResourceTypeRepositoryChange eventToSend = null;
-            synchronized(this) {
+            synchronized(lock) {
                 res = name2types.get(name);
                 if (res == null) {
                     res = new ResourceType(this, name);
@@ -69,7 +85,8 @@ public class ResourceTypeRepository {
                     copyOnWrite.put(name, res);
                     this.name2types = copyOnWrite;
                     
-                    eventToSend = ResourceTypeRepositoryChange.newResourceTypeDeclChange(res, true); 
+                    eventToSend = ResourceTypeRepositoryChange.newResourceTypeDeclChange(res, true);
+                    invalidateHierarchyChange();
                 }
             }
             if (eventToSend != null) { // fire out of synchronized
@@ -94,15 +111,35 @@ public class ResourceTypeRepository {
     // management of listeners
     // ------------------------------------------------------------------------
 
-    public void addistener(ResourceTypeRepositoryListener listener) {
-        this.listeners = CopyOnWriteUtils.immutableCopyWithAdd(listeners, listener);
+    public void addListener(ResourceTypeRepositoryListener listener) {
+        synchronized(lock) {
+            this.listeners = CopyOnWriteUtils.immutableCopyWithAdd(listeners, listener);
+        }
     }
 
     public void removeListener(ResourceTypeRepositoryListener listener) {
-        this.listeners = CopyOnWriteUtils.immutableCopyWithRemove(listeners, listener);
+        synchronized(lock) {
+            this.listeners = CopyOnWriteUtils.immutableCopyWithRemove(listeners, listener);
+        }
     }
 
-    /*pp*/ void fireChangeEvent(ResourceTypeRepositoryChange change) {
+    /*pp*/ void onChangeWithoutHierarchyChange(ResourceTypeRepositoryChange change) {
+        fireChangeEvent(change);
+    }
+
+    /*pp*/ void onChangeWithHierarchyChange(ResourceTypeRepositoryChange change) {
+        synchronized(lock) {
+            invalidateHierarchyChange();
+        }
+        fireChangeEvent(change);
+    }
+
+    private void invalidateHierarchyChange() {
+        cacheTypeToSuperTypes.clear();
+        cacheTypeToSubTypes.clear();
+    }
+    
+    private void fireChangeEvent(ResourceTypeRepositoryChange change) {
         final List<ResourceTypeRepositoryListener> tmp = listeners;
         if (tmp != null && !tmp.isEmpty()) {
             for(ResourceTypeRepositoryListener e : listeners) {
@@ -115,7 +152,7 @@ public class ResourceTypeRepository {
         }
     }
     
-    // management of adapter / AdapterFactory / ItfId
+    // query for adapter / AdapterFactory alternative support / ItfId support
     // ------------------------------------------------------------------------
     
     public IAdapterAlternativesManager<ResourceType> getAdapterManager() {

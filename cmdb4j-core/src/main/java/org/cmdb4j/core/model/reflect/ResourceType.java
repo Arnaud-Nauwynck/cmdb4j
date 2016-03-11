@@ -119,7 +119,7 @@ public class ResourceType {
         tmp.put(fieldname, res);
         this.fields = ImmutableMap.copyOf(tmp);
         
-        owner.fireChangeEvent(ResourceTypeRepositoryChange.newResourceTypeFieldsChange(this, null, res));
+        owner.onChangeWithoutHierarchyChange(ResourceTypeRepositoryChange.newResourceTypeFieldsChange(this, null, res));
         return res;
     }
 
@@ -138,7 +138,7 @@ public class ResourceType {
         
         this.superType = type;
         
-        owner.fireChangeEvent(ResourceTypeRepositoryChange.newResourceTypeHierarchyChange(this,
+        owner.onChangeWithHierarchyChange(ResourceTypeRepositoryChange.newResourceTypeHierarchyChange(this,
             null, superType, Collections.emptyList(), Collections.emptyList()));
     }
     
@@ -156,7 +156,7 @@ public class ResourceType {
         tmp.add(superType);
         this.superInterfaces = ImmutableList.copyOf(tmp);
 
-        owner.fireChangeEvent(ResourceTypeRepositoryChange.newResourceTypeHierarchyChange(this,
+        owner.onChangeWithHierarchyChange(ResourceTypeRepositoryChange.newResourceTypeHierarchyChange(this,
             null, null, prevSuperInterfaces, superInterfaces));
     }
 
@@ -170,7 +170,7 @@ public class ResourceType {
         return (ResourceType[]) seen.toArray(new ResourceType[seen.size()]);
     }
 
-    private Set<ResourceType> computeSuperTypesSet() {
+    public Set<ResourceType> computeSuperTypesSet() {
         Set<ResourceType> seen = new LinkedHashSet<>(4);
         // first traverse type hierarchy
         List<ResourceType> allSuperTypes = new ArrayList<ResourceType>();
