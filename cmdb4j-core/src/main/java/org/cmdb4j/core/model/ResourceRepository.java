@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
@@ -20,6 +21,8 @@ import org.cmdb4j.core.util.CmdbAssertUtils;
 import org.cmdb4j.core.util.CmdbObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Repository for Resource elements.
@@ -270,15 +273,22 @@ public class ResourceRepository implements Closeable {
     protected Map<ResourceId, Resource> internalResourcesBySubType(ResourceType ancestorType) {
         Map<ResourceId, Resource> res = cacheSupertype2Id2Resources.get(ancestorType);
         if (res == null) {
-            res = new LinkedHashMap<>();
+            res = doInternalResourcesBySubType(ancestorType);
             cacheSupertype2Id2Resources.put(ancestorType, res);
-            
-            // Map<ResourceType>
-            
         }
         return res;
     }
     
+    protected Map<ResourceId, Resource> doInternalResourcesBySubType(ResourceType ancestorType) {
+        Map<ResourceId, Resource> res = new LinkedHashMap<>();
+        Set<ResourceType> subTypes = resourceTypeRepository.subTypeHierarchyOf(ancestorType);
+        for(ResourceType subType : subTypes) {
+            Collection<Resource> tmpres = internalResourcesByExactType(subType);
+            Resource.lsToIdMap(res, tmpres);
+        }
+        return ImmutableMap.copyOf(res);
+    }
+        
     /* callback listener for resourceTypeRepository.addistener */
     protected void onResourceTypeRepositoryChange(ResourceTypeRepositoryChange change) {
         if (change instanceof AbstractResourceTypeChange || change instanceof CompositeResourceTypeRepositoryChange) {

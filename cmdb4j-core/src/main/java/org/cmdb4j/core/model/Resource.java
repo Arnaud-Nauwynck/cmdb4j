@@ -2,10 +2,13 @@ package org.cmdb4j.core.model;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.cmdb4j.core.model.reflect.ResourceType;
 import org.cmdb4j.core.util.CmdbAssertUtils;
@@ -169,5 +172,25 @@ public class Resource {
         return true;
     }
 
+    // static utility methods
+    // ------------------------------------------------------------------------
     
+    public static List<ResourceId> toIds(Collection<Resource> ls) {
+        return ls.stream().map(x -> x.id).collect(Collectors.toList());
+    }
+
+    public static Map<ResourceId,Resource> lsToIdMap(Collection<Resource> ls) {
+        return lsToIdMap(new HashMap<>(), ls);
+    }
+    
+    public static Map<ResourceId,Resource> lsToIdMap(Map<ResourceId,Resource> res, Collection<Resource> ls) {
+        if (res == null) {
+            res = new HashMap<>();
+        }
+        for(Resource e : ls) {
+            res.put(e.id, e);
+        }
+        return res;
+    }
+
 }
