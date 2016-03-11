@@ -1,10 +1,12 @@
 package org.cmdb4j.core.model.reflect;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import fr.an.dynadapter.alt.AdapterAlternativesManager;
 import fr.an.dynadapter.alt.IAdapterAlternativeFactory;
@@ -39,15 +42,27 @@ public class ResourceTypeRepository {
      */
     private Map<String,ResourceType> name2types = Collections.emptyMap();
     
-    /**
-     * TODO .. not implemented yet..
-     */
-    private Map<ResourceType,Set<ResourceType>> cacheTypeToSuperTypes = new HashMap<>();
+//    /**
+//     * cached super-type herarchy for a type:
+//     * 
+//     * equivalent example with classes: 
+//     * given "class A{}; class B extends A {}; class C extends B {}; class D extends A {}"
+//     * => superTypesOf(A) = [A], superTypesOf(B) = [B, A], superTypesOf(C) = [C, B, A], ...  
+//     * 
+//     *  thread safety: immutable with copy-on-write, @ProtectedBy(lock)
+//     */
+//    private Map<ResourceType,Set<ResourceType>> cacheTypeToSuperTypes = Collections.emptyMap();
 
     /**
-     * TODO .. not implemented yet..
+     * cached sub-type herarchy for a type:
+     * 
+     * equivalent example with classes: 
+     * given "class A{}; class B extends A {}; class C extends B {}; class D extends A {}"
+     * => subTypesOf(A) = [A, B, C, D], subTypesOf(B) = [B, C, D], subTypesOf(C) = [C], ...  
+     * 
+     *  thread safety: immutable with copy-on-write, @ProtectedBy(lock)
      */
-    private Map<ResourceType,Set<ResourceType>> cacheTypeToSubTypes = new HashMap<>();
+    private Map<ResourceType,Set<ResourceType>> cacheTypeToSubTypes = Collections.emptyMap();
     
     /**
      * internal for AdapterAlternativesManager
@@ -135,8 +150,8 @@ public class ResourceTypeRepository {
     }
 
     private void invalidateHierarchyChange() {
-        cacheTypeToSuperTypes.clear();
-        cacheTypeToSubTypes.clear();
+//        cacheTypeToSuperTypes = Collections.emptyMap();
+        cacheTypeToSubTypes = Collections.emptyMap();
     }
     
     private void fireChangeEvent(ResourceTypeRepositoryChange change) {
@@ -213,6 +228,59 @@ public class ResourceTypeRepository {
     /** same as getAdapterManagerSPI().registerAdapters() */
     public void registerAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
         getAdapterManagerSPI().registerAdapters(factory, adaptableType);
+    }
+    
+    // (cached) helper for TypeHierarchy 
+    // ------------------------------------------------------------------------
+
+    public Set<ResourceType> superTypeHierarchyOf(ResourceType type) {
+        ResourceType[] tmpres = innerTypeHierarchy.computeSuperTypesOrder(type);
+        return ImmutableSet.copyOf(Arrays.asList(tmpres));
+    }
+
+    public Set<ResourceType> subTypeHierarchyOf(ResourceType type) {
+        Set<ResourceType> res = cacheTypeToSubTypes.get(type);
+        if (res == null) {
+            synchronized(lock) {
+                res = cacheTypeToSubTypes.get(type); //re-get within lock
+                if (res == null) {
+                    res = doSubTypeHierarchyOf(type);
+                    
+                    // copy-on-write cacheTypeToSubTypes.put(type, res);
+                    cacheTypeToSubTypes = CopyOnWriteUtils.immutableCopyWithPut(cacheTypeToSubTypes, type, res);
+                }
+            }
+        }
+        return res;        
+    }
+    
+    protected Set<ResourceType> doSubTypeHierarchyOf(ResourceType type) {
+        Set<ResourceType> res = new LinkedHashSet<ResourceType>();
+        res.add(type);
+        doRecursiveScanDirectSubType(res, type);
+        doRecursiveScanDirectSubInterface(res, type);
+        return ImmutableSet.copyOf(res);
+    }
+
+    private void doRecursiveScanDirectSubType(Set<ResourceType> res, ResourceType type) {
+        for(ResourceType t : name2types.values()) {
+            if (t.getSuperType() == type && !res.contains(t)) {
+                res.add(t);
+                // recurse
+                doRecursiveScanDirectSubType(res, t);
+            }
+        }
+    }
+
+    private void doRecursiveScanDirectSubInterface(Set<ResourceType> res, ResourceType type) {
+        for(ResourceType t : name2types.values()) {
+            ImmutableList<ResourceType> superInterfaces = t.getSuperInterfaces();
+            if (superInterfaces != null && superInterfaces.contains(type) && !res.contains(t)) {
+                res.add(t);
+                // recurse
+                doRecursiveScanDirectSubInterface(res, t);
+            }
+        }
     }
     
     // ------------------------------------------------------------------------
