@@ -28,8 +28,13 @@ import com.google.common.collect.ImmutableMap;
  * Repository for Resource elements.
  * <p>
  * 
- * Resources can be added/removed, then queryed by id, exact type, or superType hierarchy.<BR/>
+ * Resources can be added/removed, and modified.<BR/>
  * ... id and type do not change per Resource, everything else can dynamically change (type hierarchy..)
+ * 
+ * Resources can be queryed by id, by exact datatype or superType hierarchy, and by (adapter) interface.
+ * Query results are internally cached when it involves only id/type/superType/interfaces, 
+ * but query with other Predicate may be slower.
+ * It is expected that there are less than million(s) of resources, so everything fits in memory.    
  *
  * <p>
  * Thread safety: thread-safe using internal lock 
