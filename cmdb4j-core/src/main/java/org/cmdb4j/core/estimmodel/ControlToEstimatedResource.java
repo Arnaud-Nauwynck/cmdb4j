@@ -25,9 +25,9 @@ import org.cmdb4j.core.model.Resource;
  *                                                    |                                                     .
  *       "@control-constaints": {                     |                                                     .
  *       	"mem-constraint1": {                      |                                                     .
- *       		"jmx.mem.free > 10_000_000"           |  +-------------------------------------------+      .
- *       	}                                         |  | ControlToEstimatedResourceMappingRegistry |      .
- *       }	                                          |  +-------------------------------------------+      .
+ *       		"jmx.mem.free > 10_000_000"           |  +--------------------------------+                 .
+ *       	}                                         |  | ResourceStateEstimatorRegistry |                 .
+ *       }	                                          |  +--------------------------------+                 .
  *     }                                              |           /\                                        .
  *                                                    |           \/                                        .
  *              /\                                     \          |                                 .. getAdapter(resource,
