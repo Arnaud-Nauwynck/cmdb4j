@@ -83,6 +83,11 @@ public class ResourceRepository implements Closeable {
         resourceTypeRepository.addListener(innerTypeListener);
     }
 
+    public ResourceRepository(ResourceTypeRepository resourceTypeRepository, Collection<Resource> resources) {
+        this(resourceTypeRepository);
+        addAll(resources);
+    }
+    
     @Override
     public void close() {
         if (innerTypeListener != null) {
@@ -115,6 +120,12 @@ public class ResourceRepository implements Closeable {
         return res;
     }
 
+    public void addAll(Collection<Resource> objs) {
+        for(Resource e : objs) {
+            add(e);
+        }
+    }
+    
     public void add(Resource obj) {
         CmdbAssertUtils.checkNotNull(obj);
         ResourceId id = obj.getId();
