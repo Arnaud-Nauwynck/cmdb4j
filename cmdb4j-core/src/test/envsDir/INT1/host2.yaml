@@ -1,0 +1,15 @@
+
+- id: host2
+  type: RemoteSshHost
+  os: unix
+
+- relativeId: tomcat1
+  type: Tomcat
+  hostId: INT1/host2
+  tomcatBase: /home/user/tomcat1
+
+- relativeId: tomcat2
+  type: Tomcat
+  hostId: INT1/host2
+  tomcatBase: /home/user/tomcat2
+  

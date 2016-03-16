@@ -98,14 +98,20 @@ public class EnvDirsResourceTreeRepository {
     
     private static final Logger LOG = LoggerFactory.getLogger(EnvDirsResourceTreeRepository.class);
     
+
+    private static final String DEFAULT_DIRNAME = "Default";
+    private static final String TEMPLATES_DIRNAME = "Templates";
+    private static final String TEMPLATE_PARAM_BASEFILENAME = "template-param.";
+    private static final String TEMPLATE_PARAM_DECL_BASEFILENAME = "template-param-decl.";
+    private static final String ENV_BASEFILENAME = "env";
+    
     private static final Predicate<String> DEFAULT_DIRNAME_ENV_ACCEPT = name -> ! (
-            name.equals("Default") || name.equals("Templates") || name.startsWith("test-"));
+            name.equals(DEFAULT_DIRNAME) || name.equals(TEMPLATES_DIRNAME) || name.startsWith("test-"));
     
     private File baseEnvsDir;
     
     private String cloudDirname = "cloud";
     
-    private static final String TEMPLATE_PARAM_BASEFILENAME = "template-param.";
     
     private Predicate<String> dirnameEnvAccept = DEFAULT_DIRNAME_ENV_ACCEPT;
     
@@ -193,7 +199,7 @@ public class EnvDirsResourceTreeRepository {
         EnvTemplateInstanceParameters templateParams = scanTemplateParamsFiles(envDir);
         
         String sourceTemplateEnvName = templateParams.getTemplateSourceEnvName();
-        File sourceTemplateEnvDir = new File(baseEnvsDir, "Templates/" + sourceTemplateEnvName);
+        File sourceTemplateEnvDir = new File(baseEnvsDir, TEMPLATES_DIRNAME + "/" + sourceTemplateEnvName);
         
         // recursive scan dir/files and replace json/yaml fields "relativeId" and "id"
         recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, sourceTemplateEnvDir, envName, envName + "/");
@@ -208,7 +214,7 @@ public class EnvDirsResourceTreeRepository {
             String fileName = file.getName();
             if (fileName.startsWith(".")) continue;
             if (file.isDirectory()) {
-                String childPathId = currPathId + "/" + fileName;
+                String childPathId = currPathId + fileName + "/";
                 // recurse in sub dir
                 recursiveScanAndConcatenateRelativeFiles(resultWriter, file, envName, childPathId);
             } else {
@@ -216,7 +222,7 @@ public class EnvDirsResourceTreeRepository {
                 int indexExtension = fileName.lastIndexOf('.');
                 String baseFilename = (indexExtension != -1)? fileName.substring(0, indexExtension) : fileName;
                 String fileExtension = (indexExtension != -1)? fileName.substring(indexExtension+1, fileName.length()) : "";
-                String childPathId = currPathId + "/" + baseFilename;
+                String childPathId = currPathId + ((baseFilename.equals(ENV_BASEFILENAME))? "" : baseFilename + "/");
 
                 if (FxFileUtils.isSupportedFileExtension(fileExtension)) {
                     // parse json/yaml file + replace relativeId + concatenate results to resultWriter
@@ -233,7 +239,9 @@ public class EnvDirsResourceTreeRepository {
     }
 
     protected void processFxTreeFile(FxChildWriter resultWriter, File file, String envName, String pathId) {
-        if (file.getName().startsWith(TEMPLATE_PARAM_BASEFILENAME)) {
+        if (file.getName().startsWith(TEMPLATE_PARAM_BASEFILENAME)
+                || file.getName().startsWith(TEMPLATE_PARAM_DECL_BASEFILENAME)
+                ) {
             // special skip for file "template-param" .yaml/.json  (expected for top level environment dir only?)
             return;
         }
