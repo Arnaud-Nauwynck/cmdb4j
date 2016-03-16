@@ -2,7 +2,7 @@
 templateSourceEnvName: template1
 
 params:
-  Topology_NumberOfVirtualHost: 3
+  Topology_NumberOfVirtualHost: 50
   
 metaparams:
   description: a temporary env for test...

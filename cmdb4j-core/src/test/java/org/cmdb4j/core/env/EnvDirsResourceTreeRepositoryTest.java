@@ -74,6 +74,9 @@ public class EnvDirsResourceTreeRepositoryTest {
     public void testGetEnvTreeRepo_cloud1() {
         EnvResourceTreeRepository res = sut.getEnvTreeRepo("cloud/instance1");
         Assert.assertNotNull(res);
+        ResourceRepository resRepo = res.getResourceRepository();
+        List<Resource> resources = resRepo.findAll();
+        Assert.assertEquals(150, resources.size());  // 50 * 3(host + tomcat1 + tomcat2)
     }
 
 }

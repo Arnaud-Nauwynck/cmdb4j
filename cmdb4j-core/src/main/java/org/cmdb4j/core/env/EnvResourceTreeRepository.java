@@ -37,13 +37,13 @@ public class EnvResourceTreeRepository {
 
     public EnvResourceTreeRepository(ResourceTypeRepository typeRepository, String envName, 
             EnvTemplateInstanceParameters templateParams, 
-            FxNode rootNode) {
+            FxNode rawRootNode) {
         this.typeRepository = typeRepository;
         this.envName = envName;
         this.templateParams = templateParams;
 
         // replace template parameters + preprocess "#phase0"
-        this.rootNode = preprocessNode(rootNode);
+        this.rootNode = preprocessNode(rawRootNode);
 
         // scan resources from tree node
         Map<ResourceId, Resource> id2ResourceElts = recursiveScanResourceElts(rootNode, typeRepository);
