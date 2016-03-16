@@ -20,7 +20,6 @@ import fr.an.fxtree.format.FxFileUtils;
 import fr.an.fxtree.impl.helper.FxNodeCopyVisitor;
 import fr.an.fxtree.impl.helper.FxNodeValueUtils;
 import fr.an.fxtree.impl.model.mem.FxMemRootDocument;
-import fr.an.fxtree.impl.util.FxUtils;
 import fr.an.fxtree.model.FxArrayNode;
 import fr.an.fxtree.model.FxChildWriter;
 import fr.an.fxtree.model.FxNode;
@@ -227,8 +226,8 @@ public class EnvDirsResourceTreeRepository {
                 if (FxFileUtils.isSupportedFileExtension(fileExtension)) {
                     // parse json/yaml file + replace relativeId + concatenate results to resultWriter
                     processFxTreeFile(resultWriter, file, envName, childPathId);
-                } else if (fileName.endsWith(".properties")) {
-                    throw FxUtils.notImplYet();
+//                } else if (fileName.endsWith(".properties")) {
+//                    throw FxUtils.notImplYet();
                 } else {
                     // ignore unrecognised file suffix
                     LOG.debug("unrecognized file suffix .. ignore " + file);
