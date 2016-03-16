@@ -4,14 +4,18 @@ import java.util.List;
 
 import org.cmdb4j.core.model.reflect.ResourceType;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
+import org.cmdb4j.core.tst.ITstHttpPingSupport;
 import org.cmdb4j.core.tst.TstResourceTypes1;
 import org.cmdb4j.core.tst.TstResourceTypes2;
+import org.cmdb4j.core.tst.TstTomcatHttpPingAdapter;
 import org.cmdb4j.core.util.CmdbObjectNotFoundException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
+
+import fr.an.dynadapter.alt.ItfId;
 
 public class ResourceRepositoryTest {
 
@@ -37,6 +41,12 @@ public class ResourceRepositoryTest {
     @Before
     public void setup() {
         addTstResources1();
+    }
+
+    @Test
+    public void testClose() {
+        sut.close();
+        Assert.assertTrue(sut.findAll().isEmpty());
     }
     
     @Test
@@ -194,8 +204,26 @@ public class ResourceRepositoryTest {
         res = sut.findFirstBySubTypeAndCrit(webserverType, x -> x.getId().toString().contains("jetty"));
         Assert.assertSame(jetty1, res);
     }
-    
-        
+
+    @Test
+    public void testFindAdapterByItf() {
+        ItfId<ITstHttpPingSupport> pingSupportItf = ItfId.of(ITstHttpPingSupport.class);
+        List<ITstHttpPingSupport> res = sut.findAdaptersByItf(pingSupportItf);
+        Assert.assertTrue(res.isEmpty());
+        List<Resource> tomcats = sut.findBySubType(tomcatType);
+        // register adapter factory.. retry
+        typeRepo.getAdapterManagerSPI().registerAdapters(TstTomcatHttpPingAdapter.Factory.INSTANCE, tomcatType);
+        res = sut.findAdaptersByItf(pingSupportItf);
+        Assert.assertFalse(res.isEmpty());
+        Assert.assertEquals(tomcats.size(), res.size());
+        //add more resources .. retry
+        addTstResources2();
+        tomcats = sut.findBySubType(tomcatType);
+        Assert.assertEquals(3, tomcats.size());
+        res = sut.findAdaptersByItf(pingSupportItf);
+        Assert.assertEquals(tomcats.size(), res.size());
+    }
+
     private void addTstResources1() {
         sut.add(tc1);
         sut.add(tc2);
@@ -207,11 +235,6 @@ public class ResourceRepositoryTest {
         sut.add(tc3);
     }
 
-    @Test
-    public void testClose() {
-        sut.close();
-        Assert.assertTrue(sut.findAll().isEmpty());
-    }
     
     
 }

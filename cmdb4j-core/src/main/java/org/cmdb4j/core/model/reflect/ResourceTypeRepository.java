@@ -182,6 +182,16 @@ public class ResourceTypeRepository {
         return adapterManager.getAdapter(adaptable, interfaceAlternativeId);
     }
 
+    public Collection<ResourceType> computeDataTypesHavingAdapterItf(ItfId<?> interfaceId) {
+        Collection<ResourceType> res = new ArrayList<>();
+        for(ResourceType resourceType : name2types.values()) {
+            Set<String> adapterAlternatives = adapterManager.getAdapterAlternatives(resourceType, interfaceId);
+            if (!adapterAlternatives.isEmpty()) {
+                res.add(resourceType);
+            }
+        }
+        return res;
+    }
     
     // expose IAdapterAlternativesManagerSPI (wrap with proxy to fire change events)
     // => delegate all methods + fire events
@@ -303,6 +313,5 @@ public class ResourceTypeRepository {
         }
         
     }
-    
     
 }

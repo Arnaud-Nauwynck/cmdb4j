@@ -24,6 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 
+import fr.an.dynadapter.alt.IAdapterAlternativesManager;
+import fr.an.dynadapter.alt.ItfId;
+
 /**
  * Repository for Resource elements.
  * <p>
@@ -73,6 +76,13 @@ public class ResourceRepository implements Closeable {
      */
     private final Map<ResourceType,Map<ResourceId,Resource>> cacheSupertype2Id2Resources = new LinkedHashMap<>();
 
+    /**
+     * lazy computed cache, derived index field for <code>id2resources</code>
+     * equivalent to pseudo ql "select itfId,id,getAdapter(resource,itfId) from id2resources groupby itfId"  
+     * Thread safety: @ProtectedBy("lock")
+     */
+    private final Map<ItfId<?>,Map<ResourceId,?>> cacheItf2Id2Adapters = new LinkedHashMap<>();
+
     
     // ------------------------------------------------------------------------
 
@@ -97,6 +107,7 @@ public class ResourceRepository implements Closeable {
                 id2resources.clear();
                 type2Id2Resources.clear();
                 cacheSupertype2Id2Resources.clear();
+                cacheItf2Id2Adapters.clear();
             }
         }
     }
@@ -141,6 +152,7 @@ public class ResourceRepository implements Closeable {
             
             // TOOPTIM? .. right now, simply re-index all
             cacheSupertype2Id2Resources.clear();
+            cacheItf2Id2Adapters.clear();
         }
     }
 
@@ -166,6 +178,7 @@ public class ResourceRepository implements Closeable {
 
             // TOOPTIM? .. right now, simply re-index all
             cacheSupertype2Id2Resources.clear();
+            cacheItf2Id2Adapters.clear();
         }
     }
 
@@ -193,13 +206,6 @@ public class ResourceRepository implements Closeable {
         return res;
     }
 
-    public List<Resource> findByExactType(ResourceType type) {
-        synchronized(lock) {
-            Collection<Resource> tmp = internalResourcesByExactType(type);
-            return new ArrayList<>(tmp);
-        }
-    }
-
     public Resource findFirstByCrit(Predicate<Resource> predicate) {
         Resource res = null;
         synchronized(lock) {
@@ -211,6 +217,13 @@ public class ResourceRepository implements Closeable {
             }
         }
         return res;
+    }
+    
+    public List<Resource> findByExactType(ResourceType type) {
+        synchronized(lock) {
+            Collection<Resource> tmp = internalResourcesByExactType(type);
+            return new ArrayList<>(tmp);
+        }
     }
     
     public List<Resource> findByExactTypeAndCrit(ResourceType type, Predicate<Resource> predicate) {
@@ -240,6 +253,9 @@ public class ResourceRepository implements Closeable {
         return res;
     }
 
+    // Query using data Type->SubType hierarchy
+    // ------------------------------------------------------------------------
+    
     public List<Resource> findBySubType(ResourceType ancestorType) {
         synchronized(lock) {
             return new ArrayList<>(internalResourcesBySubType(ancestorType).values());
@@ -273,6 +289,43 @@ public class ResourceRepository implements Closeable {
         return res;
     }
     
+    // Query using registered adapterFactory per interfaceId: ItfId->Adaptable
+    // ------------------------------------------------------------------------
+    
+    public <T> List<T> findAdaptersByItf(ItfId<T> itfId) {
+        synchronized(lock) {
+            return new ArrayList<>(internalAdaptersByItf(itfId).values());
+        }
+    }
+    
+    public <T> List<T> findAdaptersByItfAndCrit(ItfId<T> itfId, Predicate<T> adapterPredicate) {
+        List<T> res = new ArrayList<>();
+        synchronized(lock) {
+            Map<ResourceId, T> tmp = internalAdaptersByItf(itfId);
+            for(T e : tmp.values()) {
+                if (adapterPredicate == null || adapterPredicate.test(e)) {
+                    res.add(e);
+                }
+            }
+        }
+        return res;
+    }
+
+    public <T> T findFirstAdapterByItfAndCrit(ItfId<T> itfId, Predicate<T> adapterPredicate) {
+        T res = null;
+        synchronized(lock) {
+            Map<ResourceId, T> tmp = internalAdaptersByItf(itfId);
+            for(T e : tmp.values()) {
+                if (adapterPredicate == null || adapterPredicate.test(e)) {
+                    res = e;
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+    
+    // Internal Cached Query per Type & SubType
     // ------------------------------------------------------------------------
     
     private Collection<Resource> internalResourcesByExactType(ResourceType type) {
@@ -304,15 +357,67 @@ public class ResourceRepository implements Closeable {
         }
         return ImmutableMap.copyOf(res);
     }
-        
+
+    // Internal Cached Query Adapters per ItfId
+    // ------------------------------------------------------------------------
+
+    protected <T> Map<ResourceId, T> internalAdaptersByItf(ItfId<T> itfId) {
+        @SuppressWarnings("unchecked")
+        Map<ResourceId, T> res = (Map<ResourceId, T>) cacheItf2Id2Adapters.get(itfId);
+        if (res == null) {
+            res = doInternalAdaptersByItf(itfId);
+            cacheItf2Id2Adapters.put(itfId, res);
+        }
+        return res;
+    }
+    
+    protected <T> Map<ResourceId, T> doInternalAdaptersByItf(ItfId<T> itfId) {
+        Map<ResourceId, T> res = new LinkedHashMap<>();
+        boolean useNaiveImpl = false;
+        if (useNaiveImpl) {
+            doResourcesToAdapters(res, id2resources.values(), itfId);
+        } else {
+            Collection<ResourceType> resourceTypes = resourceTypeRepository.computeDataTypesHavingAdapterItf(itfId);
+            for(ResourceType resourceType : resourceTypes) {
+                Collection<Resource> resources = internalResourcesByExactType(resourceType);
+                doResourcesToAdapters(res, resources, itfId);
+            }
+        }
+        return ImmutableMap.copyOf(res);
+    }
+
+    protected <T> void doResourcesToAdapters(Map<ResourceId, T> res, Collection<Resource> resources, ItfId<T> itfId) {
+        final IAdapterAlternativesManager<ResourceType> adapterManager = resourceTypeRepository.getAdapterManager();
+        for(Resource resource : resources) {
+            ResourceId id = resource.getId();
+            try {
+                // TODO.. may cache wrap adapter on resource?
+                T resElt = adapterManager.getAdapter(resource, itfId);    
+                if (resElt != null) {
+                    res.put(id, resElt);
+                }
+            } catch(Exception ex) {
+                LOG.warn("Failed to query adapter " + itfId + " for resource " + id + " ... ignore, skip  ex:" + ex.getMessage());
+            }
+        }
+    }
+    
+    // ------------------------------------------------------------------------
+    
     /* callback listener for resourceTypeRepository.addistener */
     protected void onResourceTypeRepositoryChange(ResourceTypeRepositoryChange change) {
         if (change instanceof AbstractResourceTypeChange || change instanceof CompositeResourceTypeRepositoryChange) {
             // TOOPTIM? .. right now, simply re-index all
             synchronized(lock) {
                 cacheSupertype2Id2Resources.clear();
+                cacheItf2Id2Adapters.clear();
             }
-        } //else ignore (AdapterFactory added/removed ..)
+        } else {
+            // (AdapterFactory added/removed ..)
+            synchronized(lock) {
+                cacheItf2Id2Adapters.clear();
+            }
+        }
     }
 
 }
