@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import org.cmdb4j.core.model.Resource;
+import org.cmdb4j.core.model.ResourceId;
+import org.cmdb4j.core.model.ResourceRepository;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -179,31 +182,42 @@ public class EnvDirsResourceTreeRepository {
 
     protected EnvResourceTreeRepository parseStdEnvResourcesTree(String envName) {
         FxMemRootDocument rawEnvDoc = new FxMemRootDocument();
-        FxArrayNode rootNode = rawEnvDoc.contentWriter().addArray();
-        FxChildWriter rawNodesWriter = rootNode.insertBuilder();
+        FxArrayNode rawRootNode = rawEnvDoc.contentWriter().addArray();
+        FxChildWriter rawNodesWriter = rawRootNode.insertBuilder();
         File envDir = new File(baseEnvsDir, envName);
         
-        // recursive scan dir/files and replace json/yaml fields "relativeId" and "id"
+        // recursive scan dir/files <<baseEnvsDir>>/<<envName>>/**/*.[json|yaml]
         recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, envDir, envName, envName + "/");
         
-        return new EnvResourceTreeRepository(resourceTypeRepository, envName, null, rootNode);
+        return buildEnvResourceTreeRepository(envName, rawRootNode, null); 
     }
 
     protected EnvResourceTreeRepository parseCloudEnvResourcesTree(String envName) {
         FxMemRootDocument rawEnvDoc = new FxMemRootDocument();
-        FxArrayNode rootNode = rawEnvDoc.contentWriter().addArray();
-        FxChildWriter rawNodesWriter = rootNode.insertBuilder();
+        FxArrayNode rawRootNode = rawEnvDoc.contentWriter().addArray();
+        FxChildWriter rawNodesWriter = rawRootNode.insertBuilder();
         File envDir = new File(baseEnvsDir, envName);
         
+        // scan <<baseEnvsDir>>/<<envName>>/template-params.[json|yaml]
         EnvTemplateInstanceParameters templateParams = scanTemplateParamsFiles(envDir);
         
+        // recursive scan dir/files  <<baseEnvsDir>>/Templates/<<sourceTemplateEnvName>>/**/*.[json|yaml]
         String sourceTemplateEnvName = templateParams.getTemplateSourceEnvName();
         File sourceTemplateEnvDir = new File(baseEnvsDir, TEMPLATES_DIRNAME + "/" + sourceTemplateEnvName);
-        
-        // recursive scan dir/files and replace json/yaml fields "relativeId" and "id"
         recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, sourceTemplateEnvDir, envName, envName + "/");
-                
-        return new EnvResourceTreeRepository(resourceTypeRepository, envName, templateParams, rootNode);
+
+        return buildEnvResourceTreeRepository(envName, rawRootNode, templateParams); 
+    }
+    
+    protected EnvResourceTreeRepository buildEnvResourceTreeRepository(String envName, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
+        TreeToResourceHelper treeToResourceHelper = new TreeToResourceHelper();
+        FxNode rootNode = treeToResourceHelper.preprocessNode(envName, rawRootNode, templateParams);
+
+        // scan resources from tree node
+        Map<ResourceId, Resource> id2ResourceElts = TreeToResourceHelper.recursiveScanResourceElts(rootNode, resourceTypeRepository);
+        
+        ResourceRepository repo = new ResourceRepository(resourceTypeRepository, id2ResourceElts.values());
+        return new EnvResourceTreeRepository(this, envName, templateParams, rootNode, repo);
     }
     
     protected void recursiveScanAndConcatenateRelativeFiles(FxChildWriter resultWriter, File dir, String envName, String currPathId) {
