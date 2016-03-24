@@ -2,6 +2,10 @@ package org.cmdb4j.core.estimmodel;
 
 import fr.an.dynadapter.alt.ItfId;
 
+/**
+ * 
+ * @param <T>
+ */
 public interface IResourceStateEstimatorProvider<T> {
 
 	@SuppressWarnings("rawtypes")
