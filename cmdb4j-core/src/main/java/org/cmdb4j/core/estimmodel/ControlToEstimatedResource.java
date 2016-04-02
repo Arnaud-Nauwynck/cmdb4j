@@ -31,9 +31,9 @@ import org.cmdb4j.core.model.Resource;
  *     }                                              |           /\                                        .
  *                                                    |           \/                                        .
  *              /\                                     \          |                                 .. getAdapter(resource,
- *              ||                                      \     +----------------------------+            Itf(ResourceStateEstimatorProvider))
+ *              ||          Constraints                 \     +----------------------------+            Itf(ResourceStateEstimatorProvider))
  *       .... partially compare...                        --- | ControlToEstimatedResource |                .
- *              ||                                        --- +----------------------------+                .
+ *              ||          Violations                    --- +----------------------------+                .
  *              \/                                      /              /\          /\                       .
  *                                                     /               \/          \/                       .
  *  +------------------------------------+            |                |            |                       \/
@@ -83,7 +83,7 @@ import org.cmdb4j.core.model.Resource;
  *       		}
  *          }
  *       },
- *       "@estimators": {
+ *       "@estimators-data": {
  *       	...
  *       }
  *     }
@@ -131,7 +131,7 @@ public class ControlToEstimatedResource {
 
 	@Override
 	public String toString() {
-		return "ResourceEstimatedState [" 
+		return "ControlToEstimatedResource [" 
 				+ ((targetControlResource != null)? targetControlResource.getId() : "-")
 				+ "]";
 	}

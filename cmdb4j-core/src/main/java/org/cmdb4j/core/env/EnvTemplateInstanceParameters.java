@@ -15,7 +15,7 @@ public class EnvTemplateInstanceParameters {
     private final String templateSourceEnvName;
     
     /**
-     * parameter substituion for instanciating from the template
+     * parameter substitution for instanciating from the template
      * 
      */
     private final Map<String, FxNode> templateParameters;

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cmdb4j.core.estimmodel.ControlToEstimatedResource;
+import org.cmdb4j.core.estimmodel.IResourceStateEstimatorProvider;
 import org.cmdb4j.core.estimmodel.ResourceStateEstimatorRegistry;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.ResourceId;
@@ -65,6 +66,13 @@ public class ResourceStateEstimatorRegistryImpl implements ResourceStateEstimato
             }
             // update mapping
             // TODO..
+            
+            Map<String, IResourceStateEstimatorProvider> estimatorProviders = typeRepository.getAdapterManager().getAdapters(controlResource, IResourceStateEstimatorProvider.ITF_ID);
+            for(Map.Entry<String, IResourceStateEstimatorProvider> estimatorProviderEntry : estimatorProviders.entrySet()) {
+                IResourceStateEstimatorProvider estimatorProvider = estimatorProviderEntry.getValue();
+                Object estimator = estimatorProvider.createResourceEstimator(mapping);
+                
+            }
         }
         // (for incremental update) find all ControlToEstimatedResource not in control 
         // purge...
@@ -74,6 +82,7 @@ public class ResourceStateEstimatorRegistryImpl implements ResourceStateEstimato
         ResourceId id = controlResource.getId();
         ResourceType type = controlResource.getType();
         FxObjNode resObj = estimatedStorageNode.putObj(id.toString());
+        resObj.putObj("@estimated-fields");
         Resource res = new Resource(id, type, resObj);
         return res;
     }
