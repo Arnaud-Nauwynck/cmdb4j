@@ -10,9 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
-import org.cmdb4j.core.model.Resource;
-import org.cmdb4j.core.model.ResourceId;
-import org.cmdb4j.core.model.ResourceRepository;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +24,16 @@ import fr.an.fxtree.model.FxArrayNode;
 import fr.an.fxtree.model.FxChildWriter;
 import fr.an.fxtree.model.FxNode;
 import fr.an.fxtree.model.FxObjNode;
+import fr.an.fxtree.model.func.FxNodeFuncRegistry;
 
 /**
- * repository of EnvResourceTreeRepository(ies), base on file system Json / Yaml pre-processed files.<br/>
+ * root directory for list of EnvResourceTreeRepository(ies), base on file system Json / Yaml pre-processed files.<br/>
  * <p/>
  * 
- * The list of environement is dynamic, obtained by scanning all sub-dir of the top level base directory,<br/>
+ * The list of environment is dynamic, obtained by scanning all sub-dirs of the top level base directory,<br/>
  * with 3 special directories for handling "Default", "Templates" definition environment, and "cloud" template instance.
  * 
- * <H2>file system layout for multi-environements</H2>
+ * <H2>file system layout for multi-environments</H2>
  * 
  * <PRE>
  * baseEnvsDirs/
@@ -119,15 +117,18 @@ public class EnvDirsResourceTreeRepository {
     
     protected ResourceTypeRepository resourceTypeRepository;
 
+    private FxNodeFuncRegistry funcRegistry;
+    
     private List<String> _cacheListEnvs;
 
     private Map<String, EnvResourceTreeRepository> _cacheEnv2Repo = Collections.synchronizedMap(new HashMap<>());
 
     // ---------------------------------------------------------------------- --
 
-    public EnvDirsResourceTreeRepository(File baseEnvsDir, ResourceTypeRepository resourceTypeRepository) {
+    public EnvDirsResourceTreeRepository(File baseEnvsDir, ResourceTypeRepository resourceTypeRepository, FxNodeFuncRegistry funcRegistry) {
         this.baseEnvsDir = baseEnvsDir;
         this.resourceTypeRepository = resourceTypeRepository;
+        this.funcRegistry = funcRegistry;
     }
 
     // ---------------------------------------------------------------------- --
@@ -166,7 +167,16 @@ public class EnvDirsResourceTreeRepository {
             res.add(prefix + name);
         }
     }
+    
+    public ResourceTypeRepository getResourceTypeRepository() {
+        return resourceTypeRepository;
+    }
 
+    public FxNodeFuncRegistry getFuncRegistry() {
+        return funcRegistry;
+    }
+
+    
     public EnvResourceTreeRepository getEnvTreeRepo(String envName) {
         EnvResourceTreeRepository res = _cacheEnv2Repo.get(envName);
         if (res == null) {
@@ -189,7 +199,7 @@ public class EnvDirsResourceTreeRepository {
         // recursive scan dir/files <<baseEnvsDir>>/<<envName>>/**/*.[json|yaml]
         recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, envDir, envName, envName + "/");
         
-        return buildEnvResourceTreeRepository(envName, rawRootNode, null); 
+        return buildEnvResourceTreeRepository(envName, envDir, rawRootNode, null); 
     }
 
     protected EnvResourceTreeRepository parseCloudEnvResourcesTree(String envName) {
@@ -206,18 +216,13 @@ public class EnvDirsResourceTreeRepository {
         File sourceTemplateEnvDir = new File(baseEnvsDir, TEMPLATES_DIRNAME + "/" + sourceTemplateEnvName);
         recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, sourceTemplateEnvDir, envName, envName + "/");
 
-        return buildEnvResourceTreeRepository(envName, rawRootNode, templateParams); 
+        return buildEnvResourceTreeRepository(envName, envDir, rawRootNode, templateParams); 
     }
     
-    protected EnvResourceTreeRepository buildEnvResourceTreeRepository(String envName, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
-        TreeToResourceHelper treeToResourceHelper = new TreeToResourceHelper();
-        FxNode rootNode = treeToResourceHelper.preprocessNode(envName, rawRootNode, templateParams);
-
-        // scan resources from tree node
-        Map<ResourceId, Resource> id2ResourceElts = TreeToResourceHelper.recursiveScanResourceElts(rootNode, resourceTypeRepository);
-        
-        ResourceRepository repo = new ResourceRepository(resourceTypeRepository, id2ResourceElts.values());
-        return new EnvResourceTreeRepository(this, envName, templateParams, rootNode, repo);
+    protected EnvResourceTreeRepository buildEnvResourceTreeRepository(String envName, File envDir, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
+        EnvResourceTreeRepository res = new EnvResourceTreeRepository(this, envName, envDir, templateParams, rawRootNode);
+        res.init();
+        return res;
     }
     
     protected void recursiveScanAndConcatenateRelativeFiles(FxChildWriter resultWriter, File dir, String envName, String currPathId) {

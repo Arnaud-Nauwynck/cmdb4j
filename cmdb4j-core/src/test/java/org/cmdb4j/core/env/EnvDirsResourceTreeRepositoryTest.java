@@ -12,11 +12,13 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
+import fr.an.fxtree.impl.stdfunc.FxStdFuncs;
+
 public class EnvDirsResourceTreeRepositoryTest {
 
     protected ResourceTypeRepository resourceTypeRepository = new ResourceTypeRepository();
     protected File baseEnvsDir = new File("src/test/envsDir");
-    protected EnvDirsResourceTreeRepository sut = new EnvDirsResourceTreeRepository(baseEnvsDir, resourceTypeRepository);
+    protected EnvDirsResourceTreeRepository sut = new EnvDirsResourceTreeRepository(baseEnvsDir, resourceTypeRepository, FxStdFuncs.stdFuncRegistry());
     
     @Test
     public void testPurge() {

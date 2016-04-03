@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +193,12 @@ public class ResourceRepository implements Closeable {
         }
     }
 
+    public Map<ResourceId,Resource> findAllAsMap() {
+        synchronized (lock) {
+            return new HashMap<>(id2resources);
+        }
+    }
+    
     public List<ResourceId> findAllIds() {
         synchronized (lock) {
             return new ArrayList<>(id2resources.keySet());

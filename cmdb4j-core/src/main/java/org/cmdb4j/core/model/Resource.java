@@ -60,7 +60,11 @@ public class Resource {
     public FxObjNode getObjData() {
         return objData;
     }
-    
+
+    public void setObjData(FxObjNode p) {
+        this.objData = p;
+    }
+
     public void addRequireResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
         requireResources.put(p.getId(), p);
