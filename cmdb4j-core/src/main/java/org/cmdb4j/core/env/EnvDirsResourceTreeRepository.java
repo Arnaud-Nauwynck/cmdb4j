@@ -30,7 +30,7 @@ import fr.an.fxtree.model.func.FxNodeFuncRegistry;
  * root directory for list of EnvResourceTreeRepository(ies), base on file system Json / Yaml pre-processed files.<br/>
  * <p/>
  * 
- * The list of environment is dynamic, obtained by scanning all sub-dirs of the top level base directory,<br/>
+ * The list of environments is dynamic, obtained by scanning all sub-dirs of the top level base directory,<br/>
  * with 3 special directories for handling "Default", "Templates" definition environment, and "cloud" template instance.
  * 
  * <H2>file system layout for multi-environments</H2>
