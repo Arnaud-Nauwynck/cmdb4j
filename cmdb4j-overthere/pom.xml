@@ -4,7 +4,7 @@
   <parent>
   <groupId>org.cmdb4j</groupId>
   <artifactId>cmdb4j-parent</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
   </parent>
 
 
