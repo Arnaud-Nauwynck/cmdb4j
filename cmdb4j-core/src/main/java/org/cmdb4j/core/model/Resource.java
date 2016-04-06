@@ -5,9 +5,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.map.Flat3Map;
@@ -86,10 +89,11 @@ public class Resource {
 
     public void addRequireResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
-        Resource removed = requireResources.put(p.getId(), p);
-        if (removed != null) {
-            removed.invRequiredFromResources.put(this.getId(), this);
+        Resource prev = requireResources.put(p.getId(), p);
+        if (prev != null) {
+            prev.invRequiredFromResources.remove(this.getId());
         }
+        p.invRequiredFromResources.put(this.getId(), this);
     }
 
     public void removeRequireResource(Resource p) {
@@ -109,10 +113,11 @@ public class Resource {
 
     public void addSubscribeResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
-        Resource removed = subscribeResources.put(p.getId(), p);
-        if (removed != null) {
-            removed.invSubscribedFromResources.put(this.getId(), this);
+        Resource prev = subscribeResources.put(p.getId(), p);
+        if (prev != null) {
+            prev.invSubscribedFromResources.remove(this.getId());
         }
+        p.invSubscribedFromResources.put(this.getId(), this);
     }
 
     public void removeSubscribeResource(Resource p) {
@@ -150,6 +155,59 @@ public class Resource {
         return Collections.unmodifiableMap(invSubscribedFromResources);
     }
 
+    /**
+     * @return Transitive closure for resource --> dependenciesOf(resource) --> dependenciesOf(dependenciesOf(resource)) ... 
+     */
+    public Map<ResourceId, Resource> transitiveClosureResources(Function<Resource,Collection<Resource>> resourceDepsFunc) {
+        Map<ResourceId, Resource> res = new LinkedHashMap<>();
+        Queue<Resource> remain = new LinkedList<>();
+        remain.addAll(resourceDepsFunc.apply(this));
+        for(Resource r : remain) {
+            res.put(r.getId(), r);
+        }
+        while(! remain.isEmpty()) {
+            Resource resource = remain.poll();
+            Collection<Resource> nextResources = resourceDepsFunc.apply(resource);
+            if (nextResources != null && !nextResources.isEmpty()) {
+                for(Resource next : nextResources) {
+                    if (! res.containsKey(next.getId())) {
+                        res.put(next.getId(), next);
+                        remain.add(next);
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
+     * @return Transitive closure for resource --> requireResources --> ... 
+     */
+    public Map<ResourceId, Resource> getTransitiveRequireResources() {
+        return transitiveClosureResources(x -> x.requireResources.values());
+    }
+
+    /**
+     * @return Transitive closure for resource <-- invRequiredFromResources <-- ... 
+     */
+    public Map<ResourceId, Resource> getTransitiveInvRequireFromResources() {
+        return transitiveClosureResources(x -> x.invRequiredFromResources.values());
+    }
+    
+    /**
+     * @return Transitive closure for resource --> subscribeResources --> ... 
+     */
+    public Map<ResourceId, Resource> getTransitiveSubscribeResources() {
+        return transitiveClosureResources(x -> x.subscribeResources.values());
+    }
+    
+    /**
+     * @return Transitive closure for resource <-- invSubscribedFromResources <-- ... 
+     */
+    public Map<ResourceId, Resource> getAllTransitiveInvRequireResources() {
+        return transitiveClosureResources(x -> x.invSubscribedFromResources.values());
+    }
+    
     public Set<String> getTags() {
         return Collections.unmodifiableSet(tags);
     }

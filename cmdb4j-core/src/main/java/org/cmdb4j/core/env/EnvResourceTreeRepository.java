@@ -36,10 +36,8 @@ import fr.an.fxtree.model.func.FxNodeFuncRegistry;
  * <PRE>
  * baseEnvsDirs/                          baseEnvsDirs/
  *   env123/                                cloud/
- *      .memoized-store.yaml                   cloud1-instance1/
- *      .pending-jobs-store.yaml                  .memoized-store.yaml                 
- *      env.yaml                                  .pending-jobs-store.yaml
- *      env.json                                  template-param.yaml
+ *      env.yaml                              cloud1-instance1/
+ *      env.json                                 template-param.yaml                 
  *      subDir1/
  *        env.yaml      
  * </PRE>
@@ -240,7 +238,7 @@ public class EnvResourceTreeRepository {
                     }
                 }
             }
-            // parse resource requiredResources = [ otherId1, otherId2 .. ] 
+            // parse resource subscribeResources = [ otherId1, otherId2 .. ] 
             String[] subscribeResourceIds = objDataHelper.getStringArrayOrNull(Resource.FIELD_subscribeResources, true);
             if (subscribeResourceIds != null && subscribeResourceIds.length != 0) {
                 for(String subscribeResourceId : subscribeResourceIds) {

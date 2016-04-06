@@ -222,7 +222,7 @@ public class EnvDirsResourceTreeRepository {
     protected EnvResourceTreeRepository buildEnvResourceTreeRepository(String envName, File envDir, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
         EnvResourceTreeRepository res = new EnvResourceTreeRepository(envName, envDir, templateParams, 
             rawRootNode, funcRegistry, resourceTypeRepository);
-        res.init();
+        // cf next... "res.init();" called from outer (may need registerCtxVar ...)
         return res;
     }
     
