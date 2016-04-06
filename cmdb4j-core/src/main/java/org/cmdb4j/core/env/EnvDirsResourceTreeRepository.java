@@ -220,7 +220,8 @@ public class EnvDirsResourceTreeRepository {
     }
     
     protected EnvResourceTreeRepository buildEnvResourceTreeRepository(String envName, File envDir, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
-        EnvResourceTreeRepository res = new EnvResourceTreeRepository(this, envName, envDir, templateParams, rawRootNode);
+        EnvResourceTreeRepository res = new EnvResourceTreeRepository(envName, envDir, templateParams, 
+            rawRootNode, funcRegistry, resourceTypeRepository);
         res.init();
         return res;
     }

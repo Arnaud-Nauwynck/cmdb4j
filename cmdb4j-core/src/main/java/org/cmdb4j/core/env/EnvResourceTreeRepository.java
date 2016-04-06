@@ -62,8 +62,6 @@ public class EnvResourceTreeRepository {
     
     private static final String CTX_EnvResourceTreeRepository = "EnvResourceTreeRepository"; 
     
-    private final EnvDirsResourceTreeRepository parent;
-    
     private final String envName;
 
     private Object lock = new Object();
@@ -85,15 +83,16 @@ public class EnvResourceTreeRepository {
     
     // ------------------------------------------------------------------------
 
-    public EnvResourceTreeRepository(EnvDirsResourceTreeRepository parent, String envName, File envDir,
+    public EnvResourceTreeRepository(String envName, File envDir,
             EnvTemplateInstanceParameters templateParams, 
-            FxNode rawTemplateRootNode) {
-        this.parent = parent;
+            FxNode rawTemplateRootNode,
+            FxNodeFuncRegistry funcRegistry,
+            ResourceTypeRepository resourceTypeRepository) {
         this.envName = envName;
         this.templateParams = templateParams;
         this.rawTemplateRootNode = rawTemplateRootNode;
-        this.funcRegistry = parent.getFuncRegistry();
-        this.resourceTypeRepository = parent.getResourceTypeRepository();
+        this.funcRegistry = funcRegistry;
+        this.resourceTypeRepository = resourceTypeRepository;
         this.resourceRepository = new ResourceRepository(resourceTypeRepository);
     }
 
@@ -113,10 +112,6 @@ public class EnvResourceTreeRepository {
     }
     
     // ------------------------------------------------------------------------
-
-    public EnvDirsResourceTreeRepository getParent() {
-        return parent;
-    }
     
     public String getEnvName() {
         return envName;
