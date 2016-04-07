@@ -1,5 +1,8 @@
 package org.cmdb4j.core.shell;
 
+/**
+ * context for evaluating commands on Resource objects
+ */
 public class CommandCtx {
 
     private final String name;

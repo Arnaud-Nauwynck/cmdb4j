@@ -6,7 +6,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 /**
- * 
+ * Immutable description of Command, equivalent to "@Command" annotation information on method
  */
 public class CommandInfo {
 
@@ -14,6 +14,11 @@ public class CommandInfo {
      * text for the command 
      */
     private final String text;
+
+//    /**
+//     * text aliases for the command 
+//     */
+//    private final List<String> aliases;
 
     /**
      *
