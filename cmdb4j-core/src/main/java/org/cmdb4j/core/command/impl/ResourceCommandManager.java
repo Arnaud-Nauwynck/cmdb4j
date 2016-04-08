@@ -1,18 +1,14 @@
 package org.cmdb4j.core.command.impl;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
-import org.cmdb4j.core.command.CommandCtx;
-import org.cmdb4j.core.command.CommandInvoker;
-import org.cmdb4j.core.command.CommandProvider;
+import org.cmdb4j.core.command.CommandExecutionCtx;
+import org.cmdb4j.core.command.ResourceCommand;
 import org.cmdb4j.core.command.commandinfo.CommandInfo;
 import org.cmdb4j.core.model.Resource;
-import org.cmdb4j.core.util.CopyOnWriteUtils;
-
-import com.google.common.collect.ImmutableMap;
+import org.cmdb4j.core.model.reflect.ResourceType;
 
 /**
  * registry of CommandProvider for Resource objects<BR/>
@@ -23,9 +19,9 @@ public class ResourceCommandManager {
     private Object lock = new Object();
     
     /**
-     * Thread safety: copy-on-write, protected by <code>lock</code>
+     * Thread safety: protected by <code>lock</code>
      */
-    private Map<String,CommandProvider> commandProviders = ImmutableMap.of();
+    private ResourceTypeToNameToCommand type2name2commands = new ResourceTypeToNameToCommand();
     
     // ------------------------------------------------------------------------
 
@@ -34,42 +30,53 @@ public class ResourceCommandManager {
 
     // ------------------------------------------------------------------------
 
-    public void addCommandProvider(CommandProvider p) {
+    public void addCommandProvider(ResourceCommand p) {
         synchronized(lock) {
             CommandInfo c = p.getCommandInfo();
-            this.commandProviders = CopyOnWriteUtils.immutableCopyWithPut(commandProviders, c.getName(), p);
+            ResourceType resourceType = c.getTargetResourceType();
+            String cmdName = c.getName();
+            type2name2commands.put(resourceType, cmdName, p);
         }
     }
 
-    public void removeCommandProvider(CommandProvider p) {
+    public void removeCommandProvider(ResourceCommand p) {
         synchronized(lock) {
-            CommandInfo c = p.getCommandInfo();
-            this.commandProviders = CopyOnWriteUtils.immutableCopyWithRemove(commandProviders, c.getName());
+            CommandInfo ci = p.getCommandInfo();
+            ResourceType resourceType = ci.getTargetResourceType();
+            String cmdName = ci.getName();
+            type2name2commands.remove(resourceType, cmdName, p);
         }
     }
 
-    public CommandProvider get(String name) {
-        return commandProviders.get(name);
+    public ResourceCommand get(ResourceType resourceType, String name) {
+        synchronized(lock) {
+            return type2name2commands.get(resourceType, name);
+        }
     }
     
-    public CommandProvider getOrThrow(String name) {
-        CommandProvider res = commandProviders.get(name);
+    public ResourceCommand getOrThrow(ResourceType resourceType, String name) {
+        ResourceCommand res;
+        synchronized(lock) {
+            res = type2name2commands.get(resourceType, name);
+        }
         if (res == null) {
             throw new NoSuchElementException();
         }
         return res;
     }
     
-    public List<CommandProvider> findAllByPrefix(String prefix) {
-        List<CommandProvider> res = commandProviders.values().stream()
-                .filter(x -> x.getCommandName().startsWith(prefix))
-                .collect(Collectors.toList());
+    public List<ResourceCommand> findAllByPrefix(ResourceType resourceType, String prefix) {
+        List<ResourceCommand> res = new ArrayList<>();
+        synchronized(lock) {
+            res.addAll(type2name2commands.findAllByPrefix(resourceType, prefix));
+        }
         return res;
     }
 
-    public CommandInvoker getCommandInvoker(String name, CommandCtx ctx, Resource resource, Object[] args) {
-        CommandProvider cp = getOrThrow(name);
-        return cp.getCommandInvoker(ctx, resource, args);
+    public Object executeCommand(String name, CommandExecutionCtx ctx, Resource resource, Object[] args) {
+        ResourceType resourceType = resource.getType();
+        ResourceCommand resourceCmd = getOrThrow(resourceType, name);
+        return resourceCmd.execute(ctx, resource, args);
     }
     
 }

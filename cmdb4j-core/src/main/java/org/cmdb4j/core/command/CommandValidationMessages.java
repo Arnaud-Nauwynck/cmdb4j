@@ -7,6 +7,7 @@ import org.cmdb4j.core.command.commandinfo.CommandInfo;
 import org.cmdb4j.core.command.commandinfo.ParamInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceExprInfo;
 import org.cmdb4j.core.model.Resource;
+import org.cmdb4j.core.util.CmdbAssertUtils;
 
 public class CommandValidationMessages {
 
@@ -15,6 +16,8 @@ public class CommandValidationMessages {
         private String message;
         
         public CommandParamValidationMessage(ParamInfo param, String message) {
+            CmdbAssertUtils.checkNotNull(param);
+            CmdbAssertUtils.checkNotNull(message);
             this.param = param;
             this.message = message;
         }
@@ -34,7 +37,11 @@ public class CommandValidationMessages {
         public void setMessage(String message) {
             this.message = message;
         }
-        
+
+        @Override
+        public String toString() {
+            return param.getName() + ": " + message;
+        }
         
     }
 
@@ -63,13 +70,20 @@ public class CommandValidationMessages {
             this.message = message;
         }
         
+        @Override
+        public String toString() {
+            return resourceExpr.getExprText() + ": " + message;
+        }
         
     }
 
     
     private Resource resource;
+    
     private CommandInfo command;
+    
     private Map<String,CommandParamValidationMessage> paramMessages = new LinkedHashMap<>();
+    
     private Map<String,PreConditionValidationMessage> preConditionMessages = new LinkedHashMap<>();
 
     // ------------------------------------------------------------------------

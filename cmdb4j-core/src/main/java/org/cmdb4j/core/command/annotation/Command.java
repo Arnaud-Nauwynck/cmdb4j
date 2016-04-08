@@ -16,6 +16,7 @@ import java.lang.annotation.Target;
  *   public FooAdapter(Resource adaptee) { .. } 
  * 
  *   @Command(name="someCommand",
+ *     resourceType="someType..."
  *     preConditions={ @ResourceExpr("someExpr..."),  @ResourceExpr("someExpr...") }
  *     postConditions={ @ResourceExpr("someExpr..."),  @ResourceExpr("someExpr...") }
  *     sideEffects={ @ResourceSideEffect("sideEffect..."),  ResourceSideEffect("sideEffect...") }
@@ -42,11 +43,16 @@ public @interface Command {
      */
     String name();
 
-//    /**
-//     *
-//     */
-//    String category() default "";
+    /**
+     *
+     */
+    String category() default "";
 
+    /**
+     * name of ResourceType
+     */
+    String resourceType();
+    
     /**
      * @return
      */

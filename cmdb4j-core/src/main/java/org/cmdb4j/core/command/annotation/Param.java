@@ -13,7 +13,7 @@ public @interface Param {
     /**
      * name of the parameter... when not set (as of jdk8... the java code method name is used)
      */
-    String name();
+    String name() default "";
 
     /**
      * 

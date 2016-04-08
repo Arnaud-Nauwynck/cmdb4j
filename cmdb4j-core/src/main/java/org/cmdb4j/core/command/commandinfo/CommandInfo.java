@@ -133,12 +133,24 @@ public class CommandInfo implements Serializable {
             this.category = category;
             return this;
         }
+        public Builder addPreCondition(ResourceExprInfo p) {
+            this.preConditions.add(p);
+            return this;
+        }
         public Builder addPreConditions(List<ResourceExprInfo> p) {
             this.preConditions.addAll(p);
             return this;
         }
+        public Builder addPostCondition(ResourceExprInfo p) {
+            this.postConditions.add(p);
+            return this;
+        }
         public Builder addPostConditions(List<ResourceExprInfo> p) {
             this.postConditions.addAll(p);
+            return this;
+        }
+        public Builder addSideEffect(ResourceSideEffectInfo p) {
+            this.sideEffects.add(p);
             return this;
         }
         public Builder addSideEffects(List<ResourceSideEffectInfo> p) {
