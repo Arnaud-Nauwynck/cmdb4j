@@ -1,4 +1,4 @@
-package org.cmdb4j.core.shell;
+package org.cmdb4j.core.command;
 
 import java.util.HashMap;
 import java.util.Map;

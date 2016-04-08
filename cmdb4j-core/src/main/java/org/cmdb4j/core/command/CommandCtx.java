@@ -1,4 +1,4 @@
-package org.cmdb4j.core.shell;
+package org.cmdb4j.core.command;
 
 /**
  * context for evaluating commands on Resource objects

@@ -1,4 +1,4 @@
-package org.cmdb4j.core.shell;
+package org.cmdb4j.core.command.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -11,8 +11,8 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ResourceExpr {
+public @interface ResourceSideEffect {
 
     String value(); 
-    
+
 }

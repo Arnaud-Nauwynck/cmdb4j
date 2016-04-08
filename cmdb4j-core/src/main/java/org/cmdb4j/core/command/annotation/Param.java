@@ -1,13 +1,13 @@
-package org.cmdb4j.core.shell;
+package org.cmdb4j.core.command.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
-@Target({ FIELD, METHOD })
+@Target({ PARAMETER, FIELD })
 public @interface Param {
 
     /**

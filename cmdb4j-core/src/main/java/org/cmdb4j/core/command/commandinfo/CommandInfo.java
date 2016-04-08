@@ -1,20 +1,33 @@
-package org.cmdb4j.core.shell.impl;
+package org.cmdb4j.core.command.commandinfo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.cmdb4j.core.model.reflect.ResourceType;
 
 import com.google.common.collect.ImmutableList;
 
 /**
- * Immutable description of Command, equivalent to "@Command" annotation information on method
+ * description of a resource objet Command, equivalent to "@Command" annotation information on method
  */
-public class CommandInfo {
+public class CommandInfo implements Serializable {
 
+    /** internal for java.io.Serializable */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 
+     */
+    private final ResourceType targetResourceType;
+    
     /**
      * text for the command 
      */
-    private final String text;
+    private final String name;
 
+    private final ParamInfo[] params;
+    
 //    /**
 //     * text aliases for the command 
 //     */
@@ -48,7 +61,9 @@ public class CommandInfo {
     // ------------------------------------------------------------------------
 
     public CommandInfo(Builder b) {
-        this.text = b.text;
+        this.targetResourceType = b.targetResourceType;
+        this.name = b.name;
+        this.params = b.params.toArray(new ParamInfo[b.params.size()]);
         this.category = b.category;
         this.preConditions = b.preConditions.toArray(new ResourceExprInfo[b.preConditions.size()]); 
         this.postConditions = b.postConditions.toArray(new ResourceExprInfo[b.postConditions.size()]);
@@ -58,8 +73,16 @@ public class CommandInfo {
 
     // ------------------------------------------------------------------------
 
-    public String getText() {
-        return text;
+    public ResourceType getTargetResourceType() {
+        return targetResourceType;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public List<ParamInfo> getParams() {
+        return ImmutableList.copyOf(params);
     }
     
     public String getCategory() {
@@ -85,16 +108,25 @@ public class CommandInfo {
     // ------------------------------------------------------------------------
     
     public static class Builder {
-        
-        private String text;
+        private ResourceType targetResourceType;
+        private String name;
+        private List<ParamInfo> params = new ArrayList<>();
         private String category;
         private List<ResourceExprInfo> preConditions = new ArrayList<>(); 
         private List<ResourceExprInfo> postConditions = new ArrayList<>(); 
         private List<ResourceSideEffectInfo> sideEffects = new ArrayList<>(); 
         private String help;
         
-        public Builder text(String text) {
-            this.text = text;
+        public Builder targetResourceType(ResourceType p) {
+            this.targetResourceType = p;
+            return this;
+        }
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+        public Builder addParam(ParamInfo p) {
+            this.params.add(p);
             return this;
         }
         public Builder category(String category) {

@@ -1,10 +1,11 @@
-package org.cmdb4j.core.shell.impl;
+package org.cmdb4j.core.command.impl;
 
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+import org.cmdb4j.core.command.commandinfo.CommandInfo;
 import org.cmdb4j.core.util.CopyOnWriteUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -12,7 +13,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * registry of CommandInfo for Resource objects
  */
-public class CommandInfoRegistry {
+public class ResourceCommandInfoRegistry {
 
     private Object lock = new Object();
     
@@ -23,20 +24,20 @@ public class CommandInfoRegistry {
     
     // ------------------------------------------------------------------------
 
-    public CommandInfoRegistry() {
+    public ResourceCommandInfoRegistry() {
     }
 
     // ------------------------------------------------------------------------
 
     public void addCommandInfo(CommandInfo p) {
         synchronized(lock) {
-            this.commands = CopyOnWriteUtils.immutableCopyWithPut(commands, p.getText(), p);
+            this.commands = CopyOnWriteUtils.immutableCopyWithPut(commands, p.getName(), p);
         }
     }
 
     public void removeCommandInfo(CommandInfo p) {
         synchronized(lock) {
-            this.commands = CopyOnWriteUtils.immutableCopyWithRemove(commands, p.getText());
+            this.commands = CopyOnWriteUtils.immutableCopyWithRemove(commands, p.getName());
         }
     }
 
@@ -54,7 +55,7 @@ public class CommandInfoRegistry {
     
     public List<CommandInfo> findAllByPrefix(String prefix) {
         List<CommandInfo> res = commands.values().stream()
-                .filter(x -> x.getText().startsWith(prefix))
+                .filter(x -> x.getName().startsWith(prefix))
                 .collect(Collectors.toList());
         return res;
     }
