@@ -5,8 +5,11 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+import org.cmdb4j.core.command.CommandCtx;
+import org.cmdb4j.core.command.CommandInvoker;
 import org.cmdb4j.core.command.CommandProvider;
 import org.cmdb4j.core.command.commandinfo.CommandInfo;
+import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.util.CopyOnWriteUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -64,4 +67,9 @@ public class ResourceCommandManager {
         return res;
     }
 
+    public CommandInvoker getCommandInvoker(String name, CommandCtx ctx, Resource resource, Object[] args) {
+        CommandProvider cp = getOrThrow(name);
+        return cp.getCommandInvoker(ctx, resource, args);
+    }
+    
 }

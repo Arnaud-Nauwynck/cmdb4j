@@ -14,6 +14,6 @@ public interface CommandProvider {
 
     public CommandInfo getCommandInfo();
     
-    public CommandInvoker getCommandInvoker(CommandCtx ctx, Resource resource);
+    public CommandInvoker getCommandInvoker(CommandCtx ctx, Resource resource, Object[] args);
     
 }
