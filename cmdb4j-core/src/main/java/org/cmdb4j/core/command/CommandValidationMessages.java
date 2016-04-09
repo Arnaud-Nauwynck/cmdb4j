@@ -3,7 +3,7 @@ package org.cmdb4j.core.command;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.cmdb4j.core.command.commandinfo.CommandInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 import org.cmdb4j.core.command.commandinfo.ParamInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceExprInfo;
 import org.cmdb4j.core.model.Resource;
@@ -80,7 +80,7 @@ public class CommandValidationMessages {
     
     private Resource resource;
     
-    private CommandInfo command;
+    private ResourceCommandInfo command;
     
     private Map<String,CommandParamValidationMessage> paramMessages = new LinkedHashMap<>();
     
@@ -88,7 +88,7 @@ public class CommandValidationMessages {
 
     // ------------------------------------------------------------------------
     
-    public CommandValidationMessages(Resource resource, CommandInfo command, 
+    public CommandValidationMessages(Resource resource, ResourceCommandInfo command, 
             Map<String, CommandParamValidationMessage> paramMessages,
             Map<String, PreConditionValidationMessage> preConditionMessages) {
         this.resource = resource;
@@ -111,11 +111,11 @@ public class CommandValidationMessages {
         this.resource = resource;
     }
 
-    public CommandInfo getCommand() {
+    public ResourceCommandInfo getCommand() {
         return command;
     }
 
-    public void setCommand(CommandInfo command) {
+    public void setCommand(ResourceCommandInfo command) {
         this.command = command;
     }
 

@@ -5,9 +5,9 @@ import java.util.List;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.cmdb4j.core.command.CommandExecutionCtx;
 import org.cmdb4j.core.command.ResourceCommand;
-import org.cmdb4j.core.command.ResourceCommand.MethodResourceCommand;
-import org.cmdb4j.core.command.annotation.Command;
 import org.cmdb4j.core.command.annotation.Param;
+import org.cmdb4j.core.command.annotation.QueryResourceCommand;
+import org.cmdb4j.core.command.annotation.StmtResourceCommand;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.junit.Assert;
@@ -18,28 +18,46 @@ public class AnnotatedMethodToCommandInfoHelperTest {
     protected ResourceTypeRepository resourceTypeRepository = new ResourceTypeRepository();
     protected AnnotatedMethodToCommandInfoHelper sut = new AnnotatedMethodToCommandInfoHelper(resourceTypeRepository);
     
-    protected static MutableInt countCmdNoParam = new MutableInt();
-    protected static MutableInt countCmdInt = new MutableInt();
-    protected static MutableInt countStaticCmd = new MutableInt();
+    protected static MutableInt countObjCmd1QueryNoParam = new MutableInt();
+    protected static MutableInt countObjCmd2QueryInt = new MutableInt();
+    protected static MutableInt countObjCmd3StmtNoParam = new MutableInt();
+    protected static MutableInt countObjCmd4StmtInt = new MutableInt();
+    protected static MutableInt countStaticQueryNoParam = new MutableInt();
+    protected static MutableInt countStaticStmtNoParam = new MutableInt();
     
     protected static class FooCommands {
         
-        @Command(name="cmd_noParam", resourceType="Type1")
-        public void cmdNoParam(CommandExecutionCtx ctx, Resource target) {
-            countCmdNoParam.increment();
+        @QueryResourceCommand(name="query_noParam", resourceType="Type1")
+        public void cmd1QueryNoParam(CommandExecutionCtx ctx, Resource target) {
+            countObjCmd1QueryNoParam.increment();
         }
 
-        @Command(name="cmd_int", resourceType="Type1")
-        public void cmdInt(CommandExecutionCtx ctx, Resource target, 
+        @QueryResourceCommand(name="query_int", resourceType="Type1")
+        public void cmd2QueryInt(CommandExecutionCtx ctx, Resource target, 
                 @Param(required=false, defaultValue="0")  int param1) {
-            countCmdInt.increment();
+            countObjCmd2QueryInt.increment();
         }
 
-        @Command(name="static_cmd", resourceType="Type1")
-        public static void staticCmd(CommandExecutionCtx ctx, Resource target) {
-            countStaticCmd.increment();
+        @StmtResourceCommand(name="stmt_noParam", resourceType="Type1")
+        public void cmd3StmtNoParam(CommandExecutionCtx ctx, Resource target) {
+            countObjCmd3StmtNoParam.increment();
         }
 
+        @StmtResourceCommand(name="stmt_int", resourceType="Type1")
+        public void cmd4StmtInt(CommandExecutionCtx ctx, Resource target, 
+                @Param(required=false, defaultValue="0")  int param1) {
+            countObjCmd4StmtInt.increment();
+        }
+        
+        @QueryResourceCommand(name="static_query1_noParam", resourceType="Type1")
+        public static void staticQuery(CommandExecutionCtx ctx, Resource target) {
+            countStaticQueryNoParam.increment();
+        }
+
+        @QueryResourceCommand(name="static_stmt1_noParam", resourceType="Type1")
+        public static void staticStmt(CommandExecutionCtx ctx, Resource target) {
+            countStaticStmtNoParam.increment();
+        }
     }
     
     @Test
@@ -47,64 +65,89 @@ public class AnnotatedMethodToCommandInfoHelperTest {
         // Prepare
         FooCommands fooCommands = new FooCommands();
         // Perform
-        List<ResourceCommand> res = sut.scanObjectMethods(fooCommands, 
-            (objMethod) -> new MethodResourceCommand(objMethod.commandInfo, objMethod.object, objMethod.method)
-        );
+        List<ResourceCommand> res = sut.scanObjectMethods(fooCommands);
         // Post-check
         Assert.assertNotNull(res);
-        Assert.assertEquals(2, res.size());
-        ResourceCommand cmd0 = res.get(0);
-        ResourceCommand cmd1 = res.get(1);
+        Assert.assertEquals(4, res.size());
+        ResourceCommand cmd1QueryNoParam = res.get(0);
+        ResourceCommand cmd2QueryInt = res.get(1);
+        ResourceCommand cmd3StmtNoParam = res.get(2);
+        ResourceCommand cmd4StmtInt = res.get(3);
         
-        if (cmd0.getCommandInfo().getName().equals("cmd_int")) { //TODO.. need find by name
-            ResourceCommand tmp = cmd0; cmd0 = cmd1; cmd1 = tmp;
+        if (cmd1QueryNoParam.getCommandInfo().getName().equals("query_int")) { //TODO.. need find by name
+            ResourceCommand tmp = cmd1QueryNoParam; cmd1QueryNoParam = cmd2QueryInt; cmd2QueryInt = tmp;
         }
-        Assert.assertEquals("cmd_noParam", cmd0.getCommandInfo().getName());
-        Assert.assertEquals("cmd_int", cmd1.getCommandInfo().getName());
+        Assert.assertEquals("query_noParam", cmd1QueryNoParam.getCommandInfo().getName());
+        Assert.assertEquals("query_int", cmd2QueryInt.getCommandInfo().getName());
         
         CommandExecutionCtx ctx = null;
         Resource resource = null;
         
         // Prepare
-        countCmdNoParam.setValue(0);
+        countObjCmd1QueryNoParam.setValue(0);
         // Perform
-        cmd0.execute(ctx, resource, new Object[0]);
+        cmd1QueryNoParam.execute(ctx, resource, new Object[0]);
         // Post-check
-        Assert.assertEquals(1, countCmdNoParam.getValue());
-        countCmdNoParam.setValue(0);
+        Assert.assertEquals(1, countObjCmd1QueryNoParam.getValue());
+        countObjCmd1QueryNoParam.setValue(0);
 
         // Prepare
-        countCmdInt.setValue(0);
+        countObjCmd2QueryInt.setValue(0);
         // Perform
-        cmd1.execute(ctx, resource, new Object[] { 123 });
+        cmd2QueryInt.execute(ctx, resource, new Object[] { 123 });
         // Post-check
-        Assert.assertEquals(1, countCmdInt.getValue());
-        countCmdInt.setValue(0);
+        Assert.assertEquals(1, countObjCmd2QueryInt.getValue());
+        countObjCmd2QueryInt.setValue(0);
+        
+        // Prepare
+        countObjCmd3StmtNoParam.setValue(0);
+        // Perform
+        cmd3StmtNoParam.execute(ctx, resource, new Object[0]);
+        // Post-check
+        Assert.assertEquals(1, countObjCmd3StmtNoParam.getValue());
+        countObjCmd3StmtNoParam.setValue(0);
+        
+        // Prepare
+        countObjCmd4StmtInt.setValue(0);
+        // Perform
+        cmd4StmtInt.execute(ctx, resource, new Object[] { 123 });
+        // Post-check
+        Assert.assertEquals(1, countObjCmd4StmtInt.getValue());
+        countObjCmd4StmtInt.setValue(0);
+        
     }
 
     @Test
     public void testScanStaticMethods() {
         // Prepare
         // Perform
-        List<ResourceCommand> res = sut.scanStaticMethods(FooCommands.class, 
-            (objMethod) -> new MethodResourceCommand(objMethod.commandInfo, objMethod.object, objMethod.method)
-        );
+        List<ResourceCommand> res = sut.scanStaticMethods(FooCommands.class);
         // Post-check
         Assert.assertNotNull(res);
-        Assert.assertEquals(1, res.size());
-        ResourceCommand staticCmd0 = res.get(0);
-        Assert.assertEquals("static_cmd", staticCmd0.getCommandInfo().getName());
+        Assert.assertEquals(2, res.size());
+        ResourceCommand staticQuery1 = res.get(0);
+        Assert.assertEquals("static_query1_noParam", staticQuery1.getCommandInfo().getName());
+        ResourceCommand staticStmt1 = res.get(1);
+        Assert.assertEquals("static_stmt1_noParam", staticStmt1.getCommandInfo().getName());
         
         CommandExecutionCtx ctx = null;
         Resource resource = null;
         
         // Prepare
-        countStaticCmd.setValue(0);
+        countStaticQueryNoParam.setValue(0);
         // Perform
-        staticCmd0.execute(ctx, resource, new Object[0]);
+        staticQuery1.execute(ctx, resource, new Object[0]);
         // Post-check
-        Assert.assertEquals(1, countStaticCmd.getValue());
-        countStaticCmd.setValue(0);
+        Assert.assertEquals(1, countStaticQueryNoParam.getValue());
+        countStaticQueryNoParam.setValue(0);
+
+        // Prepare
+        countStaticStmtNoParam.setValue(0);
+        // Perform
+        staticStmt1.execute(ctx, resource, new Object[0]);
+        // Post-check
+        Assert.assertEquals(1, countStaticStmtNoParam.getValue());
+        countStaticStmtNoParam.setValue(0);
     }
 
 }

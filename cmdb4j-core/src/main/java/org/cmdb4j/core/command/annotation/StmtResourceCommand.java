@@ -8,20 +8,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to describe a resource object Command
+ * Annotation to describe a resource object Command = command with side-effect
  * 
  * <PRE>
  * class FooCommandProviderAdapter implements IResourceCommandProvider {
  * 
  *   public FooAdapter(Resource adaptee) { .. } 
  * 
- *   @Command(name="someCommand",
+ *   @Command(name="someStmt",
  *     resourceType="someType..."
  *     preConditions={ @ResourceExpr("someExpr..."),  @ResourceExpr("someExpr...") }
  *     postConditions={ @ResourceExpr("someExpr..."),  @ResourceExpr("someExpr...") }
  *     sideEffects={ @ResourceSideEffect("sideEffect..."),  ResourceSideEffect("sideEffect...") }
  *   )
- *   public FooCmdResult someCommand(
+ *   public FooCmdResult someStmt(
  *       CommandExecutionCtx ctx,
  *       Resource targetResource,
  *       @Param(name="arg1", description="..", required=true) FooCmdParam1 arg1, 
@@ -36,23 +36,28 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Command {
-
-    /**
-     * name of the command 
-     */
-    String name();
-
-    /**
-     *
-     */
-    String category() default "";
+public @interface StmtResourceCommand {
 
     /**
      * name of ResourceType
      */
     String resourceType();
     
+    /**
+     * name of the command 
+     */
+    String name();
+
+    /**
+     * name of the command 
+     */
+    String[] aliases() default {};
+
+    /**
+     *
+     */
+    String category() default "";
+
     /**
      * @return
      */

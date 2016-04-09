@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 
 import org.cmdb4j.core.command.CommandExecutionCtx;
 import org.cmdb4j.core.command.ResourceCommand;
-import org.cmdb4j.core.command.commandinfo.CommandInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.reflect.ResourceType;
 
@@ -32,7 +32,7 @@ public class ResourceCommandManager {
 
     public void addCommandProvider(ResourceCommand p) {
         synchronized(lock) {
-            CommandInfo c = p.getCommandInfo();
+            ResourceCommandInfo c = p.getCommandInfo();
             ResourceType resourceType = c.getTargetResourceType();
             String cmdName = c.getName();
             type2name2commands.put(resourceType, cmdName, p);
@@ -41,7 +41,7 @@ public class ResourceCommandManager {
 
     public void removeCommandProvider(ResourceCommand p) {
         synchronized(lock) {
-            CommandInfo ci = p.getCommandInfo();
+            ResourceCommandInfo ci = p.getCommandInfo();
             ResourceType resourceType = ci.getTargetResourceType();
             String cmdName = ci.getName();
             type2name2commands.remove(resourceType, cmdName, p);

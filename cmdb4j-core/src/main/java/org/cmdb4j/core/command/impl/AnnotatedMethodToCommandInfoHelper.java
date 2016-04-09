@@ -10,20 +10,25 @@ import java.util.function.Function;
 
 import org.cmdb4j.core.command.CommandExecutionCtx;
 import org.cmdb4j.core.command.ResourceCommand;
-import org.cmdb4j.core.command.annotation.Command;
+import org.cmdb4j.core.command.ResourceCommand.MethodResourceCommand;
 import org.cmdb4j.core.command.annotation.Param;
+import org.cmdb4j.core.command.annotation.QueryResourceCommand;
 import org.cmdb4j.core.command.annotation.ResourceExpr;
 import org.cmdb4j.core.command.annotation.ResourceSideEffect;
-import org.cmdb4j.core.command.commandinfo.CommandInfo;
+import org.cmdb4j.core.command.annotation.StmtResourceCommand;
 import org.cmdb4j.core.command.commandinfo.ParamInfo;
+import org.cmdb4j.core.command.commandinfo.QueryResourceCommandInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceExprInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceSideEffectInfo;
+import org.cmdb4j.core.command.commandinfo.StmtResourceCommandInfo;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.reflect.ResourceType;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 
 /**
- * 
+ * helper to scan <code>@QueryResourceCommand / @StmtResourceCommand</code> <BR/>
+ * and create corresponding <code>ResourceCommand</code>  (default to <code>MethodResourceCommand</code>)
  */
 public class AnnotatedMethodToCommandInfoHelper {
 
@@ -40,13 +45,25 @@ public class AnnotatedMethodToCommandInfoHelper {
     public static class ObjectMethod {
         public Object object;
         public Method method;
-        public CommandInfo commandInfo;
+        public ResourceCommandInfo commandInfo;
         
-        public ObjectMethod(Object object, Method method, CommandInfo commandInfo) {
+        public ObjectMethod(Object object, Method method, ResourceCommandInfo commandInfo) {
             this.object = object;
             this.method = method;
             this.commandInfo = commandInfo;
         }        
+    }
+    
+    /**
+     * scan instance method annoted with <code>@QueryResourceCommand / @StmtResourceCommand</code> 
+     * on a targetObject, and create corresponding <code>MethodResourceCommand</code>
+     * 
+     * @param targetObj
+     * @param methodToCommandProvider
+     * @return
+     */
+    public List<ResourceCommand> scanObjectMethods(Object targetObj) {
+        return scanObjectMethods(targetObj, (objMethod) -> new MethodResourceCommand(objMethod.commandInfo, objMethod.object, objMethod.method));
     }
     
     /**
@@ -64,6 +81,19 @@ public class AnnotatedMethodToCommandInfoHelper {
         return res;
     }
 
+    /**
+     * same as scanObjectMethods() but for static method.<BR/>
+     * scan instance method annoted with <code>@QueryResourceCommand / @StmtResourceCommand</code> 
+     * and create corresponding <code>MethodResourceCommand</code>
+     *  
+     * @param clss
+     * @param commandWrapper
+     * @return
+     */
+    public List<ResourceCommand> scanStaticMethods(Class<?> clss) {
+        return scanStaticMethods(clss, (objMethod) -> new MethodResourceCommand(objMethod.commandInfo, objMethod.object, objMethod.method));
+    }
+    
     /**
      * same as scanObjectMethods() but for static method
      *  
@@ -90,39 +120,73 @@ public class AnnotatedMethodToCommandInfoHelper {
                 if (isStatic != (targetObj == null)) {
                     continue;
                 }
-                Command cmdAnnotation = methodDecl.getAnnotation(Command.class);
-                if (cmdAnnotation == null) {
+                ResourceCommandInfo commandInfo = null;
+                if (commandInfo == null) {
+                    StmtResourceCommand stmtAnnotation = methodDecl.getAnnotation(StmtResourceCommand.class);
+                    if (stmtAnnotation != null) {
+                        StmtResourceCommandInfo.Builder b = StmtResourceCommandInfo.builder();
+                        buildBaseCommandInfo(b, methodDecl, stmtAnnotation);
+                        
+                        b.addPreConditions(annotationToResourceExprInfos(stmtAnnotation.preConditions()));
+                        b.addPostConditions(annotationToResourceExprInfos(stmtAnnotation.postConditions()));
+                        b.addSideEffects(annotationToSideEffectInfos(stmtAnnotation.sideEffects()));
+
+                        commandInfo = b.build();
+                    }
+                }
+                if (commandInfo == null) {
+                    QueryResourceCommand queryAnnotation = methodDecl.getAnnotation(QueryResourceCommand.class);
+                    if (queryAnnotation != null) {
+                        QueryResourceCommandInfo.Builder b = QueryResourceCommandInfo.builder();
+                        buildBaseCommandInfo(b, methodDecl, queryAnnotation);
+                        
+                        b.addConditions(annotationToResourceExprInfos(queryAnnotation.conditions()));
+                        
+                        commandInfo = b.build();
+                    }
+                }
+                
+                if (commandInfo == null) {
                     continue;
                 }
-                CommandInfo.Builder b = new CommandInfo.Builder();
-                b.name(cmdAnnotation.name());
-                ResourceType resourceType = resourceTypeRepository.getOrCreateType(cmdAnnotation.resourceType());
-                b.targetResourceType(resourceType);
-                b.category(cmdAnnotation.category());
-                b.addPreConditions(annotationToResourceExprInfos(cmdAnnotation.preConditions()));
-                b.addPostConditions(annotationToResourceExprInfos(cmdAnnotation.postConditions()));
-                b.addSideEffects(annotationToSideEffectInfos(cmdAnnotation.sideEffects()));
-                b.help(cmdAnnotation.help());
-                
-                Parameter[] parameters = methodDecl.getParameters();
-                for(int i = 0; i < parameters.length; i++) {
-                    Parameter param = parameters[i];
-                    Class<?> paramType = param.getType();
-                    if (paramType.equals(CommandExecutionCtx.class)) {
-                        continue;
-                    }
-                    if (paramType.equals(Resource.class)) {
-                        continue;
-                    }
-                    b.addParam(parameterToParamInfo(param));
-                }
-                
-                CommandInfo commandInfo = new CommandInfo(b);
                 ObjectMethod objMethod = new ObjectMethod(targetObj, methodDecl, commandInfo);
 
                 ResourceCommand commandProvider = methodToCommandProvider.apply(objMethod);
                 res.add(commandProvider);
             }
+        }
+    }
+
+    protected void buildBaseCommandInfo(ResourceCommandInfo.Builder b, Method methodDecl, StmtResourceCommand cmdAnnotation) {
+        b.name(cmdAnnotation.name());
+        ResourceType resourceType = resourceTypeRepository.getOrCreateType(cmdAnnotation.resourceType());
+        b.targetResourceType(resourceType);
+        b.category(cmdAnnotation.category());
+        b.help(cmdAnnotation.help());
+        buildParams(b, methodDecl);
+    }
+
+    protected void buildBaseCommandInfo(ResourceCommandInfo.Builder b, Method methodDecl, QueryResourceCommand cmdAnnotation) {
+        b.name(cmdAnnotation.name());
+        ResourceType resourceType = resourceTypeRepository.getOrCreateType(cmdAnnotation.resourceType());
+        b.targetResourceType(resourceType);
+        b.category(cmdAnnotation.category());
+        b.help(cmdAnnotation.help());
+        buildParams(b, methodDecl);
+    }
+
+    protected void buildParams(ResourceCommandInfo.Builder b, Method methodDecl) {
+        Parameter[] parameters = methodDecl.getParameters();
+        for(int i = 0; i < parameters.length; i++) {
+            Parameter param = parameters[i];
+            Class<?> paramType = param.getType();
+            if (paramType.equals(CommandExecutionCtx.class)) {
+                continue;
+            }
+            if (paramType.equals(Resource.class)) {
+                continue;
+            }
+            b.addParam(parameterToParamInfo(param));
         }
     }
 

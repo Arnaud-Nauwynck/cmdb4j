@@ -3,7 +3,7 @@ package org.cmdb4j.core.command;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.cmdb4j.core.command.commandinfo.CommandInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 import org.cmdb4j.core.model.Resource;
 
 /**
@@ -15,7 +15,7 @@ public interface ResourceCommand {
         return getCommandInfo().getName();
     }
 
-    public CommandInfo getCommandInfo();
+    public ResourceCommandInfo getCommandInfo();
     
     public Object execute(CommandExecutionCtx ctx, Resource resource, Object[] args);
     
@@ -23,14 +23,14 @@ public interface ResourceCommand {
     // ------------------------------------------------------------------------
     
     public static abstract class AbstractResourceCommand implements ResourceCommand {
-        protected final CommandInfo commandInfo;
+        protected final ResourceCommandInfo commandInfo;
         
-        protected AbstractResourceCommand(CommandInfo commandInfo) {
+        protected AbstractResourceCommand(ResourceCommandInfo commandInfo) {
             this.commandInfo = commandInfo;
         }
 
         @Override
-        public CommandInfo getCommandInfo() {
+        public ResourceCommandInfo getCommandInfo() {
             return commandInfo;
         }
         
@@ -42,7 +42,7 @@ public interface ResourceCommand {
         protected final Object targetObject;
         protected final Method method;
         
-        public MethodResourceCommand(CommandInfo commandInfo, Object targetObject, Method method) {
+        public MethodResourceCommand(ResourceCommandInfo commandInfo, Object targetObject, Method method) {
             super(commandInfo);
             this.targetObject = targetObject;
             this.method = method;
