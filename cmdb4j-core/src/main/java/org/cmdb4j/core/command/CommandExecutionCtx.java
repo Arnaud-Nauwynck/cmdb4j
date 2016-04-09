@@ -1,5 +1,8 @@
 package org.cmdb4j.core.command;
 
+/**
+ * context of a running execution command
+ */
 public class CommandExecutionCtx {
 
     private CommandCtx context;
@@ -15,6 +18,6 @@ public class CommandExecutionCtx {
     public CommandCtx getContext() {
         return context;
     }
-
+    
 
 }
