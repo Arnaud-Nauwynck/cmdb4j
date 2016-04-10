@@ -186,14 +186,14 @@ public class AnnotatedMethodToCommandInfoHelper {
             if (paramType.equals(Resource.class)) {
                 continue;
             }
-            b.addParam(parameterToParamInfo(param));
+            b.addParam(parameterToParamInfo(param, i));
         }
     }
 
     /**
      * @return convert info from annotation <code>@Parameter</code> to ParamInfo
      */
-    protected ParamInfo parameterToParamInfo(Parameter param) {
+    protected ParamInfo parameterToParamInfo(Parameter param, int index) {
         ParamInfo.Builder b = new ParamInfo.Builder();
         Class<?> paramType = param.getType();
         String name = param.getName();
@@ -221,7 +221,7 @@ public class AnnotatedMethodToCommandInfoHelper {
         b.description(description);
         b.required(required);
         b.defaultValue(defaultValue);
-        return new ParamInfo(b);
+        return b.build(index);
     }
 
     /**

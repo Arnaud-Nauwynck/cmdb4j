@@ -33,6 +33,6 @@ public @interface Param {
     /**
      * 
      */
-    String defaultValue();
+    String defaultValue() default "";
 
 }

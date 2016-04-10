@@ -1,8 +1,7 @@
 package org.cmdb4j.core.command;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import fr.an.fxtree.impl.stdfunc.FxStdFuncs;
+import fr.an.fxtree.model.func.FxEvalContext;
 
 /**
  * context for evaluating commands on Resource objects
@@ -11,7 +10,7 @@ public class CommandCtx {
 
     private final String name;
 
-    private Map<String,Object> variables = Collections.synchronizedMap(new LinkedHashMap<>());
+    private FxEvalContext fxEvalContext = new FxEvalContext(null, FxStdFuncs.stdFuncRegistry()); 
     
     // ------------------------------------------------------------------------
     
@@ -24,21 +23,28 @@ public class CommandCtx {
     public String getName() {
         return name;
     }
-
-    public Map<String,Object> getVariables() {
-        return variables;
-    }
-
-    public Object putVariable(String name, Object value) {
-        return variables.put(name, value);
-    }
-
-    public Object getVariable(String name) {
-        return variables.get(name);
-    }
-
-    // ------------------------------------------------------------------------
     
+    public FxEvalContext getFxEvalContext() {
+        return fxEvalContext;
+    }
+    
+    public void setFxEvalContext(FxEvalContext fxEvalContext) {
+        this.fxEvalContext = fxEvalContext;
+    }
+
+    /** helper for getFxEvalContext().putVariable() */
+    public void putVariable(Object key, Object value) {
+        fxEvalContext.putVariable(key, value);
+    }
+
+    /** helper for getFxEvalContext().lookupVariable() */
+    public Object lookupVariable(Object key) {
+        return fxEvalContext.lookupVariable(key);
+    }
+    
+    // ------------------------------------------------------------------------
+
+
     @Override
     public String toString() {
         return "CommandCtx[" + name + "]";

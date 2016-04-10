@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * description of a resource objet command Param, equivalent to "@Param" annotation information on method parameter
  */
@@ -12,6 +14,11 @@ public class ParamInfo implements Serializable {
     /** internal for java.io.Serializable */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 
+     */
+    private final int index;
+    
     /**
      * name of the parameter... when not set (as of jdk8... the java code method name is used)
      */
@@ -25,7 +32,7 @@ public class ParamInfo implements Serializable {
     /**
      * 
      */
-    private final String[] aliases;
+    private final ImmutableList<String> aliases;
 
     /**
      * description of this parameter
@@ -44,28 +51,31 @@ public class ParamInfo implements Serializable {
 
     // ------------------------------------------------------------------------
     
-    public ParamInfo(Builder b) {
-        super();
+    protected ParamInfo(Builder b, int index) {
+        this.index = index;
         this.name = b.name;
         this.type = b.type;
-        this.aliases = b.aliases.toArray(new String[b.aliases.size()]);
+        this.aliases = ImmutableList.copyOf(b.aliases);
         this.description = b.description;
-        this.required = b.required;
         this.defaultValue = b.defaultValue;
+        this.required = b.required || (type.isPrimitive() && (defaultValue ==null || defaultValue.isEmpty()));
     }
 
-    
     // ------------------------------------------------------------------------
-
+    
+    public int getIndex() {
+        return index;
+    }
+    
     public String getName() {
         return name;
     }
-    
+
     public Class<?> getType() {
         return type;
     }
 
-    public String[] getAliases() {
+    public ImmutableList<String> getAliases() {
         return aliases;
     }
 
@@ -98,6 +108,10 @@ public class ParamInfo implements Serializable {
         private String description;
         private boolean required;
         private String defaultValue;
+        
+        public ParamInfo build(int index) {
+            return new ParamInfo(this, index);
+        }
         
         public Builder name(String name) {
             this.name = name;

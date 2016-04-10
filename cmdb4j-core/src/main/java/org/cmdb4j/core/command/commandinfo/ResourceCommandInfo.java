@@ -3,11 +3,14 @@ package org.cmdb4j.core.command.commandinfo;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.cmdb4j.core.model.reflect.ResourceType;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * description of a resource objet Command,<BR/> 
@@ -39,6 +42,11 @@ public class ResourceCommandInfo implements Serializable {
     private final ImmutableList<ParamInfo> params;
     
     /**
+     * indexed <code>params</code> by name
+     */
+    private final ImmutableMap<String,ParamInfo> paramsByName;
+    
+    /**
      *
      */
     private final String category;
@@ -55,6 +63,9 @@ public class ResourceCommandInfo implements Serializable {
         this.name = b.name;
         this.aliases = ImmutableList.copyOf(b.aliases);
         this.params = ImmutableList.copyOf(b.params);
+        Map<String,ParamInfo> tmpParamsByName = new LinkedHashMap<>();
+        b.params.forEach(p -> tmpParamsByName.put(p.getName(), p));
+        this.paramsByName = ImmutableMap.copyOf(tmpParamsByName);
         this.category = b.category;
         this.help = b.help;
     }
@@ -77,6 +88,31 @@ public class ResourceCommandInfo implements Serializable {
         return params;
     }
     
+    public String getHelpParamNames() {
+        StringBuilder sb = new StringBuilder();
+        for(ParamInfo p : params) {
+            sb.append(p.getName());
+            List<String> aliases = p.getAliases();
+            if (aliases != null && !aliases.isEmpty()) {
+                sb.append("(alias: " + aliases + ")");
+            }
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
+    
+    public ImmutableMap<String,ParamInfo> getParamsByName() {
+        return paramsByName;
+    }
+
+    public ParamInfo getParamAt(int index) {
+        return params.get(index);
+    }
+
+    public ParamInfo getParam(String name) {
+        return paramsByName.get(name);
+    }
+
     public String getCategory() {
         return category;
     }
