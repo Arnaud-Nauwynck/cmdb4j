@@ -1,4 +1,4 @@
-package org.cmdb4j.core.repo.json.reflect;
+package org.cmdb4j.core.model.reflect;
 
 import java.io.File;
 import java.util.Collection;
@@ -7,6 +7,7 @@ import java.util.function.Function;
 
 import org.cmdb4j.core.model.reflect.ResourceFieldDef;
 import org.cmdb4j.core.model.reflect.ResourceType;
+import org.cmdb4j.core.model.reflect.ResourceTypeContributio
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.junit.Assert;
 import org.junit.Test;

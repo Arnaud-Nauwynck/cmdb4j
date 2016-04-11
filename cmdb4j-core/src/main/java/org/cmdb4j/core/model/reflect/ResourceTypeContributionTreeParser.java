@@ -1,12 +1,9 @@
-package org.cmdb4j.core.repo.json.reflect;
+package org.cmdb4j.core.model.reflect;
 
 import java.io.File;
 import java.util.List;
 import java.util.function.Function;
 
-import org.cmdb4j.core.model.reflect.ResourceFieldDef;
-import org.cmdb4j.core.model.reflect.ResourceType;
-import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
