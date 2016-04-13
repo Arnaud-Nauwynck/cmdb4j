@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import org.cmdb4j.core.model.Resource;
+import org.cmdb4j.core.model.ResourceId;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,10 +178,48 @@ public class EnvDirsResourceTreeRepository {
         return funcRegistry;
     }
 
+
+    public String resourceIdToEnvName(ResourceId resourceId) {
+        final int pathLen = resourceId.size();
+        if (pathLen == 0) {
+            return null;
+        }
+        String res = resourceId.get(0);
+        if (res.equals(cloudDirname)) {
+            if (pathLen == 1) {
+                return null;
+            }
+            res += "/" + resourceId.get(1);
+        }
+        // check env dir exists
+        File envDir = new File(baseEnvsDir, res);
+        if (!envDir.exists() || !envDir.isDirectory()) {
+            return null;
+        }
+        return res;
+    }
+
+    public Resource getResourceById(ResourceId resourceId) {
+        String envName = resourceIdToEnvName(resourceId);
+        if (envName == null) {
+            return null;
+        }
+        EnvResourceTreeRepository envRepo = getEnvTreeRepo(envName);
+        if (envRepo == null) {
+            return null; // should not occur
+        }
+        Resource res = envRepo.getResourceRepository().getById(resourceId);
+        return res;
+    }
+
     
     public EnvResourceTreeRepository getEnvTreeRepo(String envName) {
         EnvResourceTreeRepository res = _cacheEnv2Repo.get(envName);
         if (res == null) {
+            File envDir = new File(baseEnvsDir, envName);
+            if (!envDir.exists() || !envDir.isDirectory()) {
+                return null;
+            }
             if (! envName.startsWith(cloudDirname + "/")) {
                 res = parseStdEnvResourcesTree(envName);
             } else {
@@ -386,5 +426,5 @@ public class EnvDirsResourceTreeRepository {
         }
 
     }
-
+    
 }
