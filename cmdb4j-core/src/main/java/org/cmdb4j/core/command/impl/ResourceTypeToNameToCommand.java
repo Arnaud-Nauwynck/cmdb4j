@@ -8,6 +8,9 @@ import java.util.Map;
 import org.cmdb4j.core.command.ResourceCommand;
 import org.cmdb4j.core.model.reflect.ResourceType;
 
+/**
+ * Registry of ResourceCommand : ResourceType->Name->ResourceCommand
+ */
 public class ResourceTypeToNameToCommand {
 
     private Map<ResourceType,Map<String,ResourceCommand>> type2name2cmd = new HashMap<>();
@@ -19,6 +22,10 @@ public class ResourceTypeToNameToCommand {
 
     // ------------------------------------------------------------------------
 
+    public void clear() {
+        type2name2cmd.clear();
+    }
+    
     public void put(ResourceType type, String name, ResourceCommand cmd) {
         Map<String, ResourceCommand> name2cmd = getOrCreateName2Cmd(type);
         name2cmd.put(name, cmd);
