@@ -91,8 +91,8 @@ public class NameJsonValueParser {
         try {
             while(cmdArgsReader.ready()) {
                 String paramName = FxReaderUtils.readUntil(cmdArgsReader, '=', false);
-                if (paramName == null) {
-                    break; 
+                if (paramName == null || paramName.isEmpty()) {
+                    break;
                 }
                 FxNode rawParamValue = cmdArgsPartialParser.get();
                 rawNameValues.put(paramName, rawParamValue); 

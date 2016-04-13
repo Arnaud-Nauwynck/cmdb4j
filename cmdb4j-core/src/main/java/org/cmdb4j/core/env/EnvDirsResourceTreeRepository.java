@@ -225,11 +225,16 @@ public class EnvDirsResourceTreeRepository {
             } else {
                 res = parseCloudEnvResourcesTree(envName);
             }
+            onInitEnv(res);
             _cacheEnv2Repo.put(envName, res);
         }
         return res;
     }
 
+    protected void onInitEnv(EnvResourceTreeRepository envRepo) {
+        envRepo.init();
+    }
+    
     protected EnvResourceTreeRepository parseStdEnvResourcesTree(String envName) {
         FxMemRootDocument rawEnvDoc = new FxMemRootDocument();
         FxArrayNode rawRootNode = rawEnvDoc.contentWriter().addArray();

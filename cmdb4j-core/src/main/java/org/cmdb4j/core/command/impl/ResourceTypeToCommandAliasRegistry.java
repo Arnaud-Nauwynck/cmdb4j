@@ -1,6 +1,7 @@
 package org.cmdb4j.core.command.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -37,6 +38,14 @@ public class ResourceTypeToCommandAliasRegistry {
 
     // ------------------------------------------------------------------------
 
+    public void addCommands(Collection<ResourceCommand> cmds) {
+        synchronized(lock) {
+            for(ResourceCommand cmd : cmds) {
+                addCommand(cmd);
+            }
+        }
+    }
+    
     public void addCommand(ResourceCommand p) {
         synchronized(lock) {
             commands.add(p);
