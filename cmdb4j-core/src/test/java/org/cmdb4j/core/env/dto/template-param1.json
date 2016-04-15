@@ -1,0 +1,9 @@
+{
+  sourceTemplateName: "template1",
+  parameters: {
+    param1: 12
+  },
+  metaParameters: {  
+    createdBy: "me"
+  }
+}

@@ -8,50 +8,43 @@ import com.google.common.collect.ImmutableMap;
 import fr.an.fxtree.model.FxNode;
 
 /**
- * parameters for "cloud" environments instanciated from "template"
+ * parameters for "cloud" (="ephemeral", "provisionned") environments instanciated from "template"
  */
 public class EnvTemplateInstanceParameters {
 
-    private final String templateSourceEnvName;
+    private final String sourceTemplateName;
     
     /**
      * parameter substitution for instanciating from the template
      * 
      */
-    private final Map<String, FxNode> templateParameters;
+    private final Map<String, FxNode> parameters;
 
     /**
      * optionnal parameters for comment (creationDate, user, retention, description, deployedVersionSet, ... )  
      */
     private final Map<String, FxNode> metaParameters;
     
-    private final FxNode templateRootNode;
-
     // ------------------------------------------------------------------------
     
-    public EnvTemplateInstanceParameters(String templateSourceEnvName, Map<String, FxNode> templateParameters, Map<String, FxNode> metaParameters, FxNode templateRootNode) {
-        this.templateSourceEnvName = templateSourceEnvName;
-        this.templateParameters = ImmutableMap.copyOf(templateParameters);
+    public EnvTemplateInstanceParameters(String sourceTemplateName, Map<String, FxNode> templateParameters, Map<String, FxNode> metaParameters) {
+        this.sourceTemplateName = sourceTemplateName;
+        this.parameters = ImmutableMap.copyOf(templateParameters);
         this.metaParameters = ImmutableMap.copyOf(metaParameters);
-        this.templateRootNode = templateRootNode;
     }
 
     // ------------------------------------------------------------------------
     
-    public String getTemplateSourceEnvName() {
-        return templateSourceEnvName;
+    public String getSourceTemplateName() {
+        return sourceTemplateName;
     }
 
-    public Map<String, FxNode> getTemplateParameters() {
-        return templateParameters;
+    public Map<String, FxNode> getParameters() {
+        return parameters;
     }
 
     public Map<String, FxNode> getMetaParameters() {
         return metaParameters;
-    }
-
-    public FxNode getTemplateRootNode() {
-        return templateRootNode;
     }
 
     // ------------------------------------------------------------------------
@@ -60,17 +53,16 @@ public class EnvTemplateInstanceParameters {
      * Builder design pattern for immutable class
      */
     public static class Builder {
-        private String templateSourceEnvName;
+        private String sourceTemplateName;
         private final Map<String, FxNode> templateParameters = new LinkedHashMap<>();
         private final Map<String, FxNode> metaParameters = new LinkedHashMap<>();
-        private FxNode templateRootNode;
         
         public EnvTemplateInstanceParameters build() {
-            return new EnvTemplateInstanceParameters(templateSourceEnvName, templateParameters, metaParameters, templateRootNode);
+            return new EnvTemplateInstanceParameters(sourceTemplateName, templateParameters, metaParameters);
         }
         
-        public Builder templateSourceEnvName(String p) {
-            templateSourceEnvName = p;
+        public Builder sourceTemplateName(String p) {
+            sourceTemplateName = p;
             return this;
         }
         public Builder putAllTemplateParameters(Map<String, FxNode> p) {
@@ -81,9 +73,6 @@ public class EnvTemplateInstanceParameters {
             metaParameters.putAll(p);
             return this;
         }
-        public Builder templateRootNode(FxNode p) {
-            templateRootNode = p;
-            return this;
-        }
     }
+    
 }

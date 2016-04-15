@@ -1,0 +1,22 @@
+{
+  name: "test",
+  paramDescriptions: {
+    param1: {
+      name: "param1",
+      type: "int",
+      displayName: "param 1",
+      defaultValue: 123,
+      comment: "param comment",
+      extraProperties: {
+        minValue: 0,
+        maxValue: 200
+      }
+    }
+  },
+  extraProperties: {  
+    key1: "value1"
+  },
+  rawNode: [ 
+    { id: "obj1" }
+  ]
+}
