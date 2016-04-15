@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import org.cmdb4j.core.command.ResourceCommand;
 import org.cmdb4j.core.command.ResourceCommandParamsExecutable;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
-import org.cmdb4j.core.env.EnvDirsResourceTreeRepository;
+import org.cmdb4j.core.env.EnvDirsResourceRepositories;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.ResourceId;
 import org.cmdb4j.core.model.reflect.ResourceType;
@@ -28,7 +28,7 @@ import fr.an.fxtree.model.FxNode;
  */
 public class ResourceCommandParser {
 
-    protected EnvDirsResourceTreeRepository envsResourceTreeRepository;
+    protected EnvDirsResourceRepositories envsResourceTreeRepository;
     
     protected ResourceTypeToCommandAliasRegistry resourceTypeToCommandRegistry;
     
@@ -37,7 +37,7 @@ public class ResourceCommandParser {
     // ------------------------------------------------------------------------
     
     public ResourceCommandParser(
-            EnvDirsResourceTreeRepository envsResourceTreeRepository,
+            EnvDirsResourceRepositories envsResourceTreeRepository,
             ResourceTypeToCommandAliasRegistry resourceTypeToCommandRegistry
             ) {
         this.envsResourceTreeRepository = envsResourceTreeRepository;

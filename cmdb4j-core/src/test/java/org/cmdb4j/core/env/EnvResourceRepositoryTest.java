@@ -18,9 +18,9 @@ import fr.an.fxtree.impl.stdfunc.FxStdFuncs;
 import fr.an.fxtree.model.FxNode;
 import fr.an.fxtree.model.func.FxNodeFuncRegistry;
 
-public class EnvResourceTreeRepositoryTest {
+public class EnvResourceRepositoryTest {
 
-    protected EnvResourceTreeRepository sut;
+    protected EnvResourceRepository sut;
     
     @Before
     public void setup() {
@@ -33,7 +33,7 @@ public class EnvResourceTreeRepositoryTest {
         FxNode rawTemplateRootNode = FxFileUtils.readTree(new File(srcEnvDir, "env.yaml"));
         FxNodeFuncRegistry funcRegistry = FxStdFuncs.stdFuncRegistry();
         ResourceTypeRepository resourceTypeRepository = new ResourceTypeRepository(); 
-        sut = new EnvResourceTreeRepository("DEV1", targetEnvDir, null, rawTemplateRootNode, 
+        sut = new EnvResourceRepository("DEV1", targetEnvDir, null, rawTemplateRootNode, 
             funcRegistry, resourceTypeRepository);
         sut.init();
     }

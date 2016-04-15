@@ -12,6 +12,7 @@ import java.util.function.Predicate;
 
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.ResourceId;
+import org.cmdb4j.core.model.ResourceRepository;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,23 +97,25 @@ import fr.an.fxtree.model.func.FxNodeFuncRegistry;
  * </PRE>
  * 
  */
-public class EnvDirsResourceTreeRepository {
+public class EnvDirsResourceRepositories {
     
-    private static final Logger LOG = LoggerFactory.getLogger(EnvDirsResourceTreeRepository.class);
-    
+    private static final Logger LOG = LoggerFactory.getLogger(EnvDirsResourceRepositories.class);
 
     private static final String DEFAULT_DIRNAME = "Default";
     private static final String TEMPLATES_DIRNAME = "Templates";
     private static final String TEMPLATE_PARAM_BASEFILENAME = "template-param.";
-    private static final String TEMPLATE_PARAM_DECL_BASEFILENAME = "template-param-decl.";
+    private static final String ENV_TEMPLATE_DECSCR_BASEFILENAME = "env-template-descr.";
     private static final String ENV_BASEFILENAME = "env";
     
     private static final Predicate<String> DEFAULT_DIRNAME_ENV_ACCEPT = name -> ! (
             name.equals(DEFAULT_DIRNAME) || name.equals(TEMPLATES_DIRNAME) || name.startsWith("test-"));
     
     private File baseEnvsDir;
-    
+
+    private File baseEnvTemplatesDir;
+
     private String cloudDirname = "cloud";
+    private File baseCloudDir;
     
     
     private Predicate<String> dirnameEnvAccept = DEFAULT_DIRNAME_ENV_ACCEPT;
@@ -121,16 +124,26 @@ public class EnvDirsResourceTreeRepository {
 
     private FxNodeFuncRegistry funcRegistry;
     
+    private ResourceRepository globalResources;
+    
     private List<String> _cacheListEnvs;
 
-    private Map<String, EnvResourceTreeRepository> _cacheEnv2Repo = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, EnvResourceRepository> _cacheEnv2Repo = Collections.synchronizedMap(new HashMap<>());
 
+    
+    private List<String> _cacheListEnvTemplates;
+    
+    private Map<String,EnvTemplateDescr> _cacheEnvTemplateDescr = new HashMap<>();
+    
     // ---------------------------------------------------------------------- --
 
-    public EnvDirsResourceTreeRepository(File baseEnvsDir, ResourceTypeRepository resourceTypeRepository, FxNodeFuncRegistry funcRegistry) {
+    public EnvDirsResourceRepositories(File baseEnvsDir, ResourceTypeRepository resourceTypeRepository, FxNodeFuncRegistry funcRegistry) {
         this.baseEnvsDir = baseEnvsDir;
+        this.baseEnvTemplatesDir = new File(baseEnvsDir, TEMPLATES_DIRNAME);
+        this.baseCloudDir = new File(baseEnvsDir, cloudDirname);
         this.resourceTypeRepository = resourceTypeRepository;
         this.funcRegistry = funcRegistry;
+        this.globalResources = new ResourceRepository(resourceTypeRepository);
     }
 
     // ---------------------------------------------------------------------- --
@@ -138,16 +151,29 @@ public class EnvDirsResourceTreeRepository {
     public void purge() {
         _cacheListEnvs = null;
         _cacheEnv2Repo.clear();
+        _cacheListEnvTemplates = null;
+        _cacheEnvTemplateDescr.clear();
     }
 
+    public ResourceTypeRepository getResourceTypeRepository() {
+        return resourceTypeRepository;
+    }
+
+    public FxNodeFuncRegistry getFuncRegistry() {
+        return funcRegistry;
+    }
+
+    public ResourceRepository getGlobalResources() {
+        return globalResources;
+    }
+    
     public List<String> listEnvs() {
         List<String> res = _cacheListEnvs;
         if (res == null) {
             res = new ArrayList<>();
             listEnvNamesInDir(res, baseEnvsDir, "");
-            File cloudDir = new File(baseEnvsDir, cloudDirname);
-            if (cloudDir.exists()) {
-                listEnvNamesInDir(res, cloudDir, cloudDirname + "/");
+            if (baseCloudDir.exists()) {
+                listEnvNamesInDir(res, baseCloudDir, cloudDirname + "/");
             }
 
             res = ImmutableList.copyOf(res);
@@ -156,11 +182,22 @@ public class EnvDirsResourceTreeRepository {
         return res;
     }
     
+    public List<String> listEnvTemplates() {
+        List<String> res = _cacheListEnvTemplates;
+        if (res == null) {
+            res = new ArrayList<>();
+            listEnvNamesInDir(res, baseEnvTemplatesDir, "");
+            res = ImmutableList.copyOf(res);
+            _cacheListEnvTemplates = res;
+        }
+        return res;
+    }
+    
     protected void listEnvNamesInDir(List<String> res, File dir, String prefix) {
         File[] files = dir.listFiles();
         for(File file : files) {
             String name = file.getName();
-            if (!file.isDirectory() || name.startsWith(".") || name.equals(cloudDirname)) {
+            if (!file.isDirectory() || name.startsWith(".") || file.equals(baseCloudDir)) {
                 continue;
             }
             if (dirnameEnvAccept != null && ! dirnameEnvAccept.test(name)) {
@@ -170,14 +207,6 @@ public class EnvDirsResourceTreeRepository {
         }
     }
     
-    public ResourceTypeRepository getResourceTypeRepository() {
-        return resourceTypeRepository;
-    }
-
-    public FxNodeFuncRegistry getFuncRegistry() {
-        return funcRegistry;
-    }
-
 
     public String resourceIdToEnvName(ResourceId resourceId) {
         final int pathLen = resourceId.size();
@@ -200,21 +229,24 @@ public class EnvDirsResourceTreeRepository {
     }
 
     public Resource getResourceById(ResourceId resourceId) {
-        String envName = resourceIdToEnvName(resourceId);
-        if (envName == null) {
-            return null;
+        Resource res = globalResources.findById(resourceId);
+        if (res == null) {
+            String envName = resourceIdToEnvName(resourceId);
+            if (envName == null) {
+                return null;
+            }
+            EnvResourceRepository envRepo = getEnvRepo(envName);
+            if (envRepo == null) {
+                return null; // should not occur
+            }
+            res = envRepo.getResourceRepository().getById(resourceId);
         }
-        EnvResourceTreeRepository envRepo = getEnvTreeRepo(envName);
-        if (envRepo == null) {
-            return null; // should not occur
-        }
-        Resource res = envRepo.getResourceRepository().getById(resourceId);
         return res;
     }
 
     
-    public EnvResourceTreeRepository getEnvTreeRepo(String envName) {
-        EnvResourceTreeRepository res = _cacheEnv2Repo.get(envName);
+    public EnvResourceRepository getEnvRepo(String envName) {
+        EnvResourceRepository res = _cacheEnv2Repo.get(envName);
         if (res == null) {
             File envDir = new File(baseEnvsDir, envName);
             if (!envDir.exists() || !envDir.isDirectory()) {
@@ -231,26 +263,50 @@ public class EnvDirsResourceTreeRepository {
         return res;
     }
 
-    protected void onInitEnv(EnvResourceTreeRepository envRepo) {
+    public EnvTemplateDescr getEnvTemplateDescr(String templateName) {
+        EnvTemplateDescr res = _cacheEnvTemplateDescr.get(templateName);
+        if (res == null) {
+            File envDir = new File(baseEnvTemplatesDir, templateName);
+            if (!envDir.exists() || !envDir.isDirectory()) {
+                return null;
+            }
+            // read file "Templates/<<name>>/env-template-descr.yaml"
+            FxNode descrNode = FxFileUtils.readFirstFileWithSupportedExtension(envDir, ENV_TEMPLATE_DECSCR_BASEFILENAME);
+            // scan files "Templates/<<name>>/**/env.yaml"
+            FxArrayNode rawRootNode = scanAndAppendRawContents(envDir, templateName);
+
+            res = new EnvTemplateDescr(templateName, descrNode, rawRootNode);
+            _cacheEnvTemplateDescr.put(templateName, res);
+        }
+        return res;
+    }
+    
+    // protected
+    // ------------------------------------------------------------------------
+    
+    protected void onInitEnv(EnvResourceRepository envRepo) {
         envRepo.init();
     }
     
-    protected EnvResourceTreeRepository parseStdEnvResourcesTree(String envName) {
-        FxMemRootDocument rawEnvDoc = new FxMemRootDocument();
-        FxArrayNode rawRootNode = rawEnvDoc.contentWriter().addArray();
-        FxChildWriter rawNodesWriter = rawRootNode.insertBuilder();
-        File envDir = new File(baseEnvsDir, envName);
-        
+    protected EnvResourceRepository parseStdEnvResourcesTree(String envName) {
         // recursive scan dir/files <<baseEnvsDir>>/<<envName>>/**/*.[json|yaml]
-        recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, envDir, envName, envName + "/");
+        File envDir = new File(baseEnvsDir, envName);
+
+        FxArrayNode rawRootNode = scanAndAppendRawContents(envDir, envName);
         
         return buildEnvResourceTreeRepository(envName, envDir, rawRootNode, null); 
     }
 
-    protected EnvResourceTreeRepository parseCloudEnvResourcesTree(String envName) {
+    protected FxArrayNode scanAndAppendRawContents(File envDir, String envName) {
         FxMemRootDocument rawEnvDoc = new FxMemRootDocument();
         FxArrayNode rawRootNode = rawEnvDoc.contentWriter().addArray();
         FxChildWriter rawNodesWriter = rawRootNode.insertBuilder();
+        
+        recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, envDir, envName, envName + "/");
+        return rawRootNode;
+    }
+
+    protected EnvResourceRepository parseCloudEnvResourcesTree(String envName) {
         File envDir = new File(baseEnvsDir, envName);
         
         // scan <<baseEnvsDir>>/<<envName>>/template-params.[json|yaml]
@@ -259,13 +315,14 @@ public class EnvDirsResourceTreeRepository {
         // recursive scan dir/files  <<baseEnvsDir>>/Templates/<<sourceTemplateEnvName>>/**/*.[json|yaml]
         String sourceTemplateEnvName = templateParams.getTemplateSourceEnvName();
         File sourceTemplateEnvDir = new File(baseEnvsDir, TEMPLATES_DIRNAME + "/" + sourceTemplateEnvName);
-        recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, sourceTemplateEnvDir, envName, envName + "/");
+
+        FxArrayNode rawRootNode = scanAndAppendRawContents(sourceTemplateEnvDir, envName);
 
         return buildEnvResourceTreeRepository(envName, envDir, rawRootNode, templateParams); 
     }
     
-    protected EnvResourceTreeRepository buildEnvResourceTreeRepository(String envName, File envDir, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
-        EnvResourceTreeRepository res = new EnvResourceTreeRepository(envName, envDir, templateParams, 
+    protected EnvResourceRepository buildEnvResourceTreeRepository(String envName, File envDir, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
+        EnvResourceRepository res = new EnvResourceRepository(envName, envDir, templateParams, 
             rawRootNode, funcRegistry, resourceTypeRepository);
         // cf next... "res.init();" called from outer (may need registerCtxVar ...)
         return res;
@@ -291,8 +348,6 @@ public class EnvDirsResourceTreeRepository {
                 if (FxFileUtils.isSupportedFileExtension(fileExtension)) {
                     // parse json/yaml file + replace relativeId + concatenate results to resultWriter
                     processFxTreeFile(resultWriter, file, envName, childPathId);
-//                } else if (fileName.endsWith(".properties")) {
-//                    throw FxUtils.notImplYet();
                 } else {
                     // ignore unrecognised file suffix
                     LOG.debug("unrecognized file suffix .. ignore " + file);
@@ -304,7 +359,7 @@ public class EnvDirsResourceTreeRepository {
 
     protected void processFxTreeFile(FxChildWriter resultWriter, File file, String envName, String pathId) {
         if (file.getName().startsWith(TEMPLATE_PARAM_BASEFILENAME)
-                || file.getName().startsWith(TEMPLATE_PARAM_DECL_BASEFILENAME)
+                || file.getName().startsWith(ENV_TEMPLATE_DECSCR_BASEFILENAME)
                 ) {
             // special skip for file "template-param" .yaml/.json  (expected for top level environment dir only?)
             return;

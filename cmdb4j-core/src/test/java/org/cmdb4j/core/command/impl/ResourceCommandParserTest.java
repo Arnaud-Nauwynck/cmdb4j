@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.cmdb4j.core.command.ResourceCommandParamsExecutable;
 import org.cmdb4j.core.command.commandinfo.ParamInfo;
-import org.cmdb4j.core.env.EnvDirsResourceTreeRepository;
+import org.cmdb4j.core.env.EnvDirsResourceRepositories;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class ResourceCommandParserTest {
 
     protected ResourceTypeRepository resourceTypeRepository = new ResourceTypeRepository();
     protected File baseEnvsDir = new File("src/test/envsDir");
-    protected EnvDirsResourceTreeRepository envsRepo = new EnvDirsResourceTreeRepository(baseEnvsDir, resourceTypeRepository, FxStdFuncs.stdFuncRegistry());
+    protected EnvDirsResourceRepositories envsRepo = new EnvDirsResourceRepositories(baseEnvsDir, resourceTypeRepository, FxStdFuncs.stdFuncRegistry());
 
     private ResourceTypeRepository resourceTypeRepo = new ResourceTypeRepository();
 

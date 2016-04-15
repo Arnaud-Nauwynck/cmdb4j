@@ -54,9 +54,9 @@ import fr.an.fxtree.model.func.FxNodeFuncRegistry;
  *                           and "@fx-eval"          with "@fx-eval"
  * </PRE>
  */
-public class EnvResourceTreeRepository {
+public class EnvResourceRepository {
     
-    private static final Logger LOG = LoggerFactory.getLogger(EnvResourceTreeRepository.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EnvResourceRepository.class);
     
     private static final String CTX_EnvResourceTreeRepository = "EnvResourceTreeRepository"; 
     
@@ -81,7 +81,7 @@ public class EnvResourceTreeRepository {
     
     // ------------------------------------------------------------------------
 
-    public EnvResourceTreeRepository(String envName, File envDir,
+    public EnvResourceRepository(String envName, File envDir,
             EnvTemplateInstanceParameters templateParams, 
             FxNode rawTemplateRootNode,
             FxNodeFuncRegistry funcRegistry,
@@ -94,8 +94,8 @@ public class EnvResourceTreeRepository {
         this.resourceRepository = new ResourceRepository(resourceTypeRepository);
     }
 
-    public static EnvResourceTreeRepository ctxGet(FxEvalContext ctx) {
-        return (EnvResourceTreeRepository) ctx.lookupVariable(CTX_EnvResourceTreeRepository);
+    public static EnvResourceRepository ctxGet(FxEvalContext ctx) {
+        return (EnvResourceRepository) ctx.lookupVariable(CTX_EnvResourceTreeRepository);
     }
     
     /**
