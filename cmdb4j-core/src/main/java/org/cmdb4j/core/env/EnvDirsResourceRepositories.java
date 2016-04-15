@@ -10,10 +10,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import org.cmdb4j.core.env.dto.EnvTemplateDescrDTOMapper;
+import org.cmdb4j.core.env.dto.EnvTemplateInstanceParametersDTO;
+import org.cmdb4j.core.env.dto.EnvTemplateInstanceParametersDTOMapper;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.ResourceId;
 import org.cmdb4j.core.model.ResourceRepository;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
+import org.cmdb4j.core.util.CopyOnWriteUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +107,8 @@ public class EnvDirsResourceRepositories {
 
     private static final String DEFAULT_DIRNAME = "Default";
     private static final String TEMPLATES_DIRNAME = "Templates";
-    private static final String TEMPLATE_PARAM_BASEFILENAME = "template-param.";
-    private static final String ENV_TEMPLATE_DECSCR_BASEFILENAME = "env-template-descr.";
+    private static final String TEMPLATE_PARAM_BASEFILENAME = "template-param";
+    private static final String ENV_TEMPLATE_DECSCR_BASEFILENAME = "env-template-descr";
     private static final String ENV_BASEFILENAME = "env";
     
     private static final Predicate<String> DEFAULT_DIRNAME_ENV_ACCEPT = name -> ! (
@@ -181,18 +185,7 @@ public class EnvDirsResourceRepositories {
         }
         return res;
     }
-    
-    public List<String> listEnvTemplates() {
-        List<String> res = _cacheListEnvTemplates;
-        if (res == null) {
-            res = new ArrayList<>();
-            listEnvNamesInDir(res, baseEnvTemplatesDir, "");
-            res = ImmutableList.copyOf(res);
-            _cacheListEnvTemplates = res;
-        }
-        return res;
-    }
-    
+
     protected void listEnvNamesInDir(List<String> res, File dir, String prefix) {
         File[] files = dir.listFiles();
         for(File file : files) {
@@ -263,6 +256,20 @@ public class EnvDirsResourceRepositories {
         return res;
     }
 
+    // Management of Env Templates
+    // ------------------------------------------------------------------------
+
+    public List<String> listEnvTemplates() {
+        List<String> res = _cacheListEnvTemplates;
+        if (res == null) {
+            res = new ArrayList<>();
+            listEnvNamesInDir(res, baseEnvTemplatesDir, "");
+            res = ImmutableList.copyOf(res);
+            _cacheListEnvTemplates = res;
+        }
+        return res;
+    }
+
     public EnvTemplateDescr getEnvTemplateDescr(String templateName) {
         EnvTemplateDescr res = _cacheEnvTemplateDescr.get(templateName);
         if (res == null) {
@@ -271,16 +278,74 @@ public class EnvDirsResourceRepositories {
                 return null;
             }
             // read file "Templates/<<name>>/env-template-descr.yaml"
-            FxNode descrNode = FxFileUtils.readFirstFileWithSupportedExtension(envDir, ENV_TEMPLATE_DECSCR_BASEFILENAME);
-            // scan files "Templates/<<name>>/**/env.yaml"
-            FxArrayNode rawRootNode = scanAndAppendRawContents(envDir, templateName);
+            FxNode templateDescrNode = FxFileUtils.readFirstFileWithSupportedExtension(envDir, ENV_TEMPLATE_DECSCR_BASEFILENAME);
+            res = EnvTemplateDescrDTOMapper.fromFxTree(templateDescrNode);
 
-            res = new EnvTemplateDescr(templateName, descrNode, rawRootNode);
+            // scan files "Templates/<<name>>/**/env.yaml"
+            FxArrayNode scannedRawRootNodes = scanAndAppendRawContents(envDir, templateName);
+            
+            // merge descr "rawNode" with nodes from "**/env.yaml"
+            FxArrayNode mergeRawNode = scannedRawRootNodes;
+            if (mergeRawNode == null) {
+                mergeRawNode = new FxMemRootDocument().setContentArray();
+            }
+            FxNode descrRawNode = res.getRawNode();
+            if (descrRawNode != null) {
+                FxNodeCopyVisitor.copyTo(mergeRawNode.insertBuilder(), descrRawNode);
+            }
+            
             _cacheEnvTemplateDescr.put(templateName, res);
         }
         return res;
     }
+
+    // Management of cloud env (="ephemeral") instance from template
+    // ------------------------------------------------------------------------
+
+    public EnvResourceRepository createEnvFromTemplate(String cloudSubEnvName, EnvTemplateInstanceParametersDTO instanceParamDTO) {
+        if (cloudSubEnvName == null) {
+            throw new IllegalArgumentException("cloud envName param is null");
+        }
+        String envName = cloudDirname + "/" + cloudSubEnvName;
+        File cloudEnvDir = new File(baseCloudDir, cloudSubEnvName);
+        if (cloudEnvDir.exists()) {
+            throw new IllegalArgumentException("env '" + envName + "' already exists");
+        }
+        String sourceTemplateName = instanceParamDTO.getSourceTemplateName();
+        if (sourceTemplateName == null) {
+            throw new IllegalArgumentException("sourceTemplateName param is null");
+        }
+        EnvTemplateDescr envTemplateDescr = getEnvTemplateDescr(sourceTemplateName);
+        if (envTemplateDescr == null) {
+            throw new IllegalArgumentException("sourceTemplateName '" + sourceTemplateName + "' not found");
+        }
+        
+        // convert from DTO to obj, and fill values
+        EnvTemplateInstanceParameters instanceParam = EnvTemplateInstanceParametersDTOMapper.fromDTO(instanceParamDTO);
+        onCreateEnvFromTemplate_FillParams(envName, instanceParam);
+        
+        // TODO ... check mandatory params + param validity + add meta parameters (creationDate, ..)
+        
+        LOG.info("create env '" + envName + "' from sourceTemplateName:" + sourceTemplateName + ", parameters:" + instanceParam.getParameters());
+        FxNode templateInstanceParamNode = EnvTemplateInstanceParametersDTOMapper.formatNode(instanceParam);
+        cloudEnvDir.mkdir();
+        File templateInstanceParamFile = new File(cloudEnvDir, TEMPLATE_PARAM_BASEFILENAME + FxFileUtils.YAML_EXT);
+        FxFileUtils.writeTree(templateInstanceParamFile, templateInstanceParamNode);
+        
+        // invalidate/fire change..
+        if (_cacheListEnvs != null) {
+            _cacheListEnvs = CopyOnWriteUtils.immutableCopyWithAdd(_cacheListEnvs, envName);
+        }
+        // init new env repo
+        EnvResourceRepository envRepo = getEnvRepo(envName);
+        
+        return envRepo;
+    }
     
+    protected void onCreateEnvFromTemplate_FillParams(String cloudEnvName, EnvTemplateInstanceParameters instanceParam) {
+        // overridable, default do nothing
+    }
+
     // protected
     // ------------------------------------------------------------------------
     
@@ -313,7 +378,7 @@ public class EnvDirsResourceRepositories {
         EnvTemplateInstanceParameters templateParams = scanTemplateParamsFiles(envDir);
         
         // recursive scan dir/files  <<baseEnvsDir>>/Templates/<<sourceTemplateEnvName>>/**/*.[json|yaml]
-        String sourceTemplateEnvName = templateParams.getTemplateSourceEnvName();
+        String sourceTemplateEnvName = templateParams.getSourceTemplateName();
         File sourceTemplateEnvDir = new File(baseEnvsDir, TEMPLATES_DIRNAME + "/" + sourceTemplateEnvName);
 
         FxArrayNode rawRootNode = scanAndAppendRawContents(sourceTemplateEnvDir, envName);
@@ -340,12 +405,11 @@ public class EnvDirsResourceRepositories {
                 recursiveScanAndConcatenateRelativeFiles(resultWriter, file, envName, childPathId);
             } else {
                 // process file
-                int indexExtension = fileName.lastIndexOf('.');
-                String baseFilename = (indexExtension != -1)? fileName.substring(0, indexExtension) : fileName;
-                String fileExtension = (indexExtension != -1)? fileName.substring(indexExtension+1, fileName.length()) : "";
-                String childPathId = currPathId + ((baseFilename.equals(ENV_BASEFILENAME))? "" : baseFilename + "/");
+                if (FxFileUtils.isSupportedFileExtension(file)) {
+                    int indexExtension = fileName.lastIndexOf('.');
+                    String baseFilename = (indexExtension != -1)? fileName.substring(0, indexExtension) : fileName;
+                    String childPathId = currPathId + ((baseFilename.equals(ENV_BASEFILENAME))? "" : baseFilename + "/");
 
-                if (FxFileUtils.isSupportedFileExtension(fileExtension)) {
                     // parse json/yaml file + replace relativeId + concatenate results to resultWriter
                     processFxTreeFile(resultWriter, file, envName, childPathId);
                 } else {
@@ -370,9 +434,7 @@ public class EnvDirsResourceRepositories {
         }
         
         // read json/yaml, and convert to raw in-memory tree
-        FxMemRootDocument tmpDoc = new FxMemRootDocument();
-        FxFileUtils.readTree(tmpDoc.contentWriter(), file);
-        FxNode tmpContent = tmpDoc.getContent();
+        FxNode tmpContent = FxFileUtils.readTree(file);
         
         // recursive replace "relativeId", and "id" by prepending current pathId
         // FxReplaceNodeCopyVisitor.copyWithReplaceTo(dest, template, varReplacements);
@@ -456,35 +518,15 @@ public class EnvDirsResourceRepositories {
             String fileName = file.getName();
             if (fileName.startsWith(".")) continue;
             if (file.isFile() && fileName.startsWith(TEMPLATE_PARAM_BASEFILENAME)
-                    // && FxFileUtils.isSupportedFileExtension(fileExtension)
+                    && FxFileUtils.isSupportedFileExtension(file)
                     ) {
-                processTemplateParamFile(res, file);
+                // read json/yaml, and merge into parameter builder
+                FxObjNode tmpContent = (FxObjNode) FxFileUtils.readTree(file);
+                EnvTemplateInstanceParametersDTOMapper.parseMergeNode(res, tmpContent);
             }
         }
 
         return res.build();
-    }
-
-    protected void processTemplateParamFile(EnvTemplateInstanceParameters.Builder result, File file) {
-        // read json/yaml, and convert to raw in-memory tree
-        FxMemRootDocument doc = new FxMemRootDocument();
-        FxFileUtils.readTree(doc.contentWriter(), file);
-        FxObjNode tmpContent = (FxObjNode) doc.getContent();
-        
-        String templateSourceEnvName = FxNodeValueUtils.getString(tmpContent, "templateSourceEnvName");
-        if (templateSourceEnvName != null) {
-            result.templateSourceEnvName(templateSourceEnvName);
-        }
-        
-        // extract "params" and "metaparams", concatenate to result
-        FxObjNode paramsNode = FxNodeValueUtils.getObjOrThrow(tmpContent, "params");
-        result.putAllTemplateParameters(paramsNode.fieldsHashMapCopy());
-
-        FxObjNode metaParamsNode = FxNodeValueUtils.getObjOrNull(tmpContent, "metaparams");
-        if (metaParamsNode != null) {
-            result.putAllMetaParameters(metaParamsNode.fieldsHashMapCopy());
-        }
-
     }
     
 }

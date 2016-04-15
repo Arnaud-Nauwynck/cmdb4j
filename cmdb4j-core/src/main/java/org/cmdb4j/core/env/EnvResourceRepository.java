@@ -154,7 +154,7 @@ public class EnvResourceRepository {
         } else {
             FxMemRootDocument templateReplDoc = new FxMemRootDocument();
             FxReplaceNodeCopyVisitor.copyWithReplaceTo(templateReplDoc.contentWriter(), rawTemplateRootNode, 
-                templateParams.getTemplateParameters());
+                templateParams.getParameters());
             res = templateReplDoc.getContent();
         }
         this.rawRootNode = res;
@@ -300,7 +300,7 @@ public class EnvResourceRepository {
         if (templateParams == null) {
             return envName;
         }
-        return envName + " (from '" + templateParams.getTemplateSourceEnvName() + "' with params: " + templateParams.getTemplateParameters() + ")";
+        return envName + " (from '" + templateParams.getSourceTemplateName() + "' with params: " + templateParams.getParameters() + ")";
     }
 
 }
