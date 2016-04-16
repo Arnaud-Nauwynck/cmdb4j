@@ -17,6 +17,10 @@ public class EnvTemplateDescrDTO implements Serializable {
 
     private String name;
 
+    private String displayName;
+
+    private String comment;
+
     private Map<String,EnvTemplateParamDescrDTO> paramDescriptions = new LinkedHashMap<>();
 
     private Map<String,JsonNode> extraProperties = new LinkedHashMap<>();
@@ -28,10 +32,13 @@ public class EnvTemplateDescrDTO implements Serializable {
     public EnvTemplateDescrDTO() {
     }
     
-    public EnvTemplateDescrDTO(String name, Map<String, EnvTemplateParamDescrDTO> paramDescriptions, 
+    public EnvTemplateDescrDTO(String name, String displayName, String comment,
+            Map<String, EnvTemplateParamDescrDTO> paramDescriptions, 
             Map<String, JsonNode> extraProperties, JsonNode rawNode) {
         this();
         this.name = name;
+        this.displayName = displayName;
+        this.comment = comment;
         this.paramDescriptions = paramDescriptions;
         this.extraProperties = extraProperties;
         this.rawNode = rawNode;
@@ -47,6 +54,22 @@ public class EnvTemplateDescrDTO implements Serializable {
         this.name = name;
     }
     
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
     public Map<String, EnvTemplateParamDescrDTO> getParamDescriptions() {
         return paramDescriptions;
     }

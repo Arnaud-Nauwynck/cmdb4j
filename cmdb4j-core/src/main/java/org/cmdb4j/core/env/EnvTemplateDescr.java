@@ -15,6 +15,10 @@ public class EnvTemplateDescr {
 
     private String name;
 
+    private String displayName;
+
+    private String comment;
+
     private Map<String,EnvTemplateParamDescr> paramDescriptions = new LinkedHashMap<>();
 
     private Map<String,FxNode> extraProperties = new LinkedHashMap<>();
@@ -23,8 +27,12 @@ public class EnvTemplateDescr {
 
     // ------------------------------------------------------------------------
     
-    public EnvTemplateDescr(String name, Map<String, EnvTemplateParamDescr> paramDescriptions, Map<String, FxNode> extraProperties, FxNode rawNode) {
+    public EnvTemplateDescr(String name, String displayName, String comment,
+            Map<String, EnvTemplateParamDescr> paramDescriptions, 
+            Map<String, FxNode> extraProperties, FxNode rawNode) {
         this.name = name;
+        this.displayName = displayName;
+        this.comment = comment;
         this.paramDescriptions = paramDescriptions;
         this.extraProperties = extraProperties;
         this.rawNode = rawNode;
@@ -36,6 +44,14 @@ public class EnvTemplateDescr {
         return name;
     }
     
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
     public Map<String, EnvTemplateParamDescr> getParamDescriptions() {
         return paramDescriptions;
     }

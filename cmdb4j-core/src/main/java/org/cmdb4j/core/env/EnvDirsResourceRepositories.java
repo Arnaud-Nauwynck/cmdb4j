@@ -116,6 +116,7 @@ public class EnvDirsResourceRepositories {
     
     private File baseEnvsDir;
 
+    private File defaultDir;
     private File baseEnvTemplatesDir;
 
     private String cloudDirname = "cloud";
@@ -144,6 +145,7 @@ public class EnvDirsResourceRepositories {
     public EnvDirsResourceRepositories(File baseEnvsDir, ResourceTypeRepository resourceTypeRepository, FxNodeFuncRegistry funcRegistry) {
         this.baseEnvsDir = baseEnvsDir;
         this.baseEnvTemplatesDir = new File(baseEnvsDir, TEMPLATES_DIRNAME);
+        this.defaultDir = new File(baseEnvsDir, DEFAULT_DIRNAME); 
         this.baseCloudDir = new File(baseEnvsDir, cloudDirname);
         this.resourceTypeRepository = resourceTypeRepository;
         this.funcRegistry = funcRegistry;
@@ -190,7 +192,9 @@ public class EnvDirsResourceRepositories {
         File[] files = dir.listFiles();
         for(File file : files) {
             String name = file.getName();
-            if (!file.isDirectory() || name.startsWith(".") || file.equals(baseCloudDir)) {
+            if (!file.isDirectory() || name.startsWith(".") 
+                    || file.equals(baseCloudDir) || file.equals(defaultDir) || file.equals(baseEnvTemplatesDir)
+                    ) {
                 continue;
             }
             if (dirnameEnvAccept != null && ! dirnameEnvAccept.test(name)) {
@@ -202,11 +206,17 @@ public class EnvDirsResourceRepositories {
     
 
     public String resourceIdToEnvName(ResourceId resourceId) {
+        if (resourceId == null) {
+            return null;
+        }
         final int pathLen = resourceId.size();
         if (pathLen == 0) {
             return null;
         }
         String res = resourceId.get(0);
+        if (res.equals("")) {
+            return null;
+        }
         if (res.equals(cloudDirname)) {
             if (pathLen == 1) {
                 return null;
@@ -229,9 +239,6 @@ public class EnvDirsResourceRepositories {
                 return null;
             }
             EnvResourceRepository envRepo = getEnvRepo(envName);
-            if (envRepo == null) {
-                return null; // should not occur
-            }
             res = envRepo.getResourceRepository().getById(resourceId);
         }
         return res;
@@ -239,6 +246,10 @@ public class EnvDirsResourceRepositories {
 
     
     public EnvResourceRepository getEnvRepo(String envName) {
+        if (envName == null || envName.isEmpty()
+                || envName.equals(cloudDirname) || envName.equals(TEMPLATES_DIRNAME) || envName.equals(DEFAULT_DIRNAME)) {
+            return null;
+        }
         EnvResourceRepository res = _cacheEnv2Repo.get(envName);
         if (res == null) {
             File envDir = new File(baseEnvsDir, envName);
@@ -279,7 +290,13 @@ public class EnvDirsResourceRepositories {
             }
             // read file "Templates/<<name>>/env-template-descr.yaml"
             FxNode templateDescrNode = FxFileUtils.readFirstFileWithSupportedExtension(envDir, ENV_TEMPLATE_DECSCR_BASEFILENAME);
-            res = EnvTemplateDescrDTOMapper.fromFxTree(templateDescrNode);
+            if (templateDescrNode == null) {
+                throw new RuntimeException("template descr file not found");
+                // LOG.warn("template descr file not found '" + templateName + "/" + ENV_TEMPLATE_DECSCR_BASEFILENAME + ".(yaml|json)' .. using empty");
+                // res = new EnvTemplateDescr(templateName, null, null, new LinkedHashMap<>(), new LinkedHashMap<>(), null);
+            } else {
+                res = EnvTemplateDescrDTOMapper.fromFxTree(templateDescrNode);
+            }
 
             // scan files "Templates/<<name>>/**/env.yaml"
             FxArrayNode scannedRawRootNodes = scanAndAppendRawContents(envDir, templateName);

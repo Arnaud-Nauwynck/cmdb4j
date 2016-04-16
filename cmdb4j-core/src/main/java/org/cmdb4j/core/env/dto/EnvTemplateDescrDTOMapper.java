@@ -21,7 +21,8 @@ public class EnvTemplateDescrDTOMapper {
         });
         Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties());
         FxNode rawNode = Fx2JacksonUtils.jsonNodeToFxTree(src.getRawNode());
-        return new EnvTemplateDescr(src.getName(), paramDescriptions, extraProperties, rawNode);
+        return new EnvTemplateDescr(src.getName(), src.getDisplayName(), src.getComment(), 
+            paramDescriptions, extraProperties, rawNode);
     }
 
     public static EnvTemplateDescrDTO toDTO(EnvTemplateDescr src) {
@@ -31,7 +32,8 @@ public class EnvTemplateDescrDTOMapper {
         });
         Map<String,JsonNode> extraProperties = Fx2JacksonUtils.fxTreesToJsonNodes(src.getExtraProperties());
         JsonNode rawNode = Fx2JacksonUtils.fxTreeToJsonNode(src.getRawNode());
-        return new EnvTemplateDescrDTO(src.getName(), paramDescriptions, extraProperties, rawNode);
+        return new EnvTemplateDescrDTO(src.getName(), src.getDisplayName(), src.getComment(), 
+            paramDescriptions, extraProperties, rawNode);
     }
 
     /** parse FxNode -> EnvTemplateDescr */
