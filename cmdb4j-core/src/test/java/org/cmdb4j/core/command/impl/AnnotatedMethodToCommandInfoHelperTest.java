@@ -125,9 +125,9 @@ public class AnnotatedMethodToCommandInfoHelperTest {
         // Post-check
         Assert.assertNotNull(res);
         Assert.assertEquals(2, res.size());
-        ResourceCommand staticQuery1 = res.get(0);
+        ResourceCommand staticQuery1 = AnnotatedMethodToCommandInfoHelper.findFirstCommand(res, "static_query1_noParam"); 
         Assert.assertEquals("static_query1_noParam", staticQuery1.getCommandInfo().getName());
-        ResourceCommand staticStmt1 = res.get(1);
+        ResourceCommand staticStmt1 = AnnotatedMethodToCommandInfoHelper.findFirstCommand(res, "static_stmt1_noParam");
         Assert.assertEquals("static_stmt1_noParam", staticStmt1.getCommandInfo().getName());
         
         CommandExecutionCtx ctx = null;

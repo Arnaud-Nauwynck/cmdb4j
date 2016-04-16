@@ -127,7 +127,7 @@ public class NameJsonValueParserTest {
     }
     
     @Test
-    public void testParseCommandParamRawNodes_cmd3_default() {
+    public void testParseCommandParamRawNodes_cmd3_default_empty() {
         // Prepare
         String text = ""; // use all defaults..
         // Perform
@@ -141,11 +141,14 @@ public class NameJsonValueParserTest {
         FxNodeCheckUtils.checkDoubleEquals(2.3, res[4], 1e-9);
         FxNodeCheckUtils.checkTextEquals("text", res[5]);
         FxNodeCheckUtils.checkIntEquals(34, ((FxObjNode)res[6]).get("id"));
-        
+    }
+    
+    @Test
+    public void testParseCommandParamRawNodes_cmd3_default_override() {
         // Prepare
-        text = "intParam=1111"; // use all defaults..
+        String text = "intParam=1111"; // use all defaults..
         // Perform
-        res = sut.parseCommandParamRawNodes(cmd3Info, text);
+        FxNode[] res = sut.parseCommandParamRawNodes(cmd3Info, text);
         // Post-check
         Assert.assertEquals(7, res.length);
         FxNodeCheckUtils.checkBoolEquals(true, res[0]);

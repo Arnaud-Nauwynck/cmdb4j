@@ -108,6 +108,18 @@ public class AnnotatedMethodToCommandInfoHelper {
         return res;
     }
 
+    public static ResourceCommand findFirstCommand(Collection<ResourceCommand> src, String name) {
+        ResourceCommand res = null;
+        for(ResourceCommand e : src) {
+            if (name != null && !name.equals(e.getCommandName())) {
+                continue;
+            }
+            res = e;
+            break;
+        }
+        return res;
+    }
+    
     // ------------------------------------------------------------------------
     
     protected void scanDeclaredMethods(Collection<ResourceCommand> res, 

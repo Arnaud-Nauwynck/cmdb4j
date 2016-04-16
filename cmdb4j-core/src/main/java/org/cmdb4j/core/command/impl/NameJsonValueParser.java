@@ -1,7 +1,7 @@
 package org.cmdb4j.core.command.impl;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.io.PushbackReader;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -76,24 +76,27 @@ public class NameJsonValueParser {
     }
 
     public Map<String, FxNode> parseNamedValues(String cmdArgsLine) {
-        cmdArgsLine += " "; 
         // append 1 space to please Jackson parser when finishing parsing numbers ...
-        // otherwise may have 
-        // java.lang.RuntimeException: .. 
+        // otherwise may have java.lang.RuntimeException: .. 
         // Caused by: com.fasterxml.jackson.core.JsonParseException: Unexpected character (' ' (code 65535 / 0xffff)): Expected space separating root-level values
-        Reader cmdArgsReader = new StringReader(cmdArgsLine);
-        Supplier<FxNode> cmdArgsPartialParser = FxJsonUtils.createPartialParser(cmdArgsReader);
-        return parseNamedValues(cmdArgsReader, cmdArgsPartialParser);
+        PushbackReader pushBackReader = new PushbackReader(new StringReader(cmdArgsLine + " "));
+        
+        Supplier<FxNode> cmdArgsPartialParser = FxJsonUtils.createPartialParser(pushBackReader);
+        return parseNamedValues(pushBackReader, cmdArgsPartialParser);
     }
     
-    public Map<String, FxNode> parseNamedValues(Reader cmdArgsReader, Supplier<FxNode> cmdArgsPartialParser) {
+    public Map<String, FxNode> parseNamedValues(PushbackReader cmdArgsReader, Supplier<FxNode> cmdArgsPartialParser) {
         Map<String,FxNode> rawNameValues = new LinkedHashMap<>(); 
         try {
             while(cmdArgsReader.ready()) {
-                String paramName = FxReaderUtils.readUntil(cmdArgsReader, '=', false);
+                FxReaderUtils.skipWs(cmdArgsReader);
+                String paramName = FxReaderUtils.readName(cmdArgsReader);
                 if (paramName == null || paramName.isEmpty()) {
                     break;
                 }
+                FxReaderUtils.skipWs(cmdArgsReader);
+                FxReaderUtils.readExpected(cmdArgsReader, "=");
+                
                 FxNode rawParamValue = cmdArgsPartialParser.get();
                 rawNameValues.put(paramName, rawParamValue); 
             }
