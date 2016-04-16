@@ -1,5 +1,7 @@
 {
   name: "test",
+  displayName: "test..",
+  comment: "comment..",
   paramDescriptions: {
     param1: {
       name: "param1",
