@@ -40,6 +40,6 @@
   {
     type: "adapterFactoryDecl",
     resourceTypeName: "Tomcat",
-    adapterFactoryClassName: "org.cmdb4j.core.repo.json.reflect.ResourceTypeContributionTreeParserTest$DummyTstTomcatStopSupportAdapterFactory"
+    adapterFactoryClassName: "org.cmdb4j.core.model.reflect.ResourceTypeContributionTreeParserTest$DummyTstTomcatStopSupportAdapterFactory"
   }
  ]

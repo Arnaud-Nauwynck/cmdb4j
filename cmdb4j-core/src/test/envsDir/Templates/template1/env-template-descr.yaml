@@ -1,0 +1,22 @@
+
+
+name: template1
+displayName: template 1
+comment: a template for test
+
+paramDescriptions:
+  Topology_NumberOfVirtualHost:
+    displayName: number of virtual host
+    comment: number of virtual hosts to provision
+    defaultValue: 2
+    extraProperties:
+      minValue: 1
+      maxValue: 10
+     
+  
+extraProperties:
+  detailedDescription: a temporary env for test...
+  defaultRetentionDelay: 1 week
+  costPerDay: 1.2
+  nestYamlProperty: 
+    key1: value1

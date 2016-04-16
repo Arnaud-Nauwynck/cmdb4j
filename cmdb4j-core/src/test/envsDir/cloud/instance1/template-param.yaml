@@ -1,9 +1,15 @@
 
-templateSourceEnvName: template1
+sourceTemplateName: template1
+displayName: instance1 env from template1
+comment: temporary env for homologation of app XYZ, Jira:XYZ-123 
 
-params:
+parameters:
   Topology_NumberOfVirtualHost: 50
+     
   
-metaparams:
-  description: a temporary env for test...
-  retentionDate: 2016-01-31
+metaParameters:
+  creationDate: 2015-01-24
+  retentionDate: 2015-01-31
+  costPerDay: 1.2
+  creationUse: me
+  targetUser: me, someone-else

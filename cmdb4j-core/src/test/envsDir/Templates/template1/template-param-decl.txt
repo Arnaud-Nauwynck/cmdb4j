@@ -1,3 +1,0 @@
-
-Topology_NumberOfVirtualHost: 3
-

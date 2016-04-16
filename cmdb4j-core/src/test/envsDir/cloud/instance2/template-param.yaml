@@ -1,0 +1,10 @@
+
+sourceTemplateName: template1
+displayName: instance2 env from template1
+comment: temporary env.. 
+
+parameters:
+  Topology_NumberOfVirtualHost: 10
+     
+metaParameters:
+  creationUse: me
