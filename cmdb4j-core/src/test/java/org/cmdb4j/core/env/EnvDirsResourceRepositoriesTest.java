@@ -1,9 +1,12 @@
 package org.cmdb4j.core.env;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.cmdb4j.core.dto.env.EnvTemplateInstanceParametersDTO;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.ResourceId;
 import org.cmdb4j.core.model.ResourceRepository;
@@ -11,6 +14,7 @@ import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.google.common.collect.ImmutableList;
 
 import fr.an.fxtree.impl.stdfunc.FxStdFuncs;
@@ -23,6 +27,14 @@ public class EnvDirsResourceRepositoriesTest {
     protected File baseEnvsDir = new File("src/test/envsDir");
     protected EnvDirsResourceRepositories sut = new EnvDirsResourceRepositories(baseEnvsDir, resourceTypeRepository, FxStdFuncs.stdFuncRegistry());
 
+    @Test
+    public void testGetter() {
+        Assert.assertSame(resourceTypeRepository, sut.getResourceTypeRepository());
+        Assert.assertNotNull(sut.getFuncRegistry());
+        Assert.assertNotNull(sut.getGlobalResources());
+    }
+
+    
     @Test
     public void testPurge() {
         sut.purge();
@@ -177,5 +189,34 @@ public class EnvDirsResourceRepositoriesTest {
         FxNodeCheckUtils.checkDoubleEquals(1.2, extraProperties.get("costPerDay"), 1e-6);
         Assert.assertTrue(extraProperties.get("nestYamlProperty").isObject());
     }
+    
+    @Test
+    public void testGetEnvTemplateDescr_null() {
+        EnvTemplateDescr res = sut.getEnvTemplateDescr("template-not-existing");
+        Assert.assertNull(res);
+    }
+    
+    @Test
+    public void testCreateEnvFromTemplate() throws IOException {
+        // Prepare
+        String envName = "test-Create1";
+        File testEnvDir = new File(baseEnvsDir, "cloud/" + envName);
+        if (testEnvDir.exists()) {
+            FileUtils.deleteDirectory(testEnvDir);
+        }
+        EnvTemplateInstanceParametersDTO instanceParams = new EnvTemplateInstanceParametersDTO();
+        instanceParams.setSourceTemplateName("template1");
+        int testNumberOfVirtualHost = 2;
+        instanceParams.putParameter("Topology_NumberOfVirtualHost", new IntNode(testNumberOfVirtualHost));
+        // Perform
+        EnvResourceRepository res = sut.createEnvFromTemplate(envName, instanceParams);
+        // Post-check
+        Assert.assertNotNull(res);
+        ResourceRepository resourceRepository = res.getResourceRepository();
+        List<Resource> resResources = resourceRepository.findAll();
+        Assert.assertEquals(testNumberOfVirtualHost*3, resResources.size());
+        // cleanup.. FileUtils.deleteDirectory(testEnvDir);
+    }
+
 }
 

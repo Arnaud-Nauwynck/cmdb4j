@@ -1,0 +1,3 @@
+sourceTemplateName: template1
+extraProperties: {}
+parameters: {Topology_NumberOfVirtualHost: 2}

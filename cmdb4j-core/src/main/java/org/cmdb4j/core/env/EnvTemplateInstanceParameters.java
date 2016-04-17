@@ -21,16 +21,16 @@ public class EnvTemplateInstanceParameters {
     private final Map<String, FxNode> parameters;
 
     /**
-     * optionnal parameters for comment (creationDate, user, retention, description, deployedVersionSet, ... )  
+     * optionnal extra properties (for comment, creationDate, user, retention, description, deployedVersionSet, ... )  
      */
-    private final Map<String, FxNode> metaParameters;
+    private final Map<String, FxNode> extraProperties;
     
     // ------------------------------------------------------------------------
     
-    public EnvTemplateInstanceParameters(String sourceTemplateName, Map<String, FxNode> templateParameters, Map<String, FxNode> metaParameters) {
+    public EnvTemplateInstanceParameters(String sourceTemplateName, Map<String, FxNode> templateParameters, Map<String, FxNode> extraProperties) {
         this.sourceTemplateName = sourceTemplateName;
         this.parameters = ImmutableMap.copyOf(templateParameters);
-        this.metaParameters = ImmutableMap.copyOf(metaParameters);
+        this.extraProperties = ImmutableMap.copyOf(extraProperties);
     }
 
     // ------------------------------------------------------------------------
@@ -43,8 +43,8 @@ public class EnvTemplateInstanceParameters {
         return parameters;
     }
 
-    public Map<String, FxNode> getMetaParameters() {
-        return metaParameters;
+    public Map<String, FxNode> getExtraProperties() {
+        return extraProperties;
     }
 
     // ------------------------------------------------------------------------
@@ -54,23 +54,31 @@ public class EnvTemplateInstanceParameters {
      */
     public static class Builder {
         private String sourceTemplateName;
-        private final Map<String, FxNode> templateParameters = new LinkedHashMap<>();
-        private final Map<String, FxNode> metaParameters = new LinkedHashMap<>();
+        private final Map<String, FxNode> parameters = new LinkedHashMap<>();
+        private final Map<String, FxNode> extraProperties = new LinkedHashMap<>();
         
         public EnvTemplateInstanceParameters build() {
-            return new EnvTemplateInstanceParameters(sourceTemplateName, templateParameters, metaParameters);
+            return new EnvTemplateInstanceParameters(sourceTemplateName, parameters, extraProperties);
         }
         
         public Builder sourceTemplateName(String p) {
             sourceTemplateName = p;
             return this;
         }
-        public Builder putAllTemplateParameters(Map<String, FxNode> p) {
-            templateParameters.putAll(p);
+        public Builder putParameter(String name, FxNode value) {
+            parameters.put(name, value);
             return this;
         }
-        public Builder putAllMetaParameters(Map<String, FxNode> p) {
-            metaParameters.putAll(p);
+        public Builder putAllParameters(Map<String, FxNode> p) {
+            parameters.putAll(p);
+            return this;
+        }
+        public Builder putExtraProperty(Map<String, FxNode> p) {
+            extraProperties.putAll(p);
+            return this;
+        }
+        public Builder putAllExtraPropreties(Map<String, FxNode> p) {
+            extraProperties.putAll(p);
             return this;
         }
     }

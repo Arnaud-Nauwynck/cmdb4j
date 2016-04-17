@@ -1,15 +1,22 @@
 package org.cmdb4j.core.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Id for a Resource element
  * 
  * (similar class: PathId)
  */
-public final class ResourceId implements Comparable<ResourceId> {
+public final class ResourceId implements Comparable<ResourceId>, Serializable {
+
+    /** internal for java.io.Serializable */
+    private static final long serialVersionUID = 1L;
 
     private final String[] pathElements;
 
@@ -19,7 +26,8 @@ public final class ResourceId implements Comparable<ResourceId> {
         this.pathElements = pathElements;
     }
     
-    public static ResourceId valueOf(String... pathElements) {
+    @JsonCreator()
+    public static ResourceId valueOf(@JsonProperty("pathElements") String... pathElements) {
         return new ResourceId(splitEltsToArray(pathElements));
     }
     
@@ -70,6 +78,11 @@ public final class ResourceId implements Comparable<ResourceId> {
 
     public String get(int i) {
         return pathElements[i];
+    }
+    
+    /** for Jackson */
+    public String[] getPathElements() {
+        return Arrays.copyOf(pathElements, pathElements.length);
     }
 
     public List<String> toList() {

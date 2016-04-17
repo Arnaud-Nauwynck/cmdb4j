@@ -1,8 +1,10 @@
-package org.cmdb4j.core.env.dto;
+package org.cmdb4j.core.env.impl;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.cmdb4j.core.dto.env.EnvTemplateDescrDTO;
+import org.cmdb4j.core.dto.env.EnvTemplateParamDescrDTO;
 import org.cmdb4j.core.env.EnvTemplateDescr;
 import org.cmdb4j.core.env.EnvTemplateParamDescr;
 
@@ -14,7 +16,7 @@ import fr.an.fxtree.model.FxNode;
 
 public class EnvTemplateDescrDTOMapper {
 
-    public static EnvTemplateDescr fromDTO(EnvTemplateDescrDTO src) {
+    public EnvTemplateDescr fromDTO(EnvTemplateDescrDTO src) {
         Map<String, EnvTemplateParamDescr> paramDescriptions = new LinkedHashMap<>();
         src.getParamDescriptions().forEach((n,p) -> {
             paramDescriptions.put(n, EnvTemplateParamDescr.fromDTO(p));
@@ -25,7 +27,7 @@ public class EnvTemplateDescrDTOMapper {
             paramDescriptions, extraProperties, rawNode);
     }
 
-    public static EnvTemplateDescrDTO toDTO(EnvTemplateDescr src) {
+    public EnvTemplateDescrDTO toDTO(EnvTemplateDescr src) {
         Map<String, EnvTemplateParamDescrDTO> paramDescriptions = new LinkedHashMap<>();
         src.getParamDescriptions().forEach((n,p) -> {
             paramDescriptions.put(n, EnvTemplateParamDescr.toDTO(p));
@@ -37,14 +39,14 @@ public class EnvTemplateDescrDTOMapper {
     }
 
     /** parse FxNode -> EnvTemplateDescr */
-    public static EnvTemplateDescr fromFxTree(FxNode src) {
+    public EnvTemplateDescr fromFxTree(FxNode src) {
         // use FxNode->DTO mapping + DTO->Obj copy (shorter equivalent than hand-parsing FxNode..) 
         EnvTemplateDescrDTO tmpres = FxJsonUtils.treeToValue(EnvTemplateDescrDTO.class, src);
         return fromDTO(tmpres);
     }
 
     /** format EnvTemplateDescr -> FxNode */
-    public static FxNode toFxTree(EnvTemplateDescr src) {
+    public FxNode toFxTree(EnvTemplateDescr src) {
         EnvTemplateDescrDTO tmpres = toDTO(src);
         return FxJsonUtils.valueToTree(tmpres);
     }

@@ -1,4 +1,4 @@
-package org.cmdb4j.core.env.dto;
+package org.cmdb4j.core.dto.env;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -23,9 +23,9 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
     private Map<String, JsonNode> parameters = new LinkedHashMap<>();
 
     /**
-     * optionnal meta-parameters for comment (creationDate, user, retention, description, deployedVersionSet, ... )  
+     * optionnal extra properties (for creationDate, user, retention, description, deployedVersionSet, ... )  
      */
-    private Map<String, JsonNode> metaParameters = new LinkedHashMap<>();
+    private Map<String, JsonNode> extraProperties = new LinkedHashMap<>();
     
     // ------------------------------------------------------------------------
     
@@ -36,7 +36,7 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
         this();
         this.sourceTemplateName = sourceTemplateName;
         this.parameters = parameters;
-        this.metaParameters = metaParameters;
+        this.extraProperties = metaParameters;
     }
 
 
@@ -46,7 +46,7 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
         return sourceTemplateName;
     }
 
-    public void setTemplateSourceName(String p) {
+    public void setSourceTemplateName(String p) {
         this.sourceTemplateName = p;
     }
 
@@ -58,12 +58,26 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
         this.parameters = p;
     }
 
-    public Map<String, JsonNode> getMetaParameters() {
-        return metaParameters;
+    public void putParameter(String name, JsonNode value) {
+        if (parameters == null) {
+            parameters = new LinkedHashMap<>();
+        }
+        this.parameters.put(name, value);
+    }
+    
+    public Map<String, JsonNode> getExtraProperties() {
+        return extraProperties;
     }
 
-    public void setMetaParameters(Map<String, JsonNode> p) {
-        this.metaParameters = p;
+    public void setExtraProperties(Map<String, JsonNode> p) {
+        this.extraProperties = p;
+    }
+
+    public void putExtraProperty(String name, JsonNode value) {
+        if (extraProperties == null) {
+            extraProperties = new LinkedHashMap<>();
+        }
+        this.extraProperties.put(name, value);
     }
 
     // ------------------------------------------------------------------------
@@ -71,7 +85,7 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
     @Override
     public String toString() {
         return "EnvTemplateInstanceParametersDTO [sourceTemplateName=" + sourceTemplateName 
-                    + ", templateParameters:" + parameters
+                    + ", parameters:" + parameters
                     + "]";
     }
     

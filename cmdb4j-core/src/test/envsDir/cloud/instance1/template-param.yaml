@@ -7,7 +7,7 @@ parameters:
   Topology_NumberOfVirtualHost: 50
      
   
-metaParameters:
+extraProperties:
   creationDate: 2015-01-24
   retentionDate: 2015-01-31
   costPerDay: 1.2

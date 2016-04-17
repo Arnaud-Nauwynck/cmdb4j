@@ -6,5 +6,5 @@ comment: temporary env..
 parameters:
   Topology_NumberOfVirtualHost: 10
      
-metaParameters:
+extraProperties:
   creationUse: me

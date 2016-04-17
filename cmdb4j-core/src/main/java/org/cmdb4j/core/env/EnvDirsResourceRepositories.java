@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
-import org.cmdb4j.core.env.dto.EnvTemplateDescrDTOMapper;
-import org.cmdb4j.core.env.dto.EnvTemplateInstanceParametersDTO;
-import org.cmdb4j.core.env.dto.EnvTemplateInstanceParametersDTOMapper;
+import org.cmdb4j.core.dto.env.EnvTemplateInstanceParametersDTO;
+import org.cmdb4j.core.env.impl.EnvTemplateDescrDTOMapper;
+import org.cmdb4j.core.env.impl.EnvTemplateInstanceParametersDTOMapper;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.ResourceId;
 import org.cmdb4j.core.model.ResourceRepository;
@@ -139,6 +139,9 @@ public class EnvDirsResourceRepositories {
     private List<String> _cacheListEnvTemplates;
     
     private Map<String,EnvTemplateDescr> _cacheEnvTemplateDescr = new HashMap<>();
+    
+    protected EnvTemplateInstanceParametersDTOMapper envTemplateInstanceParametersDTOMapper = new EnvTemplateInstanceParametersDTOMapper();
+    protected EnvTemplateDescrDTOMapper envTemplateDescrDTOMapper = new EnvTemplateDescrDTOMapper();
     
     // ---------------------------------------------------------------------- --
 
@@ -295,7 +298,7 @@ public class EnvDirsResourceRepositories {
                 // LOG.warn("template descr file not found '" + templateName + "/" + ENV_TEMPLATE_DECSCR_BASEFILENAME + ".(yaml|json)' .. using empty");
                 // res = new EnvTemplateDescr(templateName, null, null, new LinkedHashMap<>(), new LinkedHashMap<>(), null);
             } else {
-                res = EnvTemplateDescrDTOMapper.fromFxTree(templateDescrNode);
+                res = envTemplateDescrDTOMapper.fromFxTree(templateDescrNode);
             }
 
             // scan files "Templates/<<name>>/**/env.yaml"
@@ -338,13 +341,13 @@ public class EnvDirsResourceRepositories {
         }
         
         // convert from DTO to obj, and fill values
-        EnvTemplateInstanceParameters instanceParam = EnvTemplateInstanceParametersDTOMapper.fromDTO(instanceParamDTO);
+        EnvTemplateInstanceParameters instanceParam = envTemplateInstanceParametersDTOMapper.fromDTO(instanceParamDTO);
         onCreateEnvFromTemplate_FillParams(envName, instanceParam);
         
         // TODO ... check mandatory params + param validity + add meta parameters (creationDate, ..)
         
         LOG.info("create env '" + envName + "' from sourceTemplateName:" + sourceTemplateName + ", parameters:" + instanceParam.getParameters());
-        FxNode templateInstanceParamNode = EnvTemplateInstanceParametersDTOMapper.formatNode(instanceParam);
+        FxNode templateInstanceParamNode = envTemplateInstanceParametersDTOMapper.formatNode(instanceParam);
         cloudEnvDir.mkdir();
         File templateInstanceParamFile = new File(cloudEnvDir, TEMPLATE_PARAM_BASEFILENAME + FxFileUtils.YAML_EXT);
         FxFileUtils.writeTree(templateInstanceParamFile, templateInstanceParamNode);
@@ -539,7 +542,7 @@ public class EnvDirsResourceRepositories {
                     ) {
                 // read json/yaml, and merge into parameter builder
                 FxObjNode tmpContent = (FxObjNode) FxFileUtils.readTree(file);
-                EnvTemplateInstanceParametersDTOMapper.parseMergeNode(res, tmpContent);
+                envTemplateInstanceParametersDTOMapper.parseMergeNode(res, tmpContent);
             }
         }
 

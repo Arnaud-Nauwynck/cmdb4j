@@ -1,4 +1,4 @@
-package org.cmdb4j.core.env.dto;
+package org.cmdb4j.core.dto.env;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;

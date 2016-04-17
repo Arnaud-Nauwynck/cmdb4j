@@ -3,7 +3,7 @@
   parameters: {
     param1: 12
   },
-  metaParameters: {  
+  extraProperties: {  
     createdBy: "me"
   }
 }

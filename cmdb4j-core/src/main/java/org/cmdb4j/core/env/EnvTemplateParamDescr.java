@@ -3,7 +3,7 @@ package org.cmdb4j.core.env;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.cmdb4j.core.env.dto.EnvTemplateParamDescrDTO;
+import org.cmdb4j.core.dto.env.EnvTemplateParamDescrDTO;
 
 import fr.an.fxtree.format.json.jackson.Fx2JacksonUtils;
 import fr.an.fxtree.model.FxNode;
