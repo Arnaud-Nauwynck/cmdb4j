@@ -6,7 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.cmdb4j.core.dto.env.EnvInfoDTO;
 import org.cmdb4j.core.dto.env.EnvTemplateInstanceParametersDTO;
+import org.cmdb4j.core.dto.env.LightweightEnvInfoDTO;
+import org.cmdb4j.core.env.impl.EnvInfoDTOMapper;
+import org.cmdb4j.core.env.impl.LightweightEnvInfoDTOMapper;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.ResourceId;
 import org.cmdb4j.core.model.ResourceRepository;
@@ -141,6 +145,12 @@ public class EnvDirsResourceRepositoriesTest {
         ResourceRepository resRepo = res.getResourceRepository();
         List<Resource> resources = resRepo.findAll();
         Assert.assertEquals(150, resources.size()); // 50 * 3(host + tomcat1 + tomcat2)
+        
+        LightweightEnvInfoDTO resLightweigthDTO = new LightweightEnvInfoDTOMapper().toDTO(res); 
+        Assert.assertNotNull(resLightweigthDTO);
+        EnvInfoDTO resDTO = new EnvInfoDTOMapper().toDTO(res); 
+        Assert.assertNotNull(resDTO);
+        Assert.assertEquals(resources.size(), resDTO.getResources().size());
     }
 
     @Test

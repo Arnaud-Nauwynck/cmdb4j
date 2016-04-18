@@ -17,6 +17,8 @@ import org.apache.commons.collections.map.Flat3Map;
 import org.cmdb4j.core.model.reflect.ResourceType;
 import org.cmdb4j.core.util.CmdbAssertUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import fr.an.dynadapter.alt.IAdapterAlternativesManager;
 import fr.an.dynadapter.alt.ItfId;
 import fr.an.fxtree.model.FxObjNode;
@@ -71,9 +73,19 @@ public class Resource {
     public final ResourceId getId() {
         return id;
     }
-    
+
+    @JsonIgnore
+    public final String getIdAsString() {
+        return id != null? id.toString() : null;
+    }
+
     public ResourceType getType() {
         return type;
+    }
+
+    @JsonIgnore
+    public String getTypeAsString() {
+        return type != null? type.getName() : null;
     }
 
     public FxObjNode getObjData() {
@@ -314,10 +326,23 @@ public class Resource {
     // ------------------------------------------------------------------------
     
     public static List<ResourceId> toIds(Collection<Resource> ls) {
+        if (ls == null) {
+            return  null;
+        }
         return ls.stream().map(x -> x.id).collect(Collectors.toList());
     }
 
+    public static Set<ResourceId> toIdSet(Collection<Resource> ls) {
+        if (ls == null) {
+            return null;
+        }
+        return ls.stream().map(x -> x.id).collect(Collectors.toSet());
+    }
+
     public static Map<ResourceId,Resource> lsToIdMap(Collection<Resource> ls) {
+        if (ls == null) {
+            return null;
+        }
         return lsToIdMap(new HashMap<>(), ls);
     }
     
@@ -325,10 +350,27 @@ public class Resource {
         if (res == null) {
             res = new HashMap<>();
         }
+        if (ls == null) {
+            return res;
+        }
         for(Resource e : ls) {
             res.put(e.id, e);
         }
         return res;
+    }
+
+    public static List<String> toIdAsStringList(Collection<Resource> ls) {
+        if (ls == null) {
+            return null;
+        }
+        return ls.stream().map(x -> x.getIdAsString()).collect(Collectors.toList());
+    }
+
+    public static Set<String> toIdAsStringSet(Collection<Resource> ls) {
+        if (ls == null) {
+            return null;
+        }
+        return ls.stream().map(x -> x.getIdAsString()).collect(Collectors.toSet());
     }
 
 }
