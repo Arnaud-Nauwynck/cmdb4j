@@ -1,6 +1,8 @@
 package org.cmdb4j.core.env;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import fr.an.fxtree.model.FxNode;
@@ -19,7 +21,7 @@ public class EnvTemplateDescr {
 
     private String comment;
 
-    private Map<String,EnvTemplateParamDescr> paramDescriptions = new LinkedHashMap<>();
+    private List<EnvTemplateParamDescr> paramDescriptions = new ArrayList<>();
 
     private Map<String,FxNode> extraProperties = new LinkedHashMap<>();
 
@@ -28,7 +30,7 @@ public class EnvTemplateDescr {
     // ------------------------------------------------------------------------
     
     public EnvTemplateDescr(String name, String displayName, String comment,
-            Map<String, EnvTemplateParamDescr> paramDescriptions, 
+             List<EnvTemplateParamDescr> paramDescriptions, 
             Map<String, FxNode> extraProperties, FxNode rawNode) {
         this.name = name;
         this.displayName = displayName;
@@ -52,10 +54,19 @@ public class EnvTemplateDescr {
         return comment;
     }
 
-    public Map<String, EnvTemplateParamDescr> getParamDescriptions() {
+    public List<EnvTemplateParamDescr> getParamDescriptions() {
         return paramDescriptions;
     }
     
+    public EnvTemplateParamDescr findParamDescriptionByName(String name) {
+        for(EnvTemplateParamDescr e : paramDescriptions) {
+            if (name.equals(e.getName())) {
+                return e;
+            }
+        }
+        return null;
+    }
+
     public Map<String, FxNode> getExtraProperties() {
         return extraProperties;
     }

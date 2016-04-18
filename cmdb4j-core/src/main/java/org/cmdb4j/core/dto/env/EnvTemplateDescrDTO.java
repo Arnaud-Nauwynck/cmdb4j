@@ -1,7 +1,9 @@
 package org.cmdb4j.core.dto.env;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,7 +23,7 @@ public class EnvTemplateDescrDTO implements Serializable {
 
     private String comment;
 
-    private Map<String,EnvTemplateParamDescrDTO> paramDescriptions = new LinkedHashMap<>();
+    private List<EnvTemplateParamDescrDTO> paramDescriptions = new ArrayList<>();
 
     private Map<String,JsonNode> extraProperties = new LinkedHashMap<>();
 
@@ -33,7 +35,7 @@ public class EnvTemplateDescrDTO implements Serializable {
     }
     
     public EnvTemplateDescrDTO(String name, String displayName, String comment,
-            Map<String, EnvTemplateParamDescrDTO> paramDescriptions, 
+             List<EnvTemplateParamDescrDTO> paramDescriptions, 
             Map<String, JsonNode> extraProperties, JsonNode rawNode) {
         this();
         this.name = name;
@@ -70,19 +72,19 @@ public class EnvTemplateDescrDTO implements Serializable {
         this.comment = comment;
     }
 
-    public Map<String, EnvTemplateParamDescrDTO> getParamDescriptions() {
+    public  List<EnvTemplateParamDescrDTO> getParamDescriptions() {
         return paramDescriptions;
     }
     
-    public void setParamDescriptions(Map<String, EnvTemplateParamDescrDTO> paramDescriptions) {
+    public void setParamDescriptions( List<EnvTemplateParamDescrDTO> paramDescriptions) {
         this.paramDescriptions = paramDescriptions;
     }
 
     public void addParamDescription(EnvTemplateParamDescrDTO p) {
         if (this.paramDescriptions == null) {
-            this.paramDescriptions = new LinkedHashMap<>();
+            this.paramDescriptions = new ArrayList<>();
         }
-        this.paramDescriptions.put(p.getName(), p);
+        this.paramDescriptions.add(p);
     }
 
     public Map<String, JsonNode> getExtraProperties() {

@@ -172,9 +172,9 @@ public class EnvDirsResourceRepositoriesTest {
         Assert.assertEquals("template1", res.getName());
         Assert.assertEquals("template 1", res.getDisplayName());
         Assert.assertEquals("a template for test", res.getComment());
-        Map<String, EnvTemplateParamDescr> paramDescriptions = res.getParamDescriptions();
+         List<EnvTemplateParamDescr> paramDescriptions = res.getParamDescriptions();
         Assert.assertEquals(1, paramDescriptions.size());
-        EnvTemplateParamDescr param = paramDescriptions.get("Topology_NumberOfVirtualHost");
+        EnvTemplateParamDescr param = res.findParamDescriptionByName("Topology_NumberOfVirtualHost");
         Assert.assertEquals("number of virtual hosts to provision", param.getComment());
         FxNodeCheckUtils.checkIntEquals(2, param.getDefaultValue());
         Assert.assertEquals("number of virtual host", param.getDisplayName());

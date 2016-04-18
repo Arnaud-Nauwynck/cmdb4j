@@ -2,8 +2,8 @@
   name: "test",
   displayName: "test..",
   comment: "comment..",
-  paramDescriptions: {
-    param1: {
+  paramDescriptions: [
+    {
       name: "param1",
       type: "int",
       displayName: "param 1",
@@ -14,7 +14,7 @@
         maxValue: 200
       }
     }
-  },
+  ],
   extraProperties: {  
     key1: "value1"
   },

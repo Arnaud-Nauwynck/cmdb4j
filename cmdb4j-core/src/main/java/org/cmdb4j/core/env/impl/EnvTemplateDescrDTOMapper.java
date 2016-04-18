@@ -1,6 +1,7 @@
 package org.cmdb4j.core.env.impl;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.cmdb4j.core.dto.env.EnvTemplateDescrDTO;
@@ -16,10 +17,12 @@ import fr.an.fxtree.model.FxNode;
 
 public class EnvTemplateDescrDTOMapper {
 
+    protected EnvTemplateParamDescrDTOMapper paramDescrDTOMapper = new EnvTemplateParamDescrDTOMapper();
+    
     public EnvTemplateDescr fromDTO(EnvTemplateDescrDTO src) {
-        Map<String, EnvTemplateParamDescr> paramDescriptions = new LinkedHashMap<>();
-        src.getParamDescriptions().forEach((n,p) -> {
-            paramDescriptions.put(n, EnvTemplateParamDescr.fromDTO(p));
+        List<EnvTemplateParamDescr> paramDescriptions = new ArrayList<>();
+        src.getParamDescriptions().forEach(p -> {
+            paramDescriptions.add(paramDescrDTOMapper.fromDTO(p));
         });
         Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties());
         FxNode rawNode = Fx2JacksonUtils.jsonNodeToFxTree(src.getRawNode());
@@ -28,9 +31,9 @@ public class EnvTemplateDescrDTOMapper {
     }
 
     public EnvTemplateDescrDTO toDTO(EnvTemplateDescr src) {
-        Map<String, EnvTemplateParamDescrDTO> paramDescriptions = new LinkedHashMap<>();
-        src.getParamDescriptions().forEach((n,p) -> {
-            paramDescriptions.put(n, EnvTemplateParamDescr.toDTO(p));
+        List<EnvTemplateParamDescrDTO> paramDescriptions = new ArrayList<>();
+        src.getParamDescriptions().forEach(p -> {
+            paramDescriptions.add(paramDescrDTOMapper.toDTO(p));
         });
         Map<String,JsonNode> extraProperties = Fx2JacksonUtils.fxTreesToJsonNodes(src.getExtraProperties());
         JsonNode rawNode = Fx2JacksonUtils.fxTreeToJsonNode(src.getRawNode());
