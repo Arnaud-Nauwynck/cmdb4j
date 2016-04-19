@@ -112,7 +112,9 @@ public class EnvDirsResourceRepositories {
     private static final String ENV_BASEFILENAME = "env";
     
     private static final Predicate<String> DEFAULT_DIRNAME_ENV_ACCEPT = name -> ! (
-            name.equals(DEFAULT_DIRNAME) || name.equals(TEMPLATES_DIRNAME) || name.startsWith("test-"));
+            name.equals(DEFAULT_DIRNAME) || name.equals(TEMPLATES_DIRNAME)
+            // || name.startsWith("test-")
+            );
     
     private File baseEnvsDir;
 
