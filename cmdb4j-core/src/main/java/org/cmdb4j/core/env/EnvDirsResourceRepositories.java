@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import org.cmdb4j.core.dto.env.EnvTemplateDescrDTO;
 import org.cmdb4j.core.dto.env.EnvTemplateInstanceParametersDTO;
 import org.cmdb4j.core.env.impl.EnvTemplateDescrDTOMapper;
 import org.cmdb4j.core.env.impl.EnvTemplateInstanceParametersDTOMapper;
@@ -300,7 +301,7 @@ public class EnvDirsResourceRepositories {
                 // LOG.warn("template descr file not found '" + templateName + "/" + ENV_TEMPLATE_DECSCR_BASEFILENAME + ".(yaml|json)' .. using empty");
                 // res = new EnvTemplateDescr(templateName, null, null, new LinkedHashMap<>(), new LinkedHashMap<>(), null);
             } else {
-                res = envTemplateDescrDTOMapper.fromFxTree(templateDescrNode);
+                res = envTemplateDescrDTOMapper.fromFxTree(templateName, templateDescrNode);
             }
 
             // scan files "Templates/<<name>>/**/env.yaml"
@@ -320,16 +321,44 @@ public class EnvDirsResourceRepositories {
         }
         return res;
     }
-
+    
+    public List<EnvTemplateDescr> listEnvTemplateDescrs() {
+        List<EnvTemplateDescr> res = new ArrayList<>();
+        for (String e : listEnvTemplates()) {
+            try {
+                EnvTemplateDescr resElt = getEnvTemplateDescr(e);
+                if (resElt != null) {
+                    res.add(resElt);
+                }
+            } catch (Exception ex) {
+                LOG.error("Failed listEnvTemplateDescrs() on env:" + e + " ..ignore, no rethrow!", ex);
+            }
+        }
+        return res;
+    }
+    
+    public List<EnvTemplateDescrDTO> listEnvTemplateDescrDTOs() {
+        List<EnvTemplateDescrDTO> res = new ArrayList<>();
+        List<EnvTemplateDescr> tmpres = listEnvTemplateDescrs();
+        for(EnvTemplateDescr e : tmpres) {
+            EnvTemplateDescrDTO resElt = envTemplateDescrDTOMapper.toDTO(e); 
+            res.add(resElt);
+       }
+        return res;
+    }
+    
     // Management of cloud env (="ephemeral") instance from template
     // ------------------------------------------------------------------------
 
-    public EnvResourceRepository createEnvFromTemplate(String cloudSubEnvName, EnvTemplateInstanceParametersDTO instanceParamDTO) {
-        if (cloudSubEnvName == null) {
-            throw new IllegalArgumentException("cloud envName param is null");
+    public EnvResourceRepository createEnvFromTemplate(EnvTemplateInstanceParametersDTO instanceParamDTO) {
+        String envName = instanceParamDTO.getEnvName();
+        if (envName == null) {
+            throw new IllegalArgumentException("envName param is null");
         }
-        String envName = cloudDirname + "/" + cloudSubEnvName;
-        File cloudEnvDir = new File(baseCloudDir, cloudSubEnvName);
+        if (! envName.startsWith(cloudDirname)) {
+            envName = cloudDirname + "/" + envName;
+        }
+        File cloudEnvDir = new File(baseEnvsDir, envName);
         if (cloudEnvDir.exists()) {
             throw new IllegalArgumentException("env '" + envName + "' already exists");
         }
@@ -397,7 +426,7 @@ public class EnvDirsResourceRepositories {
         File envDir = new File(baseEnvsDir, envName);
         
         // scan <<baseEnvsDir>>/<<envName>>/template-params.[json|yaml]
-        EnvTemplateInstanceParameters templateParams = scanTemplateParamsFiles(envDir);
+        EnvTemplateInstanceParameters templateParams = scanTemplateParamsFiles(envName, envDir);
         
         // recursive scan dir/files  <<baseEnvsDir>>/Templates/<<sourceTemplateEnvName>>/**/*.[json|yaml]
         String sourceTemplateEnvName = templateParams.getSourceTemplateName();
@@ -531,8 +560,8 @@ public class EnvDirsResourceRepositories {
      * 
      * => concatenate and obtain params <PRE>{ key1:value1, key2:value2, key3:value3, key4:value4 }</PRE>
      */
-    protected EnvTemplateInstanceParameters scanTemplateParamsFiles(File dir) {
-        EnvTemplateInstanceParameters.Builder res = new EnvTemplateInstanceParameters.Builder();
+    protected EnvTemplateInstanceParameters scanTemplateParamsFiles(String envName, File dir) {
+        EnvTemplateInstanceParameters.Builder res = new EnvTemplateInstanceParameters.Builder(envName);
         
         File[] files = dir.listFiles();
         if (files == null) return res.build(); // dir not found?
@@ -547,7 +576,7 @@ public class EnvDirsResourceRepositories {
                 envTemplateInstanceParametersDTOMapper.parseMergeNode(res, tmpContent);
             }
         }
-
+        
         return res.build();
     }
     

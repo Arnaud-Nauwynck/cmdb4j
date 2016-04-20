@@ -1,4 +1,5 @@
 {
+  envName: "test-create1",
   sourceTemplateName: "template1",
   parameters: {
     param1: 12

@@ -47,7 +47,7 @@ public class EnvDirsResourceRepositoriesTest {
     @Test
     public void testListEnvs() {
         List<String> res = sut.listEnvs();
-        Assert.assertEquals(ImmutableList.of("INT1", "DEV1", "cloud/instance1", "cloud/instance2"), res);
+        Assert.assertTrue(res.containsAll(ImmutableList.of("INT1", "DEV1", "cloud/instance1", "cloud/instance2")));
     }
 
     @Test
@@ -209,17 +209,18 @@ public class EnvDirsResourceRepositoriesTest {
     @Test
     public void testCreateEnvFromTemplate() throws IOException {
         // Prepare
-        String envName = "test-Create1";
-        File testEnvDir = new File(baseEnvsDir, "cloud/" + envName);
+        String envName = "cloud/test-Create1";
+        File testEnvDir = new File(baseEnvsDir, envName);
         if (testEnvDir.exists()) {
             FileUtils.deleteDirectory(testEnvDir);
         }
         EnvTemplateInstanceParametersDTO instanceParams = new EnvTemplateInstanceParametersDTO();
+        instanceParams.setEnvName(envName);
         instanceParams.setSourceTemplateName("template1");
         int testNumberOfVirtualHost = 2;
         instanceParams.putParameter("Topology_NumberOfVirtualHost", new IntNode(testNumberOfVirtualHost));
         // Perform
-        EnvResourceRepository res = sut.createEnvFromTemplate(envName, instanceParams);
+        EnvResourceRepository res = sut.createEnvFromTemplate(instanceParams);
         // Post-check
         Assert.assertNotNull(res);
         ResourceRepository resourceRepository = res.getResourceRepository();

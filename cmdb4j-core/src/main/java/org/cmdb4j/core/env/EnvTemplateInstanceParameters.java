@@ -12,6 +12,8 @@ import fr.an.fxtree.model.FxNode;
  */
 public class EnvTemplateInstanceParameters {
 
+    private final String envName;
+    
     private final String sourceTemplateName;
     
     /**
@@ -27,13 +29,18 @@ public class EnvTemplateInstanceParameters {
     
     // ------------------------------------------------------------------------
     
-    public EnvTemplateInstanceParameters(String sourceTemplateName, Map<String, FxNode> templateParameters, Map<String, FxNode> extraProperties) {
+    public EnvTemplateInstanceParameters(String envName, String sourceTemplateName, Map<String, FxNode> templateParameters, Map<String, FxNode> extraProperties) {
+        this.envName = envName;
         this.sourceTemplateName = sourceTemplateName;
         this.parameters = ImmutableMap.copyOf(templateParameters);
         this.extraProperties = ImmutableMap.copyOf(extraProperties);
     }
 
     // ------------------------------------------------------------------------
+    
+    public String getEnvName() {
+        return envName;
+    }
     
     public String getSourceTemplateName() {
         return sourceTemplateName;
@@ -53,14 +60,23 @@ public class EnvTemplateInstanceParameters {
      * Builder design pattern for immutable class
      */
     public static class Builder {
+        private String envName;
         private String sourceTemplateName;
         private final Map<String, FxNode> parameters = new LinkedHashMap<>();
         private final Map<String, FxNode> extraProperties = new LinkedHashMap<>();
-        
+
+        public Builder(String envName) {
+            this.envName = envName;
+        }
+
         public EnvTemplateInstanceParameters build() {
-            return new EnvTemplateInstanceParameters(sourceTemplateName, parameters, extraProperties);
+            return new EnvTemplateInstanceParameters(envName, sourceTemplateName, parameters, extraProperties);
         }
         
+        public Builder envName(String p) {
+            envName = p;
+            return this;
+        }
         public Builder sourceTemplateName(String p) {
             sourceTemplateName = p;
             return this;

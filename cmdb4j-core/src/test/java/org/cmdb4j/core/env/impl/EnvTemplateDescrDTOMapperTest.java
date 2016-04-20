@@ -26,7 +26,7 @@ public class EnvTemplateDescrDTOMapperTest {
         EnvTemplateDescrDTO dto2 = sut.toDTO(descr);
         FxNode fxNode2 = FxJsonUtils.valueToTree(dto2);
         
-        EnvTemplateDescr descr3 = sut.fromFxTree(fxNode);
+        EnvTemplateDescr descr3 = sut.fromFxTree("test", fxNode);
         FxNode fxNode3 = sut.toFxTree(descr3);
         
         // Post-check

@@ -72,11 +72,11 @@ public class EnvTemplateDescrDTO implements Serializable {
         this.comment = comment;
     }
 
-    public  List<EnvTemplateParamDescrDTO> getParamDescriptions() {
+    public List<EnvTemplateParamDescrDTO> getParamDescriptions() {
         return paramDescriptions;
     }
     
-    public void setParamDescriptions( List<EnvTemplateParamDescrDTO> paramDescriptions) {
+    public void setParamDescriptions(List<EnvTemplateParamDescrDTO> paramDescriptions) {
         this.paramDescriptions = paramDescriptions;
     }
 

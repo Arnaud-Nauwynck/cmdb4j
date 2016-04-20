@@ -24,13 +24,13 @@ public class EnvTemplateInstanceParametersDTOMapper {
     public EnvTemplateInstanceParameters fromDTO(EnvTemplateInstanceParametersDTO src) {
         Map<String,FxNode> parameters = Fx2JacksonUtils.jsonNodesToFxTrees(src.getParameters());
         Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties());
-        return new EnvTemplateInstanceParameters(src.getSourceTemplateName(), parameters, extraProperties);
+        return new EnvTemplateInstanceParameters(src.getEnvName(), src.getSourceTemplateName(), parameters, extraProperties);
     }
 
     public EnvTemplateInstanceParametersDTO toDTO(EnvTemplateInstanceParameters src) {
         Map<String,JsonNode> parameters = Fx2JacksonUtils.fxTreesToJsonNodes(src.getParameters());
         Map<String,JsonNode> extraProperties = Fx2JacksonUtils.fxTreesToJsonNodes(src.getExtraProperties());
-        return new EnvTemplateInstanceParametersDTO(src.getSourceTemplateName(), parameters, extraProperties);
+        return new EnvTemplateInstanceParametersDTO(src.getEnvName(), src.getSourceTemplateName(), parameters, extraProperties);
     }
 
     /** parse FxNode -> EnvTemplateInstanceParameters */

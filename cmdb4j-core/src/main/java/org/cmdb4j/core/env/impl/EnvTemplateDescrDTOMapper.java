@@ -19,6 +19,13 @@ public class EnvTemplateDescrDTOMapper {
 
     protected EnvTemplateParamDescrDTOMapper paramDescrDTOMapper = new EnvTemplateParamDescrDTOMapper();
     
+    // ------------------------------------------------------------------------
+
+    public EnvTemplateDescrDTOMapper() {
+    }
+
+    // ------------------------------------------------------------------------
+
     public EnvTemplateDescr fromDTO(EnvTemplateDescrDTO src) {
         List<EnvTemplateParamDescr> paramDescriptions = new ArrayList<>();
         src.getParamDescriptions().forEach(p -> {
@@ -42,9 +49,10 @@ public class EnvTemplateDescrDTOMapper {
     }
 
     /** parse FxNode -> EnvTemplateDescr */
-    public EnvTemplateDescr fromFxTree(FxNode src) {
+    public EnvTemplateDescr fromFxTree(String envName, FxNode src) {
         // use FxNode->DTO mapping + DTO->Obj copy (shorter equivalent than hand-parsing FxNode..) 
         EnvTemplateDescrDTO tmpres = FxJsonUtils.treeToValue(EnvTemplateDescrDTO.class, src);
+        tmpres.setName(envName);
         return fromDTO(tmpres);
     }
 

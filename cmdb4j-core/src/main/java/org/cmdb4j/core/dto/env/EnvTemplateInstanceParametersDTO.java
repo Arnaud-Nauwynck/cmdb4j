@@ -14,6 +14,7 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
     /** internal for java.io.Serializable */
     private static final long serialVersionUID = 1L;
 
+    private String envName;
     
     private String sourceTemplateName;
     
@@ -32,8 +33,9 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
     public EnvTemplateInstanceParametersDTO() {
     }
 
-    public EnvTemplateInstanceParametersDTO(String sourceTemplateName, Map<String, JsonNode> parameters, Map<String, JsonNode> metaParameters) {
+    public EnvTemplateInstanceParametersDTO(String envName, String sourceTemplateName, Map<String, JsonNode> parameters, Map<String, JsonNode> metaParameters) {
         this();
+        this.envName = envName;
         this.sourceTemplateName = sourceTemplateName;
         this.parameters = parameters;
         this.extraProperties = metaParameters;
@@ -41,6 +43,14 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
 
 
     // ------------------------------------------------------------------------
+    
+    public String getEnvName() {
+        return envName;
+    }
+    
+    public void setEnvName(String envName) {
+        this.envName = envName;
+    }
     
     public String getSourceTemplateName() {
         return sourceTemplateName;
@@ -84,9 +94,10 @@ public class EnvTemplateInstanceParametersDTO implements Serializable {
     
     @Override
     public String toString() {
-        return "EnvTemplateInstanceParametersDTO [sourceTemplateName=" + sourceTemplateName 
-                    + ", parameters:" + parameters
-                    + "]";
+        return "EnvTemplateInstanceParametersDTO [" + envName 
+                + ", sourceTemplateName=" + sourceTemplateName 
+                + ", parameters:" + parameters
+                + "]";
     }
     
 }
