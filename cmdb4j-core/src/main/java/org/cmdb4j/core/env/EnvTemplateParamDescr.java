@@ -3,9 +3,6 @@ package org.cmdb4j.core.env;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.cmdb4j.core.dto.env.EnvTemplateParamDescrDTO;
-
-import fr.an.fxtree.format.json.jackson.Fx2JacksonUtils;
 import fr.an.fxtree.model.FxNode;
 
 /**
@@ -41,21 +38,6 @@ public class EnvTemplateParamDescr {
         this.comment = comment;
         this.defaultValue = defaultValue;
         this.extraProperties = extraProperties;
-    }
-
-
-    // ------------------------------------------------------------------------
-
-    public static EnvTemplateParamDescrDTO toDTO(EnvTemplateParamDescr src) {
-        return new EnvTemplateParamDescrDTO(src.getName(), src.getType(), src.getDisplayName(), src.getComment(),
-            Fx2JacksonUtils.fxTreeToJsonNode(src.getDefaultValue()), 
-            Fx2JacksonUtils.fxTreesToJsonNodes(src.getExtraProperties()));
-    }
-    
-    public static EnvTemplateParamDescr fromDTO(EnvTemplateParamDescrDTO src) {
-        return new EnvTemplateParamDescr(src.getName(), src.getType(), src.getDisplayName(), src.getComment(),
-            Fx2JacksonUtils.jsonNodeToFxTree(src.getDefaultValue()), 
-            Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties()));
     }
     
     // ------------------------------------------------------------------------

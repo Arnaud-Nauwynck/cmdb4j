@@ -250,10 +250,9 @@ public class EnvDirsResourceRepositories {
         return res;
     }
 
-    
     public EnvResourceRepository getEnvRepo(String envName) {
-        if (envName == null || envName.isEmpty()
-                || envName.equals(cloudDirname) || envName.equals(TEMPLATES_DIRNAME) || envName.equals(DEFAULT_DIRNAME)) {
+        if (envName == null || envName.isEmpty() || envName.equals(cloudDirname) || envName.equals(TEMPLATES_DIRNAME)
+            || envName.equals(DEFAULT_DIRNAME)) {
             return null;
         }
         EnvResourceRepository res = _cacheEnv2Repo.get(envName);
@@ -262,7 +261,7 @@ public class EnvDirsResourceRepositories {
             if (!envDir.exists() || !envDir.isDirectory()) {
                 return null;
             }
-            if (! envName.startsWith(cloudDirname + "/")) {
+            if (!envName.startsWith(cloudDirname + "/")) {
                 res = parseStdEnvResourcesTree(envName);
             } else {
                 res = parseCloudEnvResourcesTree(envName);
@@ -321,7 +320,7 @@ public class EnvDirsResourceRepositories {
         }
         return res;
     }
-    
+
     public List<EnvTemplateDescr> listEnvTemplateDescrs() {
         List<EnvTemplateDescr> res = new ArrayList<>();
         for (String e : listEnvTemplates()) {
@@ -336,17 +335,17 @@ public class EnvDirsResourceRepositories {
         }
         return res;
     }
-    
+
     public List<EnvTemplateDescrDTO> listEnvTemplateDescrDTOs() {
         List<EnvTemplateDescrDTO> res = new ArrayList<>();
         List<EnvTemplateDescr> tmpres = listEnvTemplateDescrs();
-        for(EnvTemplateDescr e : tmpres) {
-            EnvTemplateDescrDTO resElt = envTemplateDescrDTOMapper.toDTO(e); 
+        for (EnvTemplateDescr e : tmpres) {
+            EnvTemplateDescrDTO resElt = envTemplateDescrDTOMapper.toDTO(e);
             res.add(resElt);
-       }
+        }
         return res;
     }
-    
+
     // Management of cloud env (="ephemeral") instance from template
     // ------------------------------------------------------------------------
 
@@ -443,11 +442,12 @@ public class EnvDirsResourceRepositories {
         // cf next... "res.init();" called from outer (may need registerCtxVar ...)
         return res;
     }
-    
+
     protected void recursiveScanAndConcatenateRelativeFiles(FxChildWriter resultWriter, File dir, String envName, String currPathId) {
         File[] files = dir.listFiles();
-        if (files == null) return; // dir not found?
-        for(File file : files) {
+        if (files == null)
+            return; // dir not found?
+        for (File file : files) {
             String fileName = file.getName();
             if (fileName.startsWith(".")) continue;
             if (file.isDirectory()) {
@@ -492,8 +492,8 @@ public class EnvDirsResourceRepositories {
         FxNodeCopyVisitor relativeIdTransformCopier = new FxNodeCopyVisitor() {
             @Override
             public FxNode visitObj(FxObjNode src, FxChildWriter out) {
-                FxObjNode res = out.addObj(); 
-                for(Iterator<Map.Entry<String, FxNode>> iter = src.fields(); iter.hasNext(); ) {
+                FxObjNode res = out.addObj();
+                for (Iterator<Map.Entry<String, FxNode>> iter = src.fields(); iter.hasNext();) {
                     Entry<String, FxNode> srcFieldEntry = iter.next();
                     String fieldname = srcFieldEntry.getKey();
                     FxNode srcValue = srcFieldEntry.getValue();
@@ -562,21 +562,20 @@ public class EnvDirsResourceRepositories {
      */
     protected EnvTemplateInstanceParameters scanTemplateParamsFiles(String envName, File dir) {
         EnvTemplateInstanceParameters.Builder res = new EnvTemplateInstanceParameters.Builder(envName);
-        
         File[] files = dir.listFiles();
-        if (files == null) return res.build(); // dir not found?
-        for(File file : files) {
+        if (files == null) {
+            return res.build(); // dir not found?
+        }
+        for (File file : files) {
             String fileName = file.getName();
-            if (fileName.startsWith(".")) continue;
-            if (file.isFile() && fileName.startsWith(TEMPLATE_PARAM_BASEFILENAME)
-                    && FxFileUtils.isSupportedFileExtension(file)
-                    ) {
+            if (fileName.startsWith("."))
+                continue;
+            if (file.isFile() && fileName.startsWith(TEMPLATE_PARAM_BASEFILENAME) && FxFileUtils.isSupportedFileExtension(file)) {
                 // read json/yaml, and merge into parameter builder
                 FxObjNode tmpContent = (FxObjNode) FxFileUtils.readTree(file);
                 envTemplateInstanceParametersDTOMapper.parseMergeNode(res, tmpContent);
             }
         }
-        
         return res.build();
     }
     
