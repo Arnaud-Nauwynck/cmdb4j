@@ -39,12 +39,12 @@ public class ResourceCommandInfo implements Serializable {
     /**
      * description of command parameters
      */
-    private final ImmutableList<ParamInfo> params;
+    private final ImmutableList<ResourceCommandParamInfo> params;
     
     /**
      * indexed <code>params</code> by name
      */
-    private final ImmutableMap<String,ParamInfo> paramsByName;
+    private final ImmutableMap<String,ResourceCommandParamInfo> paramsByName;
     
     /**
      *
@@ -63,7 +63,7 @@ public class ResourceCommandInfo implements Serializable {
         this.name = b.name;
         this.aliases = ImmutableList.copyOf(b.aliases);
         this.params = ImmutableList.copyOf(b.params);
-        Map<String,ParamInfo> tmpParamsByName = new LinkedHashMap<>();
+        Map<String,ResourceCommandParamInfo> tmpParamsByName = new LinkedHashMap<>();
         b.params.forEach(p -> tmpParamsByName.put(p.getName(), p));
         this.paramsByName = ImmutableMap.copyOf(tmpParamsByName);
         this.category = b.category;
@@ -84,13 +84,13 @@ public class ResourceCommandInfo implements Serializable {
         return aliases;
     }
 
-    public ImmutableList<ParamInfo> getParams() {
+    public ImmutableList<ResourceCommandParamInfo> getParams() {
         return params;
     }
     
     public String getHelpParamNames() {
         StringBuilder sb = new StringBuilder();
-        for(ParamInfo p : params) {
+        for(ResourceCommandParamInfo p : params) {
             sb.append(p.getName());
             List<String> aliases = p.getAliases();
             if (aliases != null && !aliases.isEmpty()) {
@@ -101,15 +101,15 @@ public class ResourceCommandInfo implements Serializable {
         return sb.toString();
     }
     
-    public ImmutableMap<String,ParamInfo> getParamsByName() {
+    public ImmutableMap<String,ResourceCommandParamInfo> getParamsByName() {
         return paramsByName;
     }
 
-    public ParamInfo getParamAt(int index) {
+    public ResourceCommandParamInfo getParamAt(int index) {
         return params.get(index);
     }
 
-    public ParamInfo getParam(String name) {
+    public ResourceCommandParamInfo getParam(String name) {
         return paramsByName.get(name);
     }
 
@@ -127,7 +127,7 @@ public class ResourceCommandInfo implements Serializable {
         private ResourceType targetResourceType;
         private String name;
         private List<String> aliases = new ArrayList<>();
-        private List<ParamInfo> params = new ArrayList<>();
+        private List<ResourceCommandParamInfo> params = new ArrayList<>();
         private String category;
         private String help;
         
@@ -147,7 +147,7 @@ public class ResourceCommandInfo implements Serializable {
             this.aliases.addAll(p);
             return this;
         }
-        public Builder addParam(ParamInfo p) {
+        public Builder addParam(ResourceCommandParamInfo p) {
             this.params.add(p);
             return this;
         }

@@ -16,9 +16,9 @@ import org.cmdb4j.core.command.annotation.QueryResourceCommand;
 import org.cmdb4j.core.command.annotation.ResourceExpr;
 import org.cmdb4j.core.command.annotation.ResourceSideEffect;
 import org.cmdb4j.core.command.annotation.StmtResourceCommand;
-import org.cmdb4j.core.command.commandinfo.ParamInfo;
 import org.cmdb4j.core.command.commandinfo.QueryResourceCommandInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandParamInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceExprInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceSideEffectInfo;
 import org.cmdb4j.core.command.commandinfo.StmtResourceCommandInfo;
@@ -205,8 +205,8 @@ public class AnnotatedMethodToCommandInfoHelper {
     /**
      * @return convert info from annotation <code>@Parameter</code> to ParamInfo
      */
-    protected ParamInfo parameterToParamInfo(Parameter param, int index) {
-        ParamInfo.Builder b = new ParamInfo.Builder();
+    protected ResourceCommandParamInfo parameterToParamInfo(Parameter param, int index) {
+        ResourceCommandParamInfo.Builder b = new ResourceCommandParamInfo.Builder();
         Class<?> paramType = param.getType();
         String name = param.getName();
         String description = null;

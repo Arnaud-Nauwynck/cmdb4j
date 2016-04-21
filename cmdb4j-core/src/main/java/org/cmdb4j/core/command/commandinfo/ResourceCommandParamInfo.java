@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * description of a resource objet command Param, equivalent to "@Param" annotation information on method parameter
  */
-public class ParamInfo implements Serializable {
+public class ResourceCommandParamInfo implements Serializable {
 
     /** internal for java.io.Serializable */
     private static final long serialVersionUID = 1L;
@@ -51,7 +51,7 @@ public class ParamInfo implements Serializable {
 
     // ------------------------------------------------------------------------
     
-    protected ParamInfo(Builder b, int index) {
+    protected ResourceCommandParamInfo(Builder b, int index) {
         this.index = index;
         this.name = b.name;
         this.type = b.type;
@@ -109,8 +109,8 @@ public class ParamInfo implements Serializable {
         private boolean required;
         private String defaultValue;
         
-        public ParamInfo build(int index) {
-            return new ParamInfo(this, index);
+        public ResourceCommandParamInfo build(int index) {
+            return new ResourceCommandParamInfo(this, index);
         }
         
         public Builder name(String name) {

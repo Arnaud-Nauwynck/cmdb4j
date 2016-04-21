@@ -2,7 +2,7 @@ package org.cmdb4j.core.command;
 
 import java.util.Arrays;
 
-import org.cmdb4j.core.command.commandinfo.ParamInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandParamInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 import org.cmdb4j.core.model.Resource;
 
@@ -64,7 +64,7 @@ public class ResourceCommandParamsExecutable {
     }
 
     public Object[] evalRawParamNodesToValues(CommandCtx commandContext, final ResourceCommandInfo commandInfo, final FxNode[] rawParamNodes) {
-        final ImmutableList<ParamInfo> params = commandInfo.getParams();
+        final ImmutableList<ResourceCommandParamInfo> params = commandInfo.getParams();
         final int paramLen = params.size();
 
         // preprocess: eval rawParamNodes -> paramNodes
@@ -72,7 +72,7 @@ public class ResourceCommandParamsExecutable {
         final String phase = "phase0";
         final FxEvalContext argsEvalCtx = new FxEvalContext(commandContext.getFxEvalContext(), null);
         for(int i = 0; i < paramLen; i++) {
-            ParamInfo param = params.get(i);
+            ResourceCommandParamInfo param = params.get(i);
             try {
                 paramNodes[i] = FxPhaseRecursiveEvalFunc.evalPhase(phase, argsEvalCtx, rawParamNodes[i], null);
             } catch(Exception ex) {
@@ -84,7 +84,7 @@ public class ResourceCommandParamsExecutable {
         final Object[] paramValues = new Object[paramLen];
         for(int i = 0; i < paramLen; i++) {
             FxNode paramNode = paramNodes[i];
-            ParamInfo param = params.get(i);
+            ResourceCommandParamInfo param = params.get(i);
             // replace variables with ctx Object variables
             Object convertValue = null;
             if (paramNode != null && paramNode.isTextual()) {

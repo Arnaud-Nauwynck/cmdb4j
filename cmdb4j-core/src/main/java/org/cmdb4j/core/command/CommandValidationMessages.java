@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
-import org.cmdb4j.core.command.commandinfo.ParamInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandParamInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceExprInfo;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.util.CmdbAssertUtils;
@@ -12,21 +12,21 @@ import org.cmdb4j.core.util.CmdbAssertUtils;
 public class CommandValidationMessages {
 
     public static class CommandParamValidationMessage {
-        private ParamInfo param;
+        private ResourceCommandParamInfo param;
         private String message;
         
-        public CommandParamValidationMessage(ParamInfo param, String message) {
+        public CommandParamValidationMessage(ResourceCommandParamInfo param, String message) {
             CmdbAssertUtils.checkNotNull(param);
             CmdbAssertUtils.checkNotNull(message);
             this.param = param;
             this.message = message;
         }
 
-        public ParamInfo getParam() {
+        public ResourceCommandParamInfo getParam() {
             return param;
         }
 
-        public void setParam(ParamInfo param) {
+        public void setParam(ResourceCommandParamInfo param) {
             this.param = param;
         }
 

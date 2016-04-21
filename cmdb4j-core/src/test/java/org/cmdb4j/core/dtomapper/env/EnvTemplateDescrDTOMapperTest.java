@@ -1,10 +1,10 @@
-package org.cmdb4j.core.env.impl;
+package org.cmdb4j.core.dtomapper.env;
 
 import java.io.File;
 
 import org.cmdb4j.core.dto.env.EnvTemplateDescrDTO;
+import org.cmdb4j.core.dtomapper.env.EnvTemplateDescrDTOMapper;
 import org.cmdb4j.core.env.EnvTemplateDescr;
-import org.cmdb4j.core.env.impl.EnvTemplateDescrDTOMapper;
 import org.junit.Test;
 
 import fr.an.fxtree.format.FxFileUtils;

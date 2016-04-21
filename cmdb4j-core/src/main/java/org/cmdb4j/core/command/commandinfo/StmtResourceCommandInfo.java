@@ -6,9 +6,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 /**
- * description of a resource objet Command Statement,<BR/>
- * 
- * equivalent to "@StmtResourceCommand" annotation information on method
+ * DTO for StmtResourceCommandInfo
  */
 public class StmtResourceCommandInfo extends ResourceCommandInfo {
 

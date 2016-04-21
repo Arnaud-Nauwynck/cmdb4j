@@ -3,7 +3,7 @@ package org.cmdb4j.core.command.impl;
 import java.io.File;
 
 import org.cmdb4j.core.command.ResourceCommandParamsExecutable;
-import org.cmdb4j.core.command.commandinfo.ParamInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandParamInfo;
 import org.cmdb4j.core.env.EnvDirsResourceRepositories;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.junit.Assert;
@@ -68,7 +68,7 @@ public class ResourceCommandParserTest {
         Assert.assertNotNull(res);
         Assert.assertEquals(resourceId, res.getResource().getId().toString());
         Assert.assertEquals("start_sleep_default", res.getResourceCommand().getCommandName());
-        ParamInfo defaultWaitMillis = res.getResourceCommand().getCommandInfo().getParamAt(0);
+        ResourceCommandParamInfo defaultWaitMillis = res.getResourceCommand().getCommandInfo().getParamAt(0);
         Assert.assertEquals(1, res.getRawParamNodes().length);
         FxNodeCheckUtils.checkIntEquals(Integer.parseInt(defaultWaitMillis.getDefaultValue()), res.getRawParamNodes()[0]);
     }

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.cmdb4j.core.command.commandinfo.ParamInfo;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandParamInfo;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 
 import com.google.common.collect.ImmutableList;
@@ -110,13 +110,13 @@ public class NameJsonValueParser {
     public FxNode[] namedParamsToIndexedArgs(ResourceCommandInfo commandInfo, Map<String, FxNode> rawNameValues) {
         FxNode[] rawParamValues;
         // resolve param index by name, convert Map<String,FxNode> -> FxNode[]
-        ImmutableList<ParamInfo> params = commandInfo.getParams();
+        ImmutableList<ResourceCommandParamInfo> params = commandInfo.getParams();
         final int paramLen = params.size();
         rawParamValues = new FxNode[paramLen];
         
         for(Map.Entry<String, FxNode> e : rawNameValues.entrySet()) {
             String paramName = e.getKey();
-            ParamInfo param = commandInfo.getParam(paramName);
+            ResourceCommandParamInfo param = commandInfo.getParam(paramName);
             if (param == null) {
                 throw new IllegalArgumentException("param not found '" + paramName + "' ... expecting " + commandInfo.getHelpParamNames());
             }            
@@ -125,7 +125,7 @@ public class NameJsonValueParser {
         // fill default values when missing param
         for(int i = 0; i < paramLen; i++) {
             if (rawParamValues[i] == null) {
-                ParamInfo param = params.get(i);
+                ResourceCommandParamInfo param = params.get(i);
                 // use default if not set
                 String defaultValue = param.getDefaultValue();
                 if (defaultValue != null && !defaultValue.isEmpty()) {
