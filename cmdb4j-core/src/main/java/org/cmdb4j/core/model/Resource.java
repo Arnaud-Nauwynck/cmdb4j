@@ -35,6 +35,12 @@ public class Resource {
     public static final String FIELD_subscribeResources = "subscribeResources";
     public static final String FIELD_tags = "tags";
     
+    public static final ResourceRelationshipType REL_require = new ResourceRelationshipType("require", "is-required-by");
+    public static final ResourceRelationshipType REL_is_required_by = REL_require.inv();
+
+    public static final ResourceRelationshipType REL_subscribe = new ResourceRelationshipType("subscribe", "notify");
+    public static final ResourceRelationshipType REL_notify = REL_subscribe.inv();
+
     
     private final ResourceId id;
 
@@ -42,15 +48,31 @@ public class Resource {
     
     protected FxObjNode objData;
     
-    protected Map<ResourceId,Resource> requireResources = new LinkedHashMap<ResourceId,Resource>();
+    protected static class ResourceRelationship {
+        final String name; 
+        Map<ResourceId,Resource> tos = new LinkedHashMap<ResourceId,Resource>();
 
-    protected Map<ResourceId,Resource> subscribeResources = new LinkedHashMap<ResourceId,Resource>();
+        public ResourceRelationship(String name) {
+            this.name = name;
+        }        
+    }
+    
+    protected Map<String,ResourceRelationship> relationships = new LinkedHashMap<>();
+    
+    @Deprecated //use relationships.get("require")
+    protected Map<ResourceId,Resource> requireResources = new LinkedHashMap<>();
 
+    @Deprecated //use relationships.get("subscribe")
+    protected Map<ResourceId,Resource> subscribeResources = new LinkedHashMap<>();
+
+    @Deprecated //use relationships.get("is-required-by")
     /** inverse of requireResources */ 
     protected Map<ResourceId,Resource> invRequiredFromResources = new LinkedHashMap<ResourceId,Resource>();
 
+    @Deprecated //use relationships.get("is-subscribed-by")
     /** inverse of subscribeResources */ 
     protected Map<ResourceId,Resource> invSubscribedFromResources = new LinkedHashMap<ResourceId,Resource>();
+    
     
     protected Set<String> tags = new LinkedHashSet<String>();
 
@@ -99,6 +121,38 @@ public class Resource {
         }
     }
 
+    protected ResourceRelationship getOrCreateRelationship(ResourceRelationshipType relationshipType) {
+        ResourceRelationship res = relationships.get(relationshipType.name);
+        if (res == null) {
+            res = new ResourceRelationship(relationshipType.name);
+            relationships.put(relationshipType.name, res);
+        }
+        return res;
+    }
+    
+    public void addRelation(ResourceRelationshipType relationshipType, Resource ref) {
+        ResourceRelationshipType invRelType = relationshipType.inv();
+        ResourceRelationship rel = getOrCreateRelationship(relationshipType);
+        Resource prevRef = rel.tos.put(ref.getId(), ref);
+        if (prevRef != null) {
+            ResourceRelationship invFromRel = prevRef.getOrCreateRelationship(invRelType);
+            invFromRel.tos.remove(this.getId());
+        }
+        ref.getOrCreateRelationship(invRelType).tos.put(this.getId(), this);
+    }
+    
+    public void removeRelation(ResourceRelationshipType relationshipType, Resource ref) {
+        CmdbAssertUtils.checkNotNull(ref);
+        ResourceRelationshipType invRelType = relationshipType.inv();
+        ResourceRelationship rel = getOrCreateRelationship(relationshipType);
+        Resource removedRef = rel.tos.remove(ref.getId());
+        if (removedRef != null) {
+            removedRef.getOrCreateRelationship(invRelType).tos.remove(this.getId());
+        }
+    }
+    
+    
+    
     public void addRequireResource(Resource p) {
         CmdbAssertUtils.checkNotNull(p);
         Resource prev = requireResources.put(p.getId(), p);
