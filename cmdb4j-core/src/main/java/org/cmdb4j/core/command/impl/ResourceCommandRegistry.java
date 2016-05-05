@@ -2,17 +2,16 @@ package org.cmdb4j.core.command.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Map;
 
 import org.cmdb4j.core.command.ResourceCommand;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 import org.cmdb4j.core.model.reflect.ResourceType;
 
-import com.google.common.collect.ImmutableList;
-
 /**
- * registry of ResourceCommand for Resource types, by names and by aliases<BR/>
+ * registry of ResourceCommand by Resource types, by names/aliases<BR/>
  * 
  */
 public class ResourceCommandRegistry {
@@ -28,7 +27,7 @@ public class ResourceCommandRegistry {
      * indexed commands, by type -> nameOrAlias -> ResourceCommand
      * Thread safety: protected by <code>lock</code>
      */
-    private ResourceTypeToNameToCommand type2name2commands = new ResourceTypeToNameToCommand();
+    private Map<ResourceType,ResourceTypeCommands> type2commands = new HashMap<>();
     
     // ------------------------------------------------------------------------
 
@@ -56,7 +55,7 @@ public class ResourceCommandRegistry {
         synchronized(lock) {
             commands.remove(p);
             // reeval indexed (clear and reeval in order for overriden name/aliases!)
-            type2name2commands.clear();
+            type2commands.clear();
             for (ResourceCommand cmd : commands) {
                 doAddIndexedCommand(cmd);
             }
@@ -66,39 +65,31 @@ public class ResourceCommandRegistry {
     private void doAddIndexedCommand(ResourceCommand p) {
         ResourceCommandInfo c = p.getCommandInfo();
         ResourceType resourceType = c.getTargetResourceType();
-        String cmdName = c.getName();
-        type2name2commands.put(resourceType, cmdName, p);
-        ImmutableList<String> aliases = c.getAliases();
-        if (aliases != null && !aliases.isEmpty()) {
-            for(String alias : aliases) {
-                type2name2commands.put(resourceType, alias, p);
-            }
+        ResourceTypeCommands typeCmds = getOrCreateTypeCommands(resourceType);
+        typeCmds.add(p);
+    }
+
+    private ResourceTypeCommands getOrCreateTypeCommands(ResourceType resourceType) {
+        ResourceTypeCommands res = type2commands.get(resourceType);
+        if (res == null) {
+            res = new ResourceTypeCommands(resourceType);
+            type2commands.put(resourceType, res);
         }
+        return res;
     }
 
     public ResourceCommand get(ResourceType resourceType, String name) {
         synchronized(lock) {
-            return type2name2commands.get(resourceType, name);
+            ResourceTypeCommands typeCmds = getOrCreateTypeCommands(resourceType);
+            return typeCmds.get(name);
         }
-    }
-    
-    public ResourceCommand getOrThrow(ResourceType resourceType, String name) {
-        ResourceCommand res;
-        synchronized(lock) {
-            res = type2name2commands.get(resourceType, name);
-        }
-        if (res == null) {
-            throw new NoSuchElementException();
-        }
-        return res;
     }
     
     public List<ResourceCommand> findAllByPrefix(ResourceType resourceType, String prefix) {
-        List<ResourceCommand> res = new ArrayList<>();
         synchronized(lock) {
-            res.addAll(type2name2commands.findAllByPrefix(resourceType, prefix));
+            ResourceTypeCommands typeCmds = getOrCreateTypeCommands(resourceType);
+            return typeCmds.findAllByPrefix(prefix);
         }
-        return res;
     }
 
 
