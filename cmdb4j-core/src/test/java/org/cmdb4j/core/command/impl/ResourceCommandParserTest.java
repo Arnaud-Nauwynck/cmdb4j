@@ -20,8 +20,8 @@ public class ResourceCommandParserTest {
 
     private ResourceTypeRepository resourceTypeRepo = new ResourceTypeRepository();
 
-    protected ResourceTypeToCommandAliasRegistry resourceTypeToCmdRegistry = 
-            ResourceTypeToCommandAliasRegistryTest.createMock(resourceTypeRepo);
+    protected ResourceCommandRegistry resourceTypeToCmdRegistry = 
+            ResourceCommandRegistryTest.createMock(resourceTypeRepo);
     
     protected ResourceCommandParser sut = new ResourceCommandParser(envsRepo, resourceTypeToCmdRegistry);
     

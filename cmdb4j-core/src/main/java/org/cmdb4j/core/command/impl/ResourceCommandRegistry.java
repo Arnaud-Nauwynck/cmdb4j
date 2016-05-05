@@ -15,10 +15,9 @@ import com.google.common.collect.ImmutableList;
  * registry of ResourceCommand for Resource types, by names and by aliases<BR/>
  * 
  */
-public class ResourceTypeToCommandAliasRegistry {
+public class ResourceCommandRegistry {
 
     private Object lock = new Object();
-    
     
     /**
      * Thread safety: protected by <code>lock</code>
@@ -33,7 +32,7 @@ public class ResourceTypeToCommandAliasRegistry {
     
     // ------------------------------------------------------------------------
 
-    public ResourceTypeToCommandAliasRegistry() {
+    public ResourceCommandRegistry() {
     }
 
     // ------------------------------------------------------------------------
@@ -52,7 +51,6 @@ public class ResourceTypeToCommandAliasRegistry {
             doAddIndexedCommand(p);
         }
     }
-
 
     public void removeCommand(ResourceCommand p) {
         synchronized(lock) {

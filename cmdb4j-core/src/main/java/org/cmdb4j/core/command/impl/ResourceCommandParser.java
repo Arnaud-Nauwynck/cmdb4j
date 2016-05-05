@@ -30,7 +30,7 @@ public class ResourceCommandParser {
 
     protected EnvDirsResourceRepositories envsResourceTreeRepository;
     
-    protected ResourceTypeToCommandAliasRegistry resourceTypeToCommandRegistry;
+    protected ResourceCommandRegistry resourceTypeToCommandRegistry;
     
     protected NameJsonValueParser nameJsonValueParser = new NameJsonValueParser();
     
@@ -38,7 +38,7 @@ public class ResourceCommandParser {
     
     public ResourceCommandParser(
             EnvDirsResourceRepositories envsResourceTreeRepository,
-            ResourceTypeToCommandAliasRegistry resourceTypeToCommandRegistry
+            ResourceCommandRegistry resourceTypeToCommandRegistry
             ) {
         this.envsResourceTreeRepository = envsResourceTreeRepository;
         this.resourceTypeToCommandRegistry = resourceTypeToCommandRegistry;

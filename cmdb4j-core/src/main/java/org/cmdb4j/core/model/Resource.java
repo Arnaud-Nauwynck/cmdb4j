@@ -47,33 +47,9 @@ public class Resource {
     private final ResourceType type;
     
     protected FxObjNode objData;
-    
-    protected static class ResourceRelationship {
-        final String name; 
-        Map<ResourceId,Resource> tos = new LinkedHashMap<ResourceId,Resource>();
-
-        public ResourceRelationship(String name) {
-            this.name = name;
-        }        
-    }
-    
-    protected Map<String,ResourceRelationship> relationships = new LinkedHashMap<>();
-    
-    @Deprecated //use relationships.get("require")
-    protected Map<ResourceId,Resource> requireResources = new LinkedHashMap<>();
-
-    @Deprecated //use relationships.get("subscribe")
-    protected Map<ResourceId,Resource> subscribeResources = new LinkedHashMap<>();
-
-    @Deprecated //use relationships.get("is-required-by")
-    /** inverse of requireResources */ 
-    protected Map<ResourceId,Resource> invRequiredFromResources = new LinkedHashMap<ResourceId,Resource>();
-
-    @Deprecated //use relationships.get("is-subscribed-by")
-    /** inverse of subscribeResources */ 
-    protected Map<ResourceId,Resource> invSubscribedFromResources = new LinkedHashMap<ResourceId,Resource>();
-    
-    
+        
+    protected Map<String,Map<ResourceId,Resource>> relationships = new LinkedHashMap<>();
+        
     protected Set<String> tags = new LinkedHashSet<String>();
 
     /**
@@ -121,104 +97,116 @@ public class Resource {
         }
     }
 
-    protected ResourceRelationship getOrCreateRelationship(ResourceRelationshipType relationshipType) {
-        ResourceRelationship res = relationships.get(relationshipType.name);
+    protected Map<ResourceId,Resource> getOrCreateRelationship(ResourceRelationshipType relationshipType) {
+        Map<ResourceId,Resource> res = relationships.get(relationshipType.name);
         if (res == null) {
-            res = new ResourceRelationship(relationshipType.name);
+            res = new LinkedHashMap<>();
             relationships.put(relationshipType.name, res);
         }
         return res;
     }
+
+    /** @return unmodifiable and not null resources map for relationship */ 
+    public Map<ResourceId, Resource> getRelationship(ResourceRelationshipType relationshipType) {
+        return getRelationship(relationshipType.name);
+    }
     
+    /** @return unmodifiable and not null resources map for relationship */ 
+    public Map<ResourceId, Resource> getRelationship(String relationshipType) {
+        Map<ResourceId,Resource> tmpres = relationships.get(relationshipType);
+        return (tmpres != null)? Collections.unmodifiableMap(tmpres) : Collections.emptyMap();
+    }
+        
     public void addRelation(ResourceRelationshipType relationshipType, Resource ref) {
+        CmdbAssertUtils.checkNotNull(ref);
         ResourceRelationshipType invRelType = relationshipType.inv();
-        ResourceRelationship rel = getOrCreateRelationship(relationshipType);
-        Resource prevRef = rel.tos.put(ref.getId(), ref);
+        Map<ResourceId,Resource> tos = getOrCreateRelationship(relationshipType);
+        Resource prevRef = tos.put(ref.getId(), ref);
         if (prevRef != null) {
-            ResourceRelationship invFromRel = prevRef.getOrCreateRelationship(invRelType);
-            invFromRel.tos.remove(this.getId());
+            Map<ResourceId,Resource> invFromRel = prevRef.getOrCreateRelationship(invRelType);
+            invFromRel.remove(this.getId());
         }
-        ref.getOrCreateRelationship(invRelType).tos.put(this.getId(), this);
+        ref.getOrCreateRelationship(invRelType).put(this.getId(), this);
     }
     
     public void removeRelation(ResourceRelationshipType relationshipType, Resource ref) {
         CmdbAssertUtils.checkNotNull(ref);
         ResourceRelationshipType invRelType = relationshipType.inv();
-        ResourceRelationship rel = getOrCreateRelationship(relationshipType);
-        Resource removedRef = rel.tos.remove(ref.getId());
+        Map<ResourceId,Resource> tos = getOrCreateRelationship(relationshipType);
+        Resource removedRef = tos.remove(ref.getId());
         if (removedRef != null) {
-            removedRef.getOrCreateRelationship(invRelType).tos.remove(this.getId());
+            removedRef.getOrCreateRelationship(invRelType).remove(this.getId());
+        }
+    }
+    
+    public void removeRelation(ResourceRelationshipType relationshipType, ResourceId refId) {
+        CmdbAssertUtils.checkNotNull(refId);
+        ResourceRelationshipType invRelType = relationshipType.inv();
+        Map<ResourceId,Resource> tos = getOrCreateRelationship(relationshipType);
+        Resource removedRef = tos.remove(refId);
+        if (removedRef != null) {
+            removedRef.getOrCreateRelationship(invRelType).remove(this.getId());
         }
     }
     
     
-    
-    public void addRequireResource(Resource p) {
-        CmdbAssertUtils.checkNotNull(p);
-        Resource prev = requireResources.put(p.getId(), p);
-        if (prev != null) {
-            prev.invRequiredFromResources.remove(this.getId());
-        }
-        p.invRequiredFromResources.put(this.getId(), this);
+    public void addRequireResource(Resource ref) {
+        addRelation(REL_require, ref);
     }
 
-    public void removeRequireResource(Resource p) {
-        CmdbAssertUtils.checkNotNull(p);
-        Resource removed = requireResources.remove(p.getId());
-        if (removed != null) {
-            removed.invRequiredFromResources.remove(this.getId());
-        }
+    public void removeRequireResource(Resource ref) {
+        removeRelation(REL_require, ref);
     }
 
-    public void removeRequireResourceId(ResourceId requireResourceId) {
-        Resource removed = requireResources.remove(requireResourceId);
-        if (removed != null) {
-            removed.invRequiredFromResources.remove(this.getId());
-        }
+    public void removeRequireResourceId(ResourceId refId) {
+        removeRelation(REL_require, refId);
     }
 
-    public void addSubscribeResource(Resource p) {
-        CmdbAssertUtils.checkNotNull(p);
-        Resource prev = subscribeResources.put(p.getId(), p);
-        if (prev != null) {
-            prev.invSubscribedFromResources.remove(this.getId());
-        }
-        p.invSubscribedFromResources.put(this.getId(), this);
+    public void addSubscribeResource(Resource ref) {
+        addRelation(REL_subscribe, ref);
     }
 
-    public void removeSubscribeResource(Resource p) {
-        CmdbAssertUtils.checkNotNull(p);
-        Resource removed = subscribeResources.remove(p.getId());
-        if (removed != null) {
-            removed.invSubscribedFromResources.remove(this.getId());
-        }
+    public void removeSubscribeResource(Resource refId) {
+        removeRelation(REL_subscribe, refId);
     }
     
-    public void removeSubscribeResourceId(ResourceId subscribeResourceId) {
-        Resource removed = subscribeResources.remove(subscribeResourceId);
-        if (removed != null) {
-            removed.invSubscribedFromResources.remove(this.getId());
-        }
+    public void removeSubscribeResourceId(ResourceId refId) {
+        removeRelation(REL_subscribe, refId);
     }
     
     public Map<ResourceId, Resource> getRequireResources() {
-        return Collections.unmodifiableMap(requireResources);
+        return getRelationship(REL_require);
     }
 
     public Set<ResourceId> getRequireResourceIds() {
-        return Collections.unmodifiableSet(requireResources.keySet());
+        return getRelationship(REL_require).keySet();
     }
 
     public Map<ResourceId, Resource> getSubscribeResources() {
-        return Collections.unmodifiableMap(subscribeResources);
+        return getRelationship(REL_subscribe);
     }
 
     public Map<ResourceId, Resource> getInvRequiredFromResources() {
-        return Collections.unmodifiableMap(invRequiredFromResources);
+        return getRelationship(REL_is_required_by);
     }
 
     public Map<ResourceId, Resource> getInvSubscribedFromResources() {
-        return Collections.unmodifiableMap(invSubscribedFromResources);
+        return getRelationship(REL_notify);
+    }
+
+    
+    /**
+     * @return Transitive closure for resource --> dependenciesOf(resource) --> dependenciesOf(dependenciesOf(resource)) ... 
+     */
+    public Map<ResourceId, Resource> transitiveClosureResources(ResourceRelationshipType relationshipType) {
+        return transitiveClosureResources(resource -> resource.getRelationship(relationshipType).values()); 
+    }
+
+    /**
+     * @return Transitive closure for resource --> dependenciesOf(resource) --> dependenciesOf(dependenciesOf(resource)) ... 
+     */
+    public Map<ResourceId, Resource> transitiveClosureResources(String relationshipName) {
+        return transitiveClosureResources(resource -> resource.getRelationship(relationshipName).values()); 
     }
 
     /**
@@ -247,31 +235,31 @@ public class Resource {
     }
 
     /**
-     * @return Transitive closure for resource --> requireResources --> ... 
+     * @return Transitive closure for resource --> require Resources --> ... 
      */
     public Map<ResourceId, Resource> getTransitiveRequireResources() {
-        return transitiveClosureResources(x -> x.requireResources.values());
+        return transitiveClosureResources(REL_require);
     }
 
     /**
-     * @return Transitive closure for resource <-- invRequiredFromResources <-- ... 
+     * @return Transitive closure for resource --> is-required-by Resources --> ... 
      */
     public Map<ResourceId, Resource> getTransitiveInvRequireFromResources() {
-        return transitiveClosureResources(x -> x.invRequiredFromResources.values());
+        return transitiveClosureResources(REL_is_required_by);
     }
     
     /**
-     * @return Transitive closure for resource --> subscribeResources --> ... 
+     * @return Transitive closure for resource --> subscribe Resources --> ... 
      */
     public Map<ResourceId, Resource> getTransitiveSubscribeResources() {
-        return transitiveClosureResources(x -> x.subscribeResources.values());
+        return transitiveClosureResources(REL_subscribe);
     }
     
     /**
-     * @return Transitive closure for resource <-- invSubscribedFromResources <-- ... 
+     * @return Transitive closure for resource --> notify Resources ->- ... 
      */
-    public Map<ResourceId, Resource> getAllTransitiveInvRequireResources() {
-        return transitiveClosureResources(x -> x.invSubscribedFromResources.values());
+    public Map<ResourceId, Resource> getTransitiveNotifyResources() {
+        return transitiveClosureResources(REL_notify);
     }
     
     public Set<String> getTags() {

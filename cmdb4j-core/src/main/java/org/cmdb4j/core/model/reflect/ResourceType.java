@@ -37,6 +37,7 @@ public class ResourceType {
     private final ResourceTypeRepository owner;
     
     private final String name;
+    private final ResourceTypeId id;
     
     
     /** dynamic list of contributed field defs (optionnal descriptions of fields)
@@ -67,6 +68,7 @@ public class ResourceType {
     public ResourceType(ResourceTypeRepository owner, String name) {
         this.owner = owner;
         this.name = name;
+        this.id = ResourceTypeId.of(name);
     }
     
     // ------------------------------------------------------------------------
@@ -77,6 +79,10 @@ public class ResourceType {
     
     public String getName() {
         return name;
+    }
+    
+    public ResourceTypeId getId() {
+        return id;
     }
     
     public Map<String, ResourceFieldDef> getFields() {

@@ -6,7 +6,7 @@ import org.cmdb4j.core.command.annotation.QueryResourceCommand;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 
-public class ResourceTypeToCommandAliasRegistryTest {
+public class ResourceCommandRegistryTest {
 
     protected static class MockTomcatCommands {
         
@@ -35,8 +35,8 @@ public class ResourceTypeToCommandAliasRegistryTest {
     }
     
         
-    public static ResourceTypeToCommandAliasRegistry createMock(ResourceTypeRepository resourceTypeRepo) {
-        ResourceTypeToCommandAliasRegistry res = new ResourceTypeToCommandAliasRegistry();
+    public static ResourceCommandRegistry createMock(ResourceTypeRepository resourceTypeRepo) {
+        ResourceCommandRegistry res = new ResourceCommandRegistry();
         AnnotatedMethodToCommandInfoHelper cmdScanner = new AnnotatedMethodToCommandInfoHelper(resourceTypeRepo);
         res.addCommands(cmdScanner.scanStaticMethods(MockTomcatCommands.class));
         return res;
