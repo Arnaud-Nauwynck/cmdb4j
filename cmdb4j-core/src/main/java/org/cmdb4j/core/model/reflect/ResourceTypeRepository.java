@@ -111,17 +111,22 @@ public class ResourceTypeRepository {
         return res;
     }
     
-    public ResourceType getOrNull(String name) {
+    public ResourceType findByName(String name) {
         return name2types.get(name);
     }
 
-    public ResourceType getOrThrow(String name) {
+    public ResourceType get(String name) {
         ResourceType res = name2types.get(name);
         if (res == null) {
             throw new CmdbObjectNotFoundException("resource type not found '" + name + "'");
         }
         return res;
     }
+
+    public ResourceType get(ResourceTypeId resourceTypeId) {
+        return get(resourceTypeId.getName());
+    }
+    
 
     // management of listeners
     // ------------------------------------------------------------------------
@@ -313,5 +318,5 @@ public class ResourceTypeRepository {
         }
         
     }
-    
+
 }

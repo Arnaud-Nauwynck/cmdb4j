@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import org.cmdb4j.core.command.ResourceCommand;
 import org.cmdb4j.core.command.ResourceCommandParamsExecutable;
+import org.cmdb4j.core.command.ResourceCommandRegistry;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
 import org.cmdb4j.core.env.EnvDirsResourceRepositories;
 import org.cmdb4j.core.model.Resource;

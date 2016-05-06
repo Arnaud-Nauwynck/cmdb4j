@@ -1,13 +1,37 @@
-package org.cmdb4j.core.command.impl;
+package org.cmdb4j.core.command;
 
 import org.cmdb4j.core.command.CommandExecutionCtx;
+import org.cmdb4j.core.command.ResourceCommandRegistry;
 import org.cmdb4j.core.command.annotation.Param;
 import org.cmdb4j.core.command.annotation.QueryResourceCommand;
+import org.cmdb4j.core.command.impl.AnnotatedMethodToCommandInfoHelper;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 
-public class ResourceCommandRegistryTest {
+public class ResourceCommandsMock {
 
+    protected static class MockProcessCommands {
+        
+        @QueryResourceCommand(name="killProcess", resourceType="Process")
+        public static void killProcess(CommandExecutionCtx ctx, Resource target) {
+            // do nothing
+        }
+
+        @QueryResourceCommand(name="kill9Process", resourceType="Process")
+        public static void kill9Process(CommandExecutionCtx ctx, Resource target) {
+            // do nothing
+        }
+    }
+
+    protected static class MockJvmProcessCommands {
+        
+        @QueryResourceCommand(name="threadsDump", resourceType="JvmProcess")
+        public static void threadsDump(CommandExecutionCtx ctx, Resource target) {
+            // do nothing
+        }
+    }
+    
+    
     protected static class MockTomcatCommands {
         
         @QueryResourceCommand(name="start", resourceType="Tomcat")
@@ -33,12 +57,19 @@ public class ResourceCommandRegistryTest {
         }
         
     }
-    
         
     public static ResourceCommandRegistry createMock(ResourceTypeRepository resourceTypeRepo) {
-        ResourceCommandRegistry res = new ResourceCommandRegistry();
-        AnnotatedMethodToCommandInfoHelper cmdScanner = new AnnotatedMethodToCommandInfoHelper(resourceTypeRepo);
-        res.addCommands(cmdScanner.scanStaticMethods(MockTomcatCommands.class));
+        ResourceCommandRegistry res = new ResourceCommandRegistry(resourceTypeRepo);
+        scanRegisterMockMethods(res, resourceTypeRepo);
         return res;
     }
+
+    public static void scanRegisterMockMethods(ResourceCommandRegistry res, ResourceTypeRepository resourceTypeRepo) {
+        AnnotatedMethodToCommandInfoHelper cmdScanner = new AnnotatedMethodToCommandInfoHelper(resourceTypeRepo);
+        res.addCommands(cmdScanner.scanStaticMethods(MockTomcatCommands.class));
+        res.addCommands(cmdScanner.scanStaticMethods(MockJvmProcessCommands.class));
+        res.addCommands(cmdScanner.scanStaticMethods(MockProcessCommands.class));
+    }
+    
+
 }

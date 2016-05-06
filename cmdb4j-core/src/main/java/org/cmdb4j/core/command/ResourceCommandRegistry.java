@@ -1,14 +1,18 @@
-package org.cmdb4j.core.command.impl;
+package org.cmdb4j.core.command;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.cmdb4j.core.command.ResourceCommand;
+import org.cmdb4j.core.command.commandinfo.ResourceCommandId;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandInfo;
+import org.cmdb4j.core.command.impl.ResourceTypeCommands;
 import org.cmdb4j.core.model.reflect.ResourceType;
+import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 
 /**
  * registry of ResourceCommand by Resource types, by names/aliases<BR/>
@@ -17,6 +21,11 @@ import org.cmdb4j.core.model.reflect.ResourceType;
 public class ResourceCommandRegistry {
 
     private Object lock = new Object();
+    
+    /**
+     * 
+     */
+    private ResourceTypeRepository resourceTypeRepository;
     
     /**
      * Thread safety: protected by <code>lock</code>
@@ -31,7 +40,8 @@ public class ResourceCommandRegistry {
     
     // ------------------------------------------------------------------------
 
-    public ResourceCommandRegistry() {
+    public ResourceCommandRegistry(ResourceTypeRepository resourceTypeRepository) {
+        this.resourceTypeRepository = resourceTypeRepository;
     }
 
     // ------------------------------------------------------------------------
@@ -77,20 +87,51 @@ public class ResourceCommandRegistry {
         }
         return res;
     }
-
+    
     public ResourceCommand get(ResourceType resourceType, String name) {
         synchronized(lock) {
             ResourceTypeCommands typeCmds = getOrCreateTypeCommands(resourceType);
             return typeCmds.get(name);
         }
     }
-    
-    public List<ResourceCommand> findAllByPrefix(ResourceType resourceType, String prefix) {
+
+    public List<ResourceCommandInfo> lisCommandInfos() {
         synchronized(lock) {
-            ResourceTypeCommands typeCmds = getOrCreateTypeCommands(resourceType);
-            return typeCmds.findAllByPrefix(prefix);
+            return cmdsToInfos(commands);
+        }
+    }
+    
+    public static List<ResourceCommandInfo> cmdsToInfos(Collection<ResourceCommand> src) {
+        return src.stream().map(x -> x.getCommandInfo()).collect(Collectors.toList());
+    }
+    
+    public List<ResourceCommand> findByTypeHierarchyAndPrefix(ResourceType resourceType, String prefix) {
+        Set<ResourceType> superTypes = resourceTypeRepository.superTypeHierarchyOf(resourceType);
+        synchronized(lock) {
+            List<ResourceCommand> res = new ArrayList<>();
+            for(ResourceType superType : superTypes) {
+                ResourceTypeCommands typeCmds = getOrCreateTypeCommands(superType);
+                res.addAll(typeCmds.findAllByPrefix(prefix));
+            }
+            return res;
         }
     }
 
+    public List<ResourceCommand> findByTypeHierarchy(ResourceType resourceType) {
+        Set<ResourceType> superTypes = resourceTypeRepository.superTypeHierarchyOf(resourceType);
+        synchronized(lock) {
+            List<ResourceCommand> res = new ArrayList<>();
+            for(ResourceType superType : superTypes) {
+                ResourceTypeCommands typeCmds = getOrCreateTypeCommands(superType);
+                res.addAll(typeCmds.listAll());
+            }
+            return res;
+        }
+    }
 
+    public ResourceCommand get(ResourceCommandId id) {
+        ResourceType resourceType = resourceTypeRepository.get(id.getResourceTypeId());
+        return get(resourceType, id.getCommandName());
+    }
+    
 }

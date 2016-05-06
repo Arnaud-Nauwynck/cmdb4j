@@ -91,7 +91,7 @@ public class ResourceTypeContributionTreeParserTest {
         // Perform
         sut.addParseContributions(file);
         // Post-check
-        ResourceType tomcatType = target.getOrNull("Tomcat");
+        ResourceType tomcatType = target.findByName("Tomcat");
         Assert.assertNotNull(tomcatType);
         ResourceType tomcatSuperType = tomcatType.getSuperType();
         Assert.assertNotNull(tomcatSuperType);

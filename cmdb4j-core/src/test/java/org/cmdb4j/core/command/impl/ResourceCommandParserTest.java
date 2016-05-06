@@ -3,6 +3,8 @@ package org.cmdb4j.core.command.impl;
 import java.io.File;
 
 import org.cmdb4j.core.command.ResourceCommandParamsExecutable;
+import org.cmdb4j.core.command.ResourceCommandRegistry;
+import org.cmdb4j.core.command.ResourceCommandsMock;
 import org.cmdb4j.core.command.commandinfo.ResourceCommandParamInfo;
 import org.cmdb4j.core.env.EnvDirsResourceRepositories;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
@@ -21,7 +23,7 @@ public class ResourceCommandParserTest {
     private ResourceTypeRepository resourceTypeRepo = new ResourceTypeRepository();
 
     protected ResourceCommandRegistry resourceTypeToCmdRegistry = 
-            ResourceCommandRegistryTest.createMock(resourceTypeRepo);
+            ResourceCommandsMock.createMock(resourceTypeRepo);
     
     protected ResourceCommandParser sut = new ResourceCommandParser(envsRepo, resourceTypeToCmdRegistry);
     

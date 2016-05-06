@@ -33,6 +33,12 @@ public interface ResourceCommand {
         public ResourceCommandInfo getCommandInfo() {
             return commandInfo;
         }
+
+        @Override
+        public String toString() {
+            return commandInfo.getTargetResourceType().getName() + "." + commandInfo.getName();
+        }
+        
         
     }
 
