@@ -8,6 +8,7 @@
 
 	<properties>
 		<overthere.version>4.0.0</overthere.version>
+		<es.version>2.3.5</es.version>
 	</properties>
 
 	<dependencyManagement>
@@ -53,6 +54,11 @@
 				<version>${overthere.version}</version>
 			</dependency>
 
+			<dependency>
+			    <groupId>org.elasticsearch</groupId>
+			    <artifactId>elasticsearch</artifactId>
+			    <version>${es.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>junit</groupId>
