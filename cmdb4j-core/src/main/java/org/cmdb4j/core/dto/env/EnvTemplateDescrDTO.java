@@ -35,7 +35,7 @@ public class EnvTemplateDescrDTO implements Serializable {
     }
     
     public EnvTemplateDescrDTO(String name, String displayName, String comment,
-             List<EnvTemplateParamDescrDTO> paramDescriptions, 
+            List<EnvTemplateParamDescrDTO> paramDescriptions, 
             Map<String, JsonNode> extraProperties, JsonNode rawNode) {
         this();
         this.name = name;

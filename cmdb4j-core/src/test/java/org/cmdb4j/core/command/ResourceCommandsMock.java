@@ -7,8 +7,12 @@ import org.cmdb4j.core.command.annotation.QueryResourceCommand;
 import org.cmdb4j.core.command.impl.AnnotatedMethodToCommandInfoHelper;
 import org.cmdb4j.core.model.Resource;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResourceCommandsMock {
+
+	private static final Logger log = LoggerFactory.getLogger(ResourceCommandsMock.class);
 
     protected static class MockProcessCommands {
         
@@ -37,6 +41,7 @@ public class ResourceCommandsMock {
         @QueryResourceCommand(name="start", resourceType="Tomcat")
         public static void tc_start(CommandExecutionCtx ctx, Resource target) {
             // do nothing
+        	log.info("mock Tomcat.start on " + target.getId());
         }
 
         @QueryResourceCommand(name="stop", resourceType="Tomcat")

@@ -57,7 +57,6 @@ public class Props implements IProps {
 	public static Props newWithParent(Props parent, Props override) {
 		Props res = new Props();
 		res.parent = parent;
-		res.parent = parent;
 		if (parent != null) {
 			res.putAll(parent);
 		}

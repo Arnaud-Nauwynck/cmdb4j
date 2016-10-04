@@ -35,7 +35,7 @@ public class PropsHieraCtx {
 
 	@Override
 	public String toString() {
-		return "PropsHieraCtx";
+		return "PropsHieraCtx [id=" + id + "]";
 	}
 
 }

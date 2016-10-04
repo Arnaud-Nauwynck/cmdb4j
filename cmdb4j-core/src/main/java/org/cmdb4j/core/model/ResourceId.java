@@ -41,14 +41,18 @@ public final class ResourceId implements Comparable<ResourceId>, Serializable {
     }
 
     public ResourceId parent() {
-        if (pathElements.length == 0) return this;
+        if (pathElements.length == 0) {
+        	return null;
+        }
         String[] res = new String[pathElements.length - 1];
         System.arraycopy(pathElements, 0, res, 0, pathElements.length - 1);
         return new ResourceId(res);
     }
 
     public ResourceId subPath(int from, int to) {
-        if (from == 0 && to == pathElements.length) return this;
+        if (from == 0 && to == pathElements.length) { 
+        	return this;
+    	}
         int len = to - from;
         String[] res = new String[len];
         System.arraycopy(pathElements, from, res, 0, len);
@@ -91,7 +95,9 @@ public final class ResourceId implements Comparable<ResourceId>, Serializable {
 
     public boolean startsWith(ResourceId prefix) {
         final int prefixSize = prefix.size();
-        if (size() < prefixSize) return false;
+        if (size() < prefixSize) {
+        	return false;
+        }
         boolean res = true;
         for(int i = 0; i < prefixSize; i++) {
             if (! get(i).equals(prefix.get(i))) {
@@ -104,7 +110,9 @@ public final class ResourceId implements Comparable<ResourceId>, Serializable {
 
     public boolean endsWith(ResourceId suffix) {
         final int suffixSize = suffix.size();
-        if (size() < suffixSize) return false;
+        if (size() < suffixSize) {
+        	return false;
+        }
         boolean res = true;
         for(int i = size() - 1, suffixI = suffixSize - 1; suffixI >= 0; i--,suffixI--) {
             if (! get(i).equals(suffix.get(suffixI))) {

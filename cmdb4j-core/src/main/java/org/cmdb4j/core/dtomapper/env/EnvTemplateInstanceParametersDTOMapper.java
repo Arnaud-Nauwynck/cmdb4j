@@ -22,12 +22,18 @@ public class EnvTemplateInstanceParametersDTOMapper {
     private static final String PROP_extraProperties = "extraProperties";
     
     public EnvTemplateInstanceParameters fromDTO(EnvTemplateInstanceParametersDTO src) {
+        if (src == null) {
+            return null;
+        }
         Map<String,FxNode> parameters = Fx2JacksonUtils.jsonNodesToFxTrees(src.getParameters());
         Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties());
         return new EnvTemplateInstanceParameters(src.getEnvName(), src.getSourceTemplateName(), parameters, extraProperties);
     }
 
     public EnvTemplateInstanceParametersDTO toDTO(EnvTemplateInstanceParameters src) {
+        if (src == null) {
+            return null;
+        }
         Map<String,JsonNode> parameters = Fx2JacksonUtils.fxTreesToJsonNodes(src.getParameters());
         Map<String,JsonNode> extraProperties = Fx2JacksonUtils.fxTreesToJsonNodes(src.getExtraProperties());
         return new EnvTemplateInstanceParametersDTO(src.getEnvName(), src.getSourceTemplateName(), parameters, extraProperties);

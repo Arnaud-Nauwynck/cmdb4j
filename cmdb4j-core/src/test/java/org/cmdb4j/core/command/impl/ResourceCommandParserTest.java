@@ -2,6 +2,8 @@ package org.cmdb4j.core.command.impl;
 
 import java.io.File;
 
+import org.cmdb4j.core.command.CommandCtx;
+import org.cmdb4j.core.command.CommandExecutionCtx;
 import org.cmdb4j.core.command.ResourceCommandParamsExecutable;
 import org.cmdb4j.core.command.ResourceCommandRegistry;
 import org.cmdb4j.core.command.ResourceCommandsMock;
@@ -39,6 +41,10 @@ public class ResourceCommandParserTest {
         Assert.assertEquals(resourceId, res.getResource().getId().toString());
         Assert.assertEquals("start", res.getResourceCommand().getCommandName());
         Assert.assertEquals(0, res.getRawParamNodes().length);
+        
+        CommandCtx cmdCtx = new CommandCtx("test");
+        CommandExecutionCtx cmdExecCtx = new CommandExecutionCtx(cmdCtx);
+        Object resExec = res.execute(cmdExecCtx);
         
         // Prepare
         cmdLine = resourceId + " start_sleep waitMillis=10000";

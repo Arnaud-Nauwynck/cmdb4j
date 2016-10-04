@@ -57,8 +57,10 @@ public class ResourceCommandParser {
         try {
             resourceIdExprNode = FxReaderUtils.readNameOrPathExpr(pushBackReader, true);
             FxReaderUtils.skipWs(pushBackReader);
+            
             commandNameExprNode = FxReaderUtils.readNameExpr(pushBackReader);
-
+            FxReaderUtils.skipWs(pushBackReader);
+            
             // parse json for "param1=json1 param2=json2 .."
             Supplier<FxNode> cmdArgsPartialParser = FxJsonUtils.createPartialParser(pushBackReader);
             rawNameValues = nameJsonValueParser.parseNamedValues(pushBackReader, cmdArgsPartialParser);

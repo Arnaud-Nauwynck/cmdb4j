@@ -117,6 +117,10 @@ public class ResourceRepository implements Closeable {
 
     // -----------------------------------------------------------------------
 
+	public ResourceTypeRepository getResourceTypeRepository() {
+		return resourceTypeRepository;
+	}
+
     public Resource findById(ResourceId id) {
         synchronized (lock) {
             return id2resources.get(id);
@@ -262,6 +266,18 @@ public class ResourceRepository implements Closeable {
         return res;
     }
 
+	public Resource findAncestorByType(ResourceId id, ResourceType ancestorType) {
+		Resource res = null;
+		for (ResourceId ancestorId = id.parent(); ancestorId != null; ancestorId = ancestorId.parent()) {
+			Resource ancestorResource = findById(ancestorId);
+			if (ancestorResource != null && ancestorResource.getType().equals(ancestorType)) {
+				res = ancestorResource;
+				break;
+			}
+		}
+		return res;
+	}
+	
     // Query using data Type->SubType hierarchy
     // ------------------------------------------------------------------------
 

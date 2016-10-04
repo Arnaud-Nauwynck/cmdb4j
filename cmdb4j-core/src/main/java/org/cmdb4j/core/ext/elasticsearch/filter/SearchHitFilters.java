@@ -5,8 +5,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.cmdb4j.core.ext.patterns.tokentemplate.TemplatizedTokenKeyFacade;
+import org.cmdb4j.core.ext.patterns.tokentemplate.TemplatizedTokenKeyPath;
 import org.elasticsearch.search.SearchHit;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public final class SearchHitFilters {
@@ -39,6 +42,11 @@ public final class SearchHitFilters {
 
 		public void setValue(Object value) {
 			this.value = value;
+		}
+		
+		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseFieldEq(this);
 		}
 
 		@Override
@@ -121,6 +129,11 @@ public final class SearchHitFilters {
 		}
 
 		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseFieldPattern(this);
+		}
+
+		@Override
 		public SearchHitFilterDecision accept(SearchHit obj) {
 			Map<String, Object> sourceAsMap = obj.sourceAsMap();
 			if (sourceAsMap == null) {
@@ -172,6 +185,72 @@ public final class SearchHitFilters {
 		}
 
 	}
+	
+	// ----------------------------------------------------------------------------------------------------------------
+
+	public static class TemplatePatternSearchHitFilter extends SearchHitFilter {
+		private String field;
+		private String value;
+		@JsonIgnore
+		private TemplatizedTokenKeyPath tokensPattern;
+		
+		public TemplatePatternSearchHitFilter(@JsonProperty("field") String field, 
+				@JsonProperty("value") String value) {
+			this.field = field;
+			this.value = value;
+			this.tokensPattern = TemplatizedTokenKeyFacade.templatizedTokenKeyPath(value);
+		}
+
+		public TemplatePatternSearchHitFilter(String field, String value,
+				TemplatizedTokenKeyPath tokensPattern) {
+			this.field = field;
+			this.value = value;
+			this.tokensPattern = tokensPattern;
+		}
+
+		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseFieldTemplate(this);
+		}
+
+		@Override
+		public SearchHitFilterDecision accept(SearchHit obj) {
+			Map<String, Object> sourceAsMap = obj.sourceAsMap();
+			if (sourceAsMap == null) {
+				return SearchHitFilterDecision.UNKNOWN; // REJECT?
+			}
+			Object fieldObjValue = sourceAsMap.get(field);
+			if (fieldObjValue == null) {
+				return SearchHitFilterDecision.UNKNOWN; // REJECT?
+			}
+			String fieldObjText = fieldObjValue.toString();
+			TemplatizedTokenKeyPath key = TemplatizedTokenKeyFacade.templatizedTokenKeyPath(fieldObjText);
+			return key.equals(tokensPattern)? SearchHitFilterDecision.ACCEPT : SearchHitFilterDecision.REJECT;
+		}
+
+		public String getField() {
+			return field;
+		}
+
+		public void setField(String field) {
+			this.field = field;
+		}
+		
+		public String getValue() {
+			return value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+			this.tokensPattern = (value != null)? TemplatizedTokenKeyFacade.templatizedTokenKeyPath(value) : null;
+		}
+
+		public TemplatizedTokenKeyPath getTokensPattern() {
+			return tokensPattern;
+		}
+		
+	}
+	
 	
 	// ------------------------------------------------------------------------
 	
@@ -255,12 +334,17 @@ public final class SearchHitFilters {
 		}
 
 		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseOther(this);
+		}
+
+		@Override
 		public SearchHitFilterDecision accept(SearchHit obj) {
 			final int len = elts.length;
 			for(int i = 0; i < len; i++) {
 				SearchHitFilterDecision tmpres = elts[i].filter.accept(obj);
-				if (tmpres != SearchHitFilterDecision.UNKNOWN) {
-					return elts[i].include? tmpres : tmpres.inverse();
+				if (tmpres == SearchHitFilterDecision.ACCEPT) {
+					return elts[i].include? SearchHitFilterDecision.ACCEPT : SearchHitFilterDecision.REJECT;
 				}
 			}
 			return SearchHitFilterDecision.UNKNOWN;
@@ -359,6 +443,12 @@ public final class SearchHitFilters {
 		public InverseSearchHitFilter(@JsonProperty("underlying") SearchHitFilter underlying) {
 			super(underlying);
 		}
+		
+		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseOther(this);
+		}
+
 		@Override
 		public SearchHitFilterDecision accept(SearchHit obj) {
 			SearchHitFilterDecision tmpres = underlying.accept(obj);
@@ -378,6 +468,11 @@ public final class SearchHitFilters {
 
 		public StrictAcceptSearchHitFilter(@JsonProperty("underlying") SearchHitFilter underlying) {
 			super(underlying);
+		}
+
+		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseOther(this);
 		}
 
 		@Override
@@ -401,6 +496,11 @@ public final class SearchHitFilters {
 			super(underlying);
 		}
 		
+		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseOther(this);
+		}
+
 		@Override
 		public SearchHitFilterDecision accept(SearchHit obj) {
 			SearchHitFilterDecision tmpres = underlying.accept(obj);
@@ -433,6 +533,11 @@ public final class SearchHitFilters {
 
 		public void setElts(SearchHitFilter[] elts) {
 			this.elts = elts;
+		}
+
+		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseOther(this);
 		}
 
 		@Override
@@ -509,6 +614,11 @@ public final class SearchHitFilters {
 
 		public void setElts(SearchHitFilter[] elts) {
 			this.elts = elts;
+		}
+
+		@Override
+		public void visit(SearchHitFilterVisitor visitor) {
+			visitor.caseOther(this);
 		}
 
 		@Override

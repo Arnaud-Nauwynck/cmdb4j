@@ -72,7 +72,7 @@ import org.cmdb4j.core.model.Resource;
  *          pid: {
  *          	state: 'ok', lastEstimatedDate: ..,
  *          	sources: {
- *          		"logs-catalina.pid": { .. }
+ *          		"logs-catalina.pid": { .. }
  *          	}
  *          },
  *          uptime: { .. }

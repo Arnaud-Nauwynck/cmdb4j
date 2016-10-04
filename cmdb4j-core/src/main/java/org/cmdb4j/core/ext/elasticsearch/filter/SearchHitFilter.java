@@ -11,6 +11,8 @@ import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.OrSearchHitFilt
 import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.PatternFieldSearchHitFilter;
 import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.StrictAcceptSearchHitFilter;
 import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.StrictRejectSearchHitFilter;
+import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.TemplatePatternSearchHitFilter;
+import org.cmdb4j.core.ext.patterns.tokentemplate.TemplatizedTokenKeyPath;
 import org.elasticsearch.search.SearchHit;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 @JsonSubTypes({
 	@JsonSubTypes.Type(value=EqualsFieldSearchHitFilter.class, name="fieldEq"),
     @JsonSubTypes.Type(value=PatternFieldSearchHitFilter.class, name="fieldMatch"),
+    @JsonSubTypes.Type(value=TemplatePatternSearchHitFilter.class, name="fieldTemplatePattern"),
     @JsonSubTypes.Type(value=ChainSearchHitFilter.class, name="chainFilters"),
     @JsonSubTypes.Type(value=InverseSearchHitFilter.class, name="inverse"),
     @JsonSubTypes.Type(value=StrictAcceptSearchHitFilter.class, name="strictAccept"),
@@ -34,6 +37,7 @@ public abstract class SearchHitFilter {
 
 	public abstract SearchHitFilterDecision accept(SearchHit obj);
 
+	public abstract void visit(SearchHitFilterVisitor visitor);
 	
 	// ------------------------------------------------------------------------
 	
@@ -43,10 +47,13 @@ public abstract class SearchHitFilter {
 	public static SearchHitFilter fieldMatch(String field, Pattern pattern) {
 		return new PatternFieldSearchHitFilter(field, pattern);
 	}
+	public static SearchHitFilter fieldTemplatePattern(String field, String value) {
+		return new TemplatePatternSearchHitFilter(field, value);
+	}
 	public static SearchHitFilter chainFilters(ChainSearchHitFilterElement... chainElts) {
 		return new ChainSearchHitFilter(chainElts);
 	}
-	public static SearchHitFilter chainFilters(boolean include0, SearchHitFilter filter0, boolean include1, SearchHitFilter filter1) {
+	public static ChainSearchHitFilter chainFilters(boolean include0, SearchHitFilter filter0, boolean include1, SearchHitFilter filter1) {
 		return new ChainSearchHitFilter(new ChainSearchHitFilterElement[]{
 				new ChainSearchHitFilterElement(include0, filter0),
 				new ChainSearchHitFilterElement(include1, filter1)
