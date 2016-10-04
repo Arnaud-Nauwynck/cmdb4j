@@ -1,4 +1,4 @@
-package org.cmdb4j.core.ext.tokentemplate;
+package org.cmdb4j.core.ext.patterns.tokentemplate;
 
 import java.io.Serializable;
 import java.util.Arrays;

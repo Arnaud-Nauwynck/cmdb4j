@@ -35,7 +35,7 @@ public final class TemplatizedTokenKey implements Serializable, Comparable<Templ
 		if (tokenType != other.tokenType) {
 			res = (tokenType < other.tokenType)? -1 : +1;
 		}
-		if (res == 0 && temlatizedValue instanceof Comparable) {
+		if (res == 0 && templatizedValue instanceof Comparable) {
 			res = ((Comparable) templatizedValue).compareTo(other);
 		}
 		
