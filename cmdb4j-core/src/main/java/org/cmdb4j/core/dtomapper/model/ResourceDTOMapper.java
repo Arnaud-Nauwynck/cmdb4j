@@ -14,7 +14,7 @@ public class ResourceDTOMapper {
     public ResourceDTO toDTO(Resource src) {
         ResourceDTO res = new ResourceDTO();
         res.setId(src.getIdAsString());
-        res.setType(src.getTypeAsString());
+        res.setType(src.getTypeName());
         res.setObjData(Fx2JacksonUtils.fxTreeToJsonNode(src.getObjData()));
         
         res.setRequireResources(Resource.toIdAsStringSet(src.getRequireResources().values()));

@@ -84,6 +84,10 @@ public final class ResourceId implements Comparable<ResourceId>, Serializable {
         return pathElements[i];
     }
     
+    public String getLast() {
+        return pathElements[pathElements.length - 1];
+    }
+    
     /** for Jackson */
     public String[] getPathElements() {
         return Arrays.copyOf(pathElements, pathElements.length);

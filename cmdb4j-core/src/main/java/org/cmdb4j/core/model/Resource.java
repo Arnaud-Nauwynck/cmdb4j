@@ -82,7 +82,7 @@ public class Resource {
     }
 
     @JsonIgnore
-    public String getTypeAsString() {
+    public String getTypeName() {
         return type != null? type.getName() : null;
     }
 

@@ -1,10 +1,38 @@
+package org.cmdb4j.core;
 
-when(DeployedWebapp deployedWar, Tomcat tc, Host host, ConsulIO consulio)
-#   deployedWar "is deployed on tomcat" tc
-#   tc "is on host" host 
-#   consulio "is on host" host
-# then
-#   add httpCheck on consul for webapp context
-#        - id: <<servers/host>>/consulio/<<tomcat>>-<<deployedWar>>-httpcheck
-#          type: ConsulIOHttpCheck
-#          httpURL: http://localhost:<<tomcat.port>>/<<deployedWar>>/ping.html
+import org.cmdb4j.core.model.*;
+import org.cmdb4j.core.model.reflect.*;
+import fr.an.fxtree.model.*;
+import fr.an.fxtree.impl.model.mem.FxMemRootDocument;
+import org.cmdb4j.core.env.EnvResourceRepository.ResourceBuilder;
+
+global ResourceTypeRepository resourceTypeRepository;
+global ResourceBuilder resourceBuilder;
+
+
+rule "httpCheck on consul for webapp context"
+when
+	$host: Resource(typeName == "Host")
+	$consul: Resource(typeName == "ConsulIO" && $consul.id.parent() == $host.id)
+	$tc: Resource(typeName == "Tomcat" && $tc.id.parent() == $host.id) 
+	$war: Resource(typeName == "DeployedWebapp" && $war.id.parent() == $tc.id)
+	
+then
+	ResourceId checkId = ResourceId.valueOf($consul.getId() + "/" + $tc.getId().getLast() + "-" + $war.getId().getLast() + "-httpCheck");
+	ResourceType consulHttpCheckType = resourceTypeRepository.getOrCreateType("ConsulIOHttpCheck");
+	
+	FxObjNode objData = new FxMemRootDocument().contentWriter().addObj();
+	FxObjNode params = objData.putObj("params"); 
+	// TODO add ...
+	
+	System.out.println("*** RULE httpCheck "
+		+ " host:" + $host.getId()
+		+ " consul:" + $consul.getId()
+		+ " tomcat:" + $tc.getId()
+		+ " webapp:" + $war.getId()
+		+ " ==> " + checkId + " " + consulHttpCheckType + " objData:" + objData
+		);
+
+	Resource checkResource = resourceBuilder.updateOrCreateResource(checkId, consulHttpCheckType, objData);
+	insert(checkResource); 
+end

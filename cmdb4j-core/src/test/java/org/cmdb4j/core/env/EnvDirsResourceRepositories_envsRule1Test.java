@@ -27,16 +27,17 @@ public class EnvDirsResourceRepositories_envsRule1Test {
     public void testGetEnvRepo_test1() {
         // Prepare
         // Perform
-        EnvResourceRepository res = sut.getEnvRepo("test1");
+    	String envName = "test1";
+        EnvResourceRepository res = sut.getEnvRepo(envName);
         // Post-check
         ResourceRepository resRepo = res.getResourceRepository();
-        Map<ResourceId,Resource> resources = resRepo.findAllAsMap();
+        final Map<ResourceId,Resource> resources = resRepo.findAllAsMap();
         // Assert.assertEquals(, resources.size());
         
         // compare with expected implicit resources from rules..
-        FxNode expectedNodes = FxYamlUtils.readTree(new File(baseEnvsDir, res.getEnvName() + "/env.implicit-expected.txt"));
+        FxNode expectedNodes = FxYamlUtils.readTree(new File(baseEnvsDir, envName + "/env.implicit-expected.txt"));
         FxObjNodeWithIdAndTypeTreeScanner.scanConsumeFxNodesWithIdTypeObj(expectedNodes, (expectedId, expectedTypeName, expectedObjData) -> {
-			ResourceId expectedResourceId = ResourceId.valueOf(expectedId);
+			ResourceId expectedResourceId = ResourceId.valueOf(envName + "/" + expectedId);
 			ResourceType expectedType = resourceTypeRepository.getOrCreateType(expectedTypeName);
 			
 			Resource resource = resources.get(expectedResourceId);
