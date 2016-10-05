@@ -24,17 +24,18 @@ public class EnvResourceRepositoryTest {
     
     @Before
     public void setup() {
-        File envsDir = new File("src/test/envsDir");
+        File baseEnvsDir = new File("src/test/envsDir");
+        FxNodeFuncRegistry funcRegistry = FxStdFuncs.stdFuncRegistry();
+        ResourceTypeRepository resourceTypeRepository = new ResourceTypeRepository();
+        
+        EnvDirsResourceRepositories envRepositories = new EnvDirsResourceRepositories(baseEnvsDir, resourceTypeRepository, funcRegistry);
         File targetEnvDir = new File("target/test/DEV1");
         if (! targetEnvDir.exists()) {
             targetEnvDir.mkdirs();
         }
-        File srcEnvDir = new File(envsDir, "DEV1");   
+        File srcEnvDir = new File(baseEnvsDir, "DEV1");
         FxNode rawTemplateRootNode = FxFileUtils.readTree(new File(srcEnvDir, "env.yaml"));
-        FxNodeFuncRegistry funcRegistry = FxStdFuncs.stdFuncRegistry();
-        ResourceTypeRepository resourceTypeRepository = new ResourceTypeRepository(); 
-        sut = new EnvResourceRepository("DEV1", targetEnvDir, null, rawTemplateRootNode, 
-            funcRegistry, resourceTypeRepository);
+        sut = new EnvResourceRepository(envRepositories, "DEV1", targetEnvDir, null, rawTemplateRootNode);
         sut.init();
     }
     

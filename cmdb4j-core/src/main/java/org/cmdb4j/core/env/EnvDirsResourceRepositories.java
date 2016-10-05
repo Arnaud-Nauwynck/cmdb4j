@@ -19,6 +19,15 @@ import org.cmdb4j.core.model.ResourceId;
 import org.cmdb4j.core.model.ResourceRepository;
 import org.cmdb4j.core.model.reflect.ResourceTypeRepository;
 import org.cmdb4j.core.util.CopyOnWriteUtils;
+import org.kie.api.KieServices;
+import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.api.builder.KieRepository;
+import org.kie.api.builder.Message;
+import org.kie.api.builder.Results;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
+import org.kie.internal.io.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +116,7 @@ public class EnvDirsResourceRepositories {
     private static final Logger LOG = LoggerFactory.getLogger(EnvDirsResourceRepositories.class);
 
     private static final String DEFAULT_DIRNAME = "Default";
+    private static final String RULES_DIRNAME = "Rules";
     private static final String TEMPLATES_DIRNAME = "Templates";
     private static final String TEMPLATE_PARAM_BASEFILENAME = "template-param";
     private static final String ENV_TEMPLATE_DECSCR_BASEFILENAME = "env-template-descr";
@@ -134,6 +144,8 @@ public class EnvDirsResourceRepositories {
     
     private ResourceRepository globalResources;
     
+    private KieContainer drulesEnvsResourceContainer;
+    
     private List<String> _cacheListEnvs;
 
     private Map<String, EnvResourceRepository> _cacheEnv2Repo = Collections.synchronizedMap(new HashMap<>());
@@ -156,6 +168,8 @@ public class EnvDirsResourceRepositories {
         this.resourceTypeRepository = resourceTypeRepository;
         this.funcRegistry = funcRegistry;
         this.globalResources = new ResourceRepository(resourceTypeRepository);
+        
+        buildEnvsResourceRulesContainer();
     }
 
     // ---------------------------------------------------------------------- --
@@ -165,6 +179,7 @@ public class EnvDirsResourceRepositories {
         _cacheEnv2Repo.clear();
         _cacheListEnvTemplates = null;
         _cacheEnvTemplateDescr.clear();
+        buildEnvsResourceRulesContainer();
     }
 
     public ResourceTypeRepository getResourceTypeRepository() {
@@ -437,8 +452,7 @@ public class EnvDirsResourceRepositories {
     }
     
     protected EnvResourceRepository buildEnvResourceTreeRepository(String envName, File envDir, FxNode rawRootNode, EnvTemplateInstanceParameters templateParams) {
-        EnvResourceRepository res = new EnvResourceRepository(envName, envDir, templateParams, 
-            rawRootNode, funcRegistry, resourceTypeRepository);
+        EnvResourceRepository res = new EnvResourceRepository(this, envName, envDir, templateParams, rawRootNode);
         // cf next... "res.init();" called from outer (may need registerCtxVar ...)
         return res;
     }
@@ -577,6 +591,65 @@ public class EnvDirsResourceRepositories {
             }
         }
         return res.build();
+    }
+
+
+    // Management of inference engine rules
+    // ------------------------------------------------------------------------
+
+	protected void buildEnvsResourceRulesContainer() {
+		File rulesDir = new File(baseEnvsDir, DEFAULT_DIRNAME + "/" + RULES_DIRNAME);
+        if (rulesDir.exists() && rulesDir.isDirectory()) {
+        	LOG.info("building inference engine rules for Cmdb Resources");
+        	try {
+	        	KieServices ks = KieServices.Factory.get();
+		    	
+		    	KieRepository kr = ks.getRepository();
+		    	KieFileSystem kfs = ks.newKieFileSystem();
+
+		    	// scan all *.drl files in "Default/Rules/**/*.drl"
+		    	recursiveScanDrulesFiles(kfs, rulesDir, "");
+		
+		    	KieBuilder kb = ks.newKieBuilder(kfs);
+		
+		    	kb.buildAll();
+		    	
+		    	Results kbBuildResults = kb.getResults();
+				if (kbBuildResults.hasMessages(Message.Level.ERROR)) {
+		    	    throw new RuntimeException("Failed to build inference engine rules for Cmdb Resources:\n" + kbBuildResults.toString());
+		    	}
+		
+		    	this.drulesEnvsResourceContainer = ks.newKieContainer(kr.getDefaultReleaseId());
+        	} catch(Exception ex) {
+        		LOG.error("Failed to build inference engine rules for Cmdb Resources: ex:" + ex.getMessage(), ex);
+        		// TODO ignore all rules or rethrow?
+        	}
+        }
+	}
+
+	protected void recursiveScanDrulesFiles(KieFileSystem kfs, File dir, String currPathId) {
+        File[] files = dir.listFiles();
+        if (files == null)
+            return; // dir not found?
+        for (File file : files) {
+            String fileName = file.getName();
+            if (fileName.startsWith(".")) continue;
+            if (file.isDirectory()) {
+                String childPathId = currPathId + fileName + "/";
+                // recurse in sub dir
+                recursiveScanDrulesFiles(kfs, file, childPathId);
+            } else if (file.isFile() && file.canRead() && file.getName().endsWith(".drl")) {
+            	LOG.info("detected inference rule file:" + file);
+            	kfs.write(ResourceFactory.newFileResource(file));
+            }
+        }
+    }
+	
+    /*pp*/ KieSession buildCmdbResourceInferenceSession() {
+    	if (drulesEnvsResourceContainer == null) {
+    		return null;
+    	}
+    	return drulesEnvsResourceContainer.newKieSession();
     }
     
 }

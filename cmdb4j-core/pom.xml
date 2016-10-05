@@ -13,8 +13,8 @@
 	<packaging>jar</packaging>
 
 	<properties>
-
-	</properties>
+	  	<drools.version>6.4.0.Final</drools.version>
+    </properties>
 
 	<dependencies>
 		<dependency>
@@ -55,6 +55,40 @@
 		    <version>4.1</version>
 		</dependency>
 		
+  
+	    <dependency>
+	      <groupId>org.kie</groupId>
+	      <artifactId>kie-api</artifactId>
+	      <version>${drools.version}</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.drools</groupId>
+	      <artifactId>drools-core</artifactId>
+	      <version>${drools.version}</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.drools</groupId>
+	      <artifactId>drools-compiler</artifactId>
+	      <version>${drools.version}</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.drools</groupId>
+	      <artifactId>drools-decisiontables</artifactId>
+	      <version>${drools.version}</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.drools</groupId>
+	      <artifactId>drools-templates</artifactId>
+	      <version>${drools.version}</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.kie</groupId>
+	      <artifactId>kie-internal</artifactId>
+	      <version>${drools.version}</version>
+	    </dependency>
+		
+		
+		<!-- test dependencies -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
