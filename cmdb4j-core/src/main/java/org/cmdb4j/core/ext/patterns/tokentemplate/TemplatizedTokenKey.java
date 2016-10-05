@@ -75,7 +75,7 @@ public final class TemplatizedTokenKey implements Serializable, Comparable<Templ
 	}
 	
 	protected String templatizedValueAsString() {
-		return (templatizedVale != null)? templatizedValue.toString() : "";
+		return (templatizedValue != null)? templatizedValue.toString() : "";
 	}
 	
 	public String dumpAsString() {
@@ -109,15 +109,16 @@ public final class TemplatizedTokenKey implements Serializable, Comparable<Templ
 		case LogLexer.DATE:
 			return "?date";
 
-		case LogLexer.PATH:
-			return "?path";
-
-		case LogLexer.ENG_DAY:
-			return "?day";
-		case LogLexer.MONTH:
-			return "?month";
-		case LogLexer.ENG_TZ:
-			return "?tz";
+			// TODO
+//		case LogLexer.PATH:
+//			return "?path";
+//
+//		case LogLexer.ENG_DAY:
+//			return "?day";
+//		case LogLexer.MONTH:
+//			return "?month";
+//		case LogLexer.ENG_TZ:
+//			return "?tz";
 
 		case LogLexer.OPEN_BRACE:
 			return "(";

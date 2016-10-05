@@ -26,7 +26,7 @@ public class TemplatizedTokenKeyFacade {
 		Object value = text;
 		Object templatizedValue = null;
 		switch(tokenType) {
-		case LgLexer.IDENT: 
+		case LogLexer.IDENT: 
 			value = text;
 			templatizedValue = text;
 			break;
@@ -67,15 +67,16 @@ public class TemplatizedTokenKeyFacade {
 			templatizedValue = null;
 			break;
 
-		case LogLexer.ENG_DAY: // ( 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun' );
-			value = text;
-			break;
-		case LogLexer.MONTH:
-			value = text;
-			break;
-		case LogLexer.ENG_TZ:
-			value = text;
-			break;
+			// TODO
+//		case LogLexer.ENG_DAY: // ( 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun' );
+//			value = text;
+//			break;
+//		case LogLexer.MONTH:
+//			value = text;
+//			break;
+//		case LogLexer.ENG_TZ:
+//			value = text;
+//			break;
 			
 		case LogLexer.OPEN_BRACE: 
 		case LogLexer.CLOSE_BRACE: 
@@ -93,10 +94,11 @@ public class TemplatizedTokenKeyFacade {
 			templatizedValue = null;
 			break;
 
-		case LogLexer.PATH:
-			value = text;
-			templatizedValue = "ex-path";
-			break;
+			// TODO
+//		case LogLexer.PATH:
+//			value = text;
+//			templatizedValue = "ex-path";
+//			break;
 			
 		default:
 			// Should not occur

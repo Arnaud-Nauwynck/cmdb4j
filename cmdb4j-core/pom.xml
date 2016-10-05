@@ -74,4 +74,70 @@
         </dependency>
 
 	</dependencies>
+
+
+	<profiles>
+		<profile>
+			<id>antlr4-log</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.antlr</groupId>
+						<artifactId>antlr4-maven-plugin</artifactId>
+						<version>4.1</version>
+						<configuration>
+							<grammars>LogLexer.g4</grammars>
+							<arguments>
+								<argument>-package</argument>
+								<argument>org.cmdb4j.core.ext.patterns.tokentemplate</argument>
+								<argument>-o</argument>
+								<argument>${basedir}/src/main/java/org/cmdb4j/core/ext/patterns/tokentemplate</argument>
+							</arguments>
+						</configuration>
+						<executions>
+							<execution>
+								<id>generate-sources-antlr4</id>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>antlr4</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.antlr</groupId>
+										<artifactId>antlr4-maven-plugin</artifactId>
+										<versionRange>[4.1,)</versionRange>
+										<goals>
+											<goal>antlr4</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+  
 </project>
