@@ -1,9 +1,9 @@
 package org.cmdb4j.core.ext.threaddumps;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,8 +23,6 @@ import org.cmdb4j.core.ext.threaddumps.parser.sourcereader.SourceReaderFactory;
 import org.cmdb4j.core.ext.threaddumps.util.ClassHistogramInfoListIncrPrinter;
 import org.cmdb4j.core.ext.threaddumps.util.ClassHistogramInfoListPrinter;
 import org.cmdb4j.core.ext.threaddumps.util.DefaultThreadDumpPrinter;
-import org.cmdb4j.core.ext.threaddumps.util.XmlThreadDumpPrinter;
-import org.cmdb4j.core.ext.threaddumps.util.XmlWriter;
 
 
 /**
@@ -198,47 +196,27 @@ public class Main {
     }
 
 	private void dump(ThreadDumpList threadDumpList, File outputDir, String outputFileName, String sourceName) throws IOException {
-        if (dumpFormat.equals("xml")) {
-        	dumpXml(threadDumpList, outputDir, outputFileName, sourceName);
-        } else if (dumpFormat.equals("txt")) {
+        if (dumpFormat.equals("txt")) {
         	dumpTxt(threadDumpList, outputDir, outputFileName, sourceName);
         } else {
-        	System.err.println("unreognized print format '" + dumpFormat + "', expecting 'txt' or 'xml' ... using default : 'txt'");
+        	System.err.println("unrecognized print format '" + dumpFormat + "', expecting 'txt' ... using default : 'txt'");
         	dumpTxt(threadDumpList, outputDir, outputFileName, sourceName);
-        }
-    }
-    
-    private void dumpXml(ThreadDumpList threadDumpList, File outputDir, String outputFileName, String sourceName) throws IOException {
-        File file = new File(outputDir, outputFileName + outputThreadDumpSuffix + ".xml");
-    	PrintWriter printwriter = null;
-        try {
-        	printwriter = new PrintWriter(new FileWriter(file));
-        	XmlWriter xmlWriter = new XmlWriter(printwriter);
-        	
-        	ThreadItemInfoVisitor printVisitor = new XmlThreadDumpPrinter(xmlWriter);
-        	printVisitor.caseThreadDumpList(threadDumpList);
-
-            printwriter.flush();
-           
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
         }
     }
     
     private void dumpTxt(ThreadDumpList threadDumpList, File outputDir, String outputFileName, String sourceName) throws IOException {
     	File file = new File(outputDir, outputFileName + outputThreadDumpSuffix + ".txt");
-    	PrintWriter printwriter = null;
+    	PrintStream out = null;
         try {
-        	printwriter = new PrintWriter(new FileWriter(file));
-        	XmlWriter xmlWriter = new XmlWriter(printwriter);
+        	out = new PrintStream(new FileOutputStream(file));
 
-        	ThreadItemInfoVisitor printVisitor = new DefaultThreadDumpPrinter(xmlWriter);
+        	ThreadItemInfoVisitor printVisitor = new DefaultThreadDumpPrinter(out);
         	printVisitor.caseThreadDumpList(threadDumpList);
 
-            printwriter.flush();
+            out.flush();
             
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
+        } finally {
+            out.close();
         }
     }
 

@@ -99,7 +99,7 @@ public class ThreadDumpListParser {
 
 		ThreadDumpInfo threaddump = new ThreadDumpInfo(startSourceLine, currentThreadDumpIndex, s);
 
-		println("found ThreadDump[" + currentThreadDumpIndex + "] at First line: " + startSourceLine);
+		// println("found ThreadDump[" + currentThreadDumpIndex + "] at First line: " + startSourceLine);
 		threaddump.setTimeBefore(extractTime(timeLine));
 
 		extractDump(threadDumpType, threaddump);
@@ -110,8 +110,7 @@ public class ThreadDumpListParser {
 		if (threaddump.getClassHistogramInfo() != null) {
 			classHistoInfo = ", class histo: " + threaddump.getClassHistogramInfo().getClassItems().size() + " classes";
 		}
-		println("Last line: " + endSourceLine + " (" + ((endSourceLine - startSourceLine) + 1L) + " lines, "
-				+ threadCount + " threads" + classHistoInfo + ")");
+		// println("Last line: " + endSourceLine + " (" + ((endSourceLine - startSourceLine) + 1L) + " lines, " + threadCount + " threads" + classHistoInfo + ")");
 
 		return threaddump;
 	}
@@ -169,10 +168,18 @@ public class ThreadDumpListParser {
 				tdParser.addThread(s);
 				continue;
 			}
+			if (s.startsWith("   java.lang.Thread.State: ")) {
+				// TODO
+				continue;
+			}
 			if (c == '\t') {
 				tdParser.addThreadLine(s);
 				continue;
 			}
+//			if (s.startsWith("\t- ")) {
+//				tdParser.addThreadLine(s);
+//				continue;
+//			}
 			if (s.startsWith("    \"")) {
 				tdParser.addThread(s);
 				continue;
@@ -211,7 +218,7 @@ public class ThreadDumpListParser {
 			endSourceLine = sourcereader.getPosition() - 1L;
 		threaddump.setEndSourceLine(endSourceLine);
 
-		// ARNAUD : Added support for -XX:+PrintClassHistogram
+		// Added support for -XX:+PrintClassHistogram
 		if (s != null && s.startsWith("num   #instances    #bytes  class name")) {
 			// format:
 			// num #intances #bytes class name
@@ -235,12 +242,12 @@ public class ThreadDumpListParser {
 			}
 
 			// parse lines
-			Pattern pattern = Pattern.compile("\\s*([0-9]+):\\s*([0-9]+)\\s*([0-9]+)\\s*(.*)");
+			Pattern patternClassHistogramLine = Pattern.compile("\\s*([0-9]+):\\s*([0-9]+)\\s*([0-9]+)\\s*(.*)");
 			for (; (s = sourcereader.readLine()) != null;) {
 				if (s.startsWith("Total")) {
 					break;
 				}
-				Matcher m = pattern.matcher(s);
+				Matcher m = patternClassHistogramLine.matcher(s);
 				if (!m.matches()) {
 					continue;
 				}
@@ -261,8 +268,8 @@ public class ThreadDumpListParser {
 
 			int totalInstanceCount = 0;
 			long totalInstanceByteSize = 0L;
-			Pattern patternTotal = Pattern.compile("Total\\s*([0-9]+)\\s*([0-9]+)");
-			Matcher matchTotal = patternTotal.matcher(s);
+			Pattern patternClassHistogramTotal = Pattern.compile("Total\\s*([0-9]+)\\s*([0-9]+)");
+			Matcher matchTotal = patternClassHistogramTotal.matcher(s);
 			if (matchTotal.matches()) {
 				String instanceCountStr = matchTotal.group(1);
 				String instanceByteSizeStr = matchTotal.group(2);
