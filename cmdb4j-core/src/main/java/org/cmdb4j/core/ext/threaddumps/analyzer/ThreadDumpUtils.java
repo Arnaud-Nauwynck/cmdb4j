@@ -1,6 +1,8 @@
 package org.cmdb4j.core.ext.threaddumps.analyzer;
 
 import org.cmdb4j.core.ext.threaddumps.model.MethodThreadLineInfo;
+import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpInfo;
+import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpList;
 
 /**
  * 
@@ -13,6 +15,37 @@ public final class ThreadDumpUtils {
 
 	// -------------------------------------------------------------------------
 
+	public static void simplifyThreadDumps(ThreadDumpList threadDumpList) {
+		// remove System threads: "Finalizer", "Reference Handler", ...
+	    threadDumpList.visit(new SystemThreadRemover());
+	
+	    // remove iddle threads
+	    InactiveThreadRemover inactiveThreadRemover = new InactiveThreadRemover();
+	    threadDumpList.visit(inactiveThreadRemover);
+	    
+	    // remove intermediate stack entry for EJB skeletons
+	    threadDumpList.visit(new EjbSkelMethodLineRemover());
+	    
+	    MethodLineRemover methodLineRemover = new MethodLineRemover(MethodCategory.DEFAULT_RULES);
+	    threadDumpList.visit(methodLineRemover);
+	}
+	
+	public static void simplifyThreadDump(ThreadDumpInfo threadDump) {
+		// remove System threads: "Finalizer", "Reference Handler", ...
+		threadDump.visit(new SystemThreadRemover());
+	
+	    // remove iddle threads
+	    InactiveThreadRemover inactiveThreadRemover = new InactiveThreadRemover();
+	    threadDump.visit(inactiveThreadRemover);
+	    
+	    // remove intermediate stack entry for EJB skeletons
+	    threadDump.visit(new EjbSkelMethodLineRemover());
+	    
+	    MethodLineRemover methodLineRemover = new MethodLineRemover(MethodCategory.DEFAULT_RULES);
+	    threadDump.visit(methodLineRemover);
+	}
+	
+    
 	public static boolean isSystemThread(String name) {
 		return name.equals("Signal Dispatcher")
 			|| name.equals("JDWP Event Helper Thread")
@@ -26,6 +59,7 @@ public final class ThreadDumpUtils {
 			|| name.equals("Suspend Checker Thread")
 			|| name.startsWith("RMI ConnectionExpiration")
 			|| name.startsWith("RM RenewClean-")
+			|| name.equals("process reaper")
 			
 			|| name.equals("weblogic.security.SpinnerRandomSource")
 			|| name.equals("weblogic.time.TimeEventGenerator")

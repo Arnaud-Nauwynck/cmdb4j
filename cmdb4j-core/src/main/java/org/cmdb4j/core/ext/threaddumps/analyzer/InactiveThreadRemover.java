@@ -14,7 +14,7 @@ import org.cmdb4j.core.ext.threaddumps.model.ThreadInfo;
 
 
 /**
- * remove thread, having ThreadStac as one of 
+ * remove thread, having ThreadStack as one of 
  * <ul>
  * 
  * <li><PRE>
@@ -93,8 +93,7 @@ import org.cmdb4j.core.ext.threaddumps.model.ThreadInfo;
 	- locked <0xc5fd19f8> (a oracle.jms.AQjmsConsumer)
 	... skipped 21
 	at oracle.jms.AQjmsConsumer.receive(AQjmsConsumer.java:897)
-	at java.lang.Thread.run(Thread.java:54)
-	at sgam.mai.fwk.toplink.startup.pool.AQPollingSubscriber$2.run(AQPollingSubscriber.java:108)
+	..
 	at java.lang.Thread.run(Thread.java:534)
  * </PRE></li>
  *	

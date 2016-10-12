@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.cmdb4j.core.ext.threaddumps.analyzer;
 
 public enum PrintMode {

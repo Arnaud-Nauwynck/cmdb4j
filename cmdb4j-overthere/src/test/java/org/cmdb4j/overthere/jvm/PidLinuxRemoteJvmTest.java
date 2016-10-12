@@ -1,5 +1,6 @@
 package org.cmdb4j.overthere.jvm;
 
+import org.cmdb4j.core.ext.threaddumps.analyzer.ThreadDumpUtils;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpInfo;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -28,10 +29,11 @@ public class PidLinuxRemoteJvmTest {
 	
 	@Test
 	public void testJstack() {
-		ThreadDumpInfo threadDump = selfJvm.jstack(); // get self thread dump !!
+		ThreadDumpInfo threadDump = selfJvm.jstack(false);
 		Assert.assertNotNull(threadDump);
-//		Assert.assertTrue(jstackRes.contains("Full thread dump Java")); 
-//		Assert.assertTrue(jstackRes.contains("JNI global references:"));
+		Assert.assertTrue(threadDump.getThreads().size() > 20);
+		ThreadDumpUtils.simplifyThreadDump(threadDump);
+		Assert.assertTrue(threadDump.getThreads().size() > 1);
 	}
 	
 	@SuppressWarnings("restriction")

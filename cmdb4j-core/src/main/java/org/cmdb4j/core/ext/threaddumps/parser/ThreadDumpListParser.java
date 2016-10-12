@@ -104,12 +104,12 @@ public class ThreadDumpListParser {
 
 		extractDump(threadDumpType, threaddump);
 
-		long endSourceLine = threaddump.getEndSourceLine();
-		int threadCount = threaddump.getThreads().size();
-		String classHistoInfo = "";
-		if (threaddump.getClassHistogramInfo() != null) {
-			classHistoInfo = ", class histo: " + threaddump.getClassHistogramInfo().getClassItems().size() + " classes";
-		}
+		// long endSourceLine = threaddump.getEndSourceLine();
+		// int threadCount = threaddump.getThreads().size();
+		// String classHistoInfo = "";
+		// if (threaddump.getClassHistogramInfo() != null) {
+		//	classHistoInfo = ", class histo: " + threaddump.getClassHistogramInfo().getClassItems().size() + " classes";
+		//}
 		// println("Last line: " + endSourceLine + " (" + ((endSourceLine - startSourceLine) + 1L) + " lines, " + threadCount + " threads" + classHistoInfo + ")");
 
 		return threaddump;

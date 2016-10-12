@@ -8,11 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.cmdb4j.core.ext.threaddumps.analyzer.EjbSkelMethodLineRemover;
-import org.cmdb4j.core.ext.threaddumps.analyzer.InactiveThreadRemover;
-import org.cmdb4j.core.ext.threaddumps.analyzer.MethodCategory;
-import org.cmdb4j.core.ext.threaddumps.analyzer.MethodLineRemover;
-import org.cmdb4j.core.ext.threaddumps.analyzer.SystemThreadRemover;
+import org.cmdb4j.core.ext.threaddumps.analyzer.ThreadDumpUtils;
 import org.cmdb4j.core.ext.threaddumps.model.ClassHistogramInfo;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpInfo;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpList;
@@ -144,20 +140,7 @@ public class Main {
         	dump(threadDumpList, outputDir, outputFileNamePrefix, inputFile);
         }
 
-        
-        // remove System threads: "Finalizer", "Reference Handler", ...
-        threadDumpList.visit(new SystemThreadRemover());
-
-        // remove iddle threas
-        InactiveThreadRemover inactiveThreadRemover = new InactiveThreadRemover();
-        threadDumpList.visit(inactiveThreadRemover);
-        
-        // remove intermediate stack entry for EJB skeletons
-        threadDumpList.visit(new EjbSkelMethodLineRemover());
-        
-        MethodLineRemover methodLineRemover = new MethodLineRemover(MethodCategory.DEFAULT_RULES);
-        threadDumpList.visit(methodLineRemover);
-        
+        ThreadDumpUtils.simplifyThreadDumps(threadDumpList);
         
         
         // Dump Short (List<ThreadDump> after simplification) 

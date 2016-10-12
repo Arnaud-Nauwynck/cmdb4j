@@ -1,5 +1,6 @@
 package org.cmdb4j.overthere.jvm;
 
+import org.cmdb4j.core.ext.threaddumps.analyzer.ThreadDumpUtils;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpInfo;
 import org.cmdb4j.core.ext.threaddumps.parser.ThreadDumpParserUtils;
 import org.cmdb4j.overthere.utils.OverthereProcessUtils;
@@ -47,10 +48,13 @@ public class PidLinuxRemoteJvm {
 		return null;
 	}
 
-	public ThreadDumpInfo jstack() {
+	public ThreadDumpInfo jstack(boolean simplify) {
 		String jreDir = getJreDir();
 		String threadDumpText = OverthereProcessUtils.execSimple(connection, jreDir + "/bin/jstack", Integer.toString(pid));
 		ThreadDumpInfo res = ThreadDumpParserUtils.parseThreadDump(threadDumpText);
+		if (simplify) {
+			ThreadDumpUtils.simplifyThreadDump(res);
+		}
 		return res;
 	}
 	
