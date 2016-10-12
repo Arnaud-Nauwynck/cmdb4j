@@ -3,6 +3,7 @@ package org.cmdb4j.core.ext.threaddumps.parser.jvmimpl;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.cmdb4j.core.ext.threaddumps.model.EliminatedThreadLineInfo;
 import org.cmdb4j.core.ext.threaddumps.model.LockThreadLineInfo;
 import org.cmdb4j.core.ext.threaddumps.model.MethodThreadLineInfo;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadInfo;
@@ -20,6 +21,11 @@ public class SunThreadFormatParser implements ThreadFormatParser {
 	private static final Pattern lockPattern = Pattern
 			.compile("\t- (waiting to lock|waiting on|locked|parking to wait for\\s*) <(\\p{Alnum}+)> \\(a ([^\\)]+)\\)");
 
+	// example: - eliminated <owner is scalar replaced> (a java.io.DataInputStream)	at org.eclipse.jdi.internal.connect.PacketReceiveManager.readAvailablePacket(PacketReceiveManager.java:300)
+	private static final Pattern eliminatedScalarPattern = Pattern
+			.compile("\t- eliminated <([^>]*)> \\(a ([^\\)]*)\\)\\s+at (.*)");
+	
+	
 	public SunThreadFormatParser() {
 	}
 
@@ -65,6 +71,10 @@ public class SunThreadFormatParser implements ThreadFormatParser {
 			res2.setType(LockThreadLineInfo.lookupType(matcher.group(1)));
 			res2.setId(matcher.group(2));
 			res2.setClassName(matcher.group(3));
+			res = res2;
+		} else if ((matcher = eliminatedScalarPattern.matcher(s)).matches()) {
+			String type = matcher.group(1), eliminated = matcher.group(2), className = matcher.group(3);
+			EliminatedThreadLineInfo res2 = new EliminatedThreadLineInfo(type, eliminated, className);
 			res = res2;
 		} else {
 			System.err.println("Unknown line: '" + s + "'");

@@ -115,6 +115,12 @@ public class InactiveThreadRemover extends DefaultThreadItemInfoVisitor {
 		public ThreadCategoryInfo(String name) {
 			this.name = name;
 		}
+
+		@Override
+		public String toString() {
+			return "ThreadCategoryInfo [" + name + "]";
+		}
+
 		
 	}
 	private Map<String,ThreadCategoryInfo> removedThreadCategoryInfo = new HashMap<>();
@@ -143,7 +149,8 @@ public class InactiveThreadRemover extends DefaultThreadItemInfoVisitor {
 			String removedCategory = null;
 			
 			if (topStackEntry == null) {
-				skip = true; 
+				removedCategory = "system"; // elt.getName(); // exemple: "Attach Listener", "Service Thread", "C1 CompilerThread2" ..
+				skip = true;
 			} else if (stack.size() >= 50) {
 				skip = false; // ignore...  
 			} else if (ThreadDumpUtils.isJavaLangObjectWait(topStackEntry) 
@@ -159,12 +166,41 @@ public class InactiveThreadRemover extends DefaultThreadItemInfoVisitor {
 				removedCategory = "oracle.jms.AQjmsExceptionListener";
 				skip = true;
 			} else if (elt.getName().startsWith("pool-")
+					&& ThreadDumpUtils.isJavaLangObjectWait(topStackEntry)
+					&& 7 <= stack.size() && stack.size() <= 8
+					&& elt.getStackNthBottomEntry(1).getMethodFullName().equals("java.util.concurrent.ThreadPoolExecutor$Worker.run")
+					&& bottomStackEntry.getMethodFullName().equals("java.lang.Thread.run")
+					) {
+				removedCategory = "java.util.concurrent.ThreadPoolExecutor$Worker.run";
+				skip = true;
+				
+			} else if (elt.getName().startsWith("pool-")
+					&& ( (7 == stack.size() && ThreadDumpUtils.isJavaConcurrentLockPark(topStackEntry))
+							|| (8 == stack.size() && ThreadDumpUtils.isSunMiscUnsafePark(topStackEntry)) )
+					&& 7 <= stack.size() && stack.size() <= 8
+					&& elt.getStackNthBottomEntry(1).getMethodFullName().equals("java.util.concurrent.ThreadPoolExecutor$Worker.run")
+					&& bottomStackEntry.getMethodFullName().equals("java.lang.Thread.run")
+					) {
+				removedCategory = "java.util.concurrent.ThreadPoolExecutor$Worker.run";
+				skip = true;
+				//"pool-1-thread-1" prio=5 tid=0x00007fc0785dc000  waiting on condition 
+				//	at sun.misc.Unsafe.park(Native Method)
+				//	- locked <0x000000076d5146d8> (java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)
+				//	at java.util.concurrent.locks.LockSupport.park(LockSupport.java:175)
+				//	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2039)
+				//	at java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:442)
+				//	at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1067)
+				//	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1127)
+				//	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+				//	at java.lang.Thread.run(Thread.java:744)
+				
+			} else if (elt.getName().startsWith("pool-")
 						&& ThreadDumpUtils.isJavaLangObjectWait(topStackEntry)
 						&& 7 <= stack.size() && stack.size() <= 8
 						&& elt.getStackNthBottomEntry(1).getMethodFullName().equals("edu.emory.mathcs.backport.java.util.concurrent.ThreadPoolExecutor$Worker.run")
 						&& bottomStackEntry.getMethodFullName().equals("java.lang.Thread.run")
 						) {
-				removedCategory = "edu.emory.mathcs.backport.jaa.util.concurrent.ThreadPoolExecutor$Worker.run";
+				removedCategory = "edu.emory.mathcs.backport.java.util.concurrent.ThreadPoolExecutor$Worker.run";
 				skip = true;
 			} else if (elt.getName().startsWith("pool-")
 					&& ThreadDumpUtils.isJavaLangObjectWait(topStackEntry)

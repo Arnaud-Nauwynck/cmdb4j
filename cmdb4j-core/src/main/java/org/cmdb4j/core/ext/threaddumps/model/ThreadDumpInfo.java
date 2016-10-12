@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.cmdb4j.core.ext.threaddumps.util.DefaultThreadDumpPrinter;
+
 /**
  * 
  */
@@ -176,5 +178,11 @@ public class ThreadDumpInfo implements ThreadItemInfoVisitable {
 	public void addAllHeaderComments(Collection<String> p) {
 		headerComments.addAll(p);
 	}
+
+	@Override
+	public String toString() {
+		return DefaultThreadDumpPrinter.print(this);
+	}
+	
 	
 }

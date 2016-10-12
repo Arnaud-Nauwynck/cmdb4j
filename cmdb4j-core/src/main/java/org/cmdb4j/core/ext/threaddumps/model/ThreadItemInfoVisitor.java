@@ -18,10 +18,12 @@ public interface ThreadItemInfoVisitor {
 	void caseAttributeMapThreadLineInfo(AttributeMapThreadLineInfo info);
 	
 	void caseLockThreadLineInfo(LockThreadLineInfo info);
+	void caseEliminatedThreadLineInfo(EliminatedThreadLineInfo info);
 	
 	void caseLockStandaloneInfo(LockStandaloneInfo info);
 
 	void caseClassHistogramInfo(ClassHistogramInfo classHistogram);
 	void caseClassHistogramItemInfo(ClassHistogramItemInfo classHistogram);
+
 
 }

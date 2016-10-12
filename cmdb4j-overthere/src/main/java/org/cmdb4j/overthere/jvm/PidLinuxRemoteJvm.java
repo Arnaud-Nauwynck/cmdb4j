@@ -32,6 +32,14 @@ public class PidLinuxRemoteJvm {
 		return res;
 	}
 	
+	public String getJdkDir() {
+		String res = getJreDir();
+		if (res != null && res.endsWith("/jre")) {
+			res = res.substring(0, res.length() - "/jre".length());
+		}
+		return res;
+	}
+	
 	protected String doGetJreDir() {
 		// read symbolic link information of "/proc/<<pid>>/exe"
 		String procPidExe = "/proc/" + pid + "/exe";
@@ -49,8 +57,11 @@ public class PidLinuxRemoteJvm {
 	}
 
 	public ThreadDumpInfo jstack(boolean simplify) {
-		String jreDir = getJreDir();
-		String threadDumpText = OverthereProcessUtils.execSimple(connection, jreDir + "/bin/jstack", Integer.toString(pid));
+		String jdkDir = getJdkDir();
+		if (jdkDir == null) {
+			return null; // no jdk detected?
+		}
+		String threadDumpText = OverthereProcessUtils.execSimple(connection, jdkDir + "/bin/jstack", Integer.toString(pid));
 		ThreadDumpInfo res = ThreadDumpParserUtils.parseThreadDump(threadDumpText);
 		if (simplify) {
 			ThreadDumpUtils.simplifyThreadDump(res);

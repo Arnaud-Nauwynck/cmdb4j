@@ -1,7 +1,10 @@
 package org.cmdb4j.overthere.jvm;
 
+import java.net.URL;
+
 import org.cmdb4j.core.ext.threaddumps.analyzer.ThreadDumpUtils;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpInfo;
+import org.cmdb4j.overthere.utils.OverthereProcessUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,6 +21,12 @@ public class PidLinuxRemoteJvmTest {
 		OverthereConnection localConn = LocalConnection.getLocalConnection();
 		int selfPid = selfPid();
 		selfJvm = new PidLinuxRemoteJvm(localConn, selfPid);
+		
+		ClassLoader cl = PidLinuxRemoteJvmTest.class.getClassLoader();
+		URL logbackURL = cl.getResource("logback.xml");
+		if (logbackURL != null) {
+			System.out.println("found logback.xml: " + logbackURL);
+		}
 	}
 	
 	@Test
@@ -31,10 +40,37 @@ public class PidLinuxRemoteJvmTest {
 	public void testJstack() {
 		ThreadDumpInfo threadDump = selfJvm.jstack(false);
 		Assert.assertNotNull(threadDump);
-		Assert.assertTrue(threadDump.getThreads().size() > 20);
+		int threadCountBefore = threadDump.getThreads().size();
+		Assert.assertTrue(threadCountBefore > 20);
 		ThreadDumpUtils.simplifyThreadDump(threadDump);
-		Assert.assertTrue(threadDump.getThreads().size() > 1);
+		int threadCountAfter = threadDump.getThreads().size();
+		Assert.assertTrue(threadCountAfter < threadCountBefore);
+		Assert.assertTrue(threadCountAfter >= 2); // usually 4 .. 
+		// System.out.println(threadDump);
 	}
+	
+	@Test
+	public void testJstack_eclipse() {
+		OverthereConnection localConn = LocalConnection.getLocalConnection();
+		String pidText = OverthereProcessUtils.execSimple(localConn, "/bin/bash", "-c", "jps | grep eclipse | cut -f1 -d' '"); 
+		if (pidText == null || pidText.isEmpty()) {
+			return;
+		}
+		pidText = pidText.trim();
+		PidLinuxRemoteJvm jvm = new PidLinuxRemoteJvm(localConn, Integer.parseInt(pidText));
+		
+		ThreadDumpInfo threadDump = jvm.jstack(false);
+		Assert.assertNotNull(threadDump);
+		int threadCountBefore = threadDump.getThreads().size();
+		Assert.assertTrue(threadCountBefore > 50);
+		ThreadDumpUtils.simplifyThreadDump(threadDump);
+		int threadCountAfter = threadDump.getThreads().size();
+		Assert.assertTrue(threadCountAfter < threadCountBefore);
+		Assert.assertTrue(threadCountAfter >= 42); // the intergalactic magic number ...
+		System.out.println("Threads count: " + threadCountBefore + " => simplify: " + threadCountAfter);
+		// System.out.println(threadDump);
+	}
+	
 	
 	@SuppressWarnings("restriction")
 	public static int selfPid() {

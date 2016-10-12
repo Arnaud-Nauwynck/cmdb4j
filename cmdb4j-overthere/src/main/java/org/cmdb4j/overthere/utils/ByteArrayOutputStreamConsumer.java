@@ -53,8 +53,18 @@ public class ByteArrayOutputStreamConsumer implements Runnable {
 		}
 		
 		try {
+			byte[] tmp = new byte[1024];
 			for(;;) {
-				// int available = stream.available();
+				int available = stream.available();
+				while(available > 0) {
+					int maxRead = Math.min(available, tmp.length);
+					int readCount = stream.read(tmp, 0, maxRead);
+					buffer.write(tmp, 0, readCount);
+					
+					available = stream.available();
+				}
+				
+				// blocking??
 				int b = stream.read();
 				if (b == -1) {
 					break;

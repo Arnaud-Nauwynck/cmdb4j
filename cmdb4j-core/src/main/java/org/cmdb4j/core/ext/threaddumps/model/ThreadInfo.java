@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.cmdb4j.core.ext.threaddumps.util.DefaultThreadDumpPrinter;
+
 public class ThreadInfo implements ThreadItemInfoVisitable {
 
 	private String name;
@@ -118,8 +120,9 @@ public class ThreadInfo implements ThreadItemInfoVisitable {
 
 	@Override
 	public String toString() {
-		return "\"" + name + "\" pri:" + priority + " threadID:" + threadId + " state:\"" + state + "\" daemon:"
-				+ (daemon ? "yes" : "no");
+		return DefaultThreadDumpPrinter.print(this);
+//		return "\"" + name + "\" pri:" + priority + " threadID:" + threadId + " state:\"" + state + "\" daemon:"
+//				+ (daemon ? "yes" : "no");
 	}
 
 }

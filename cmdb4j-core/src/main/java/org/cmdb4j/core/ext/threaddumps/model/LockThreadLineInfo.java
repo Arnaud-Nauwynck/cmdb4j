@@ -5,7 +5,7 @@ package org.cmdb4j.core.ext.threaddumps.model;
  */
 public class LockThreadLineInfo implements ThreadLineInfo {
 
-    public static final String TYPE_LOCKED = "ocked";
+    public static final String TYPE_LOCKED = "locked";
     public static final String TYPE_WAIT = "waiting on";
     public static final String TYPE_ENTRY = "waiting to lock";
 

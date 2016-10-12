@@ -58,8 +58,11 @@ public final class ThreadDumpUtils {
 			|| name.equals("VM Periodic Task Thread")
 			|| name.equals("Suspend Checker Thread")
 			|| name.startsWith("RMI ConnectionExpiration")
-			|| name.startsWith("RM RenewClean-")
+			|| name.startsWith("RMI RenewClean-")
 			|| name.equals("process reaper")
+			|| name.equals("Attach Listener")
+			|| name.equals("Service Thread")
+			|| name.equals("C1 CompilerThread2")
 			
 			|| name.equals("weblogic.security.SpinnerRandomSource")
 			|| name.equals("weblogic.time.TimeEventGenerator")
@@ -81,6 +84,14 @@ public final class ThreadDumpUtils {
 
 	public static boolean isSocketRead0(MethodThreadLineInfo p) {
 		return p.getMethodFullName().equals("java.nt.SocketInputStream.socketRead0");
+	}
+
+	public static boolean isJavaConcurrentLockPark(MethodThreadLineInfo p) {
+		return p != null && p.getMethodFullName().equals("java.util.concurrent.locks.LockSupport.park");
+	}
+
+	public static boolean isSunMiscUnsafePark(MethodThreadLineInfo p) {
+		return p != null && p.getMethodFullName().equals("sun.misc.Unsafe.park");
 	}
 	
 	

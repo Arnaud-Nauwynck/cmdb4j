@@ -48,6 +48,10 @@ public class DefaultThreadItemInfoVisitor implements ThreadItemInfoVisitor {
 	}
 
 	@Override
+	public void caseEliminatedThreadLineInfo(EliminatedThreadLineInfo info) {
+	}
+	
+	@Override
 	public void caseClassHistogramInfo(ClassHistogramInfo classHistogram) {
 	}
 

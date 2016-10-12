@@ -1,5 +1,6 @@
 package org.cmdb4j.core.ext.threaddumps.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -9,12 +10,14 @@ import org.cmdb4j.core.ext.threaddumps.analyzer.ThreadDumpUtils;
 import org.cmdb4j.core.ext.threaddumps.model.AttributeMapThreadLineInfo;
 import org.cmdb4j.core.ext.threaddumps.model.ClassHistogramInfo;
 import org.cmdb4j.core.ext.threaddumps.model.ClassHistogramItemInfo;
+import org.cmdb4j.core.ext.threaddumps.model.EliminatedThreadLineInfo;
 import org.cmdb4j.core.ext.threaddumps.model.LockStandaloneInfo;
 import org.cmdb4j.core.ext.threaddumps.model.LockThreadLineInfo;
 import org.cmdb4j.core.ext.threaddumps.model.MethodThreadLineInfo;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpInfo;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadDumpList;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadInfo;
+import org.cmdb4j.core.ext.threaddumps.model.ThreadItemInfoVisitable;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadItemInfoVisitor;
 import org.cmdb4j.core.ext.threaddumps.model.ThreadLineInfo;
 
@@ -35,6 +38,18 @@ public class DefaultThreadDumpPrinter implements ThreadItemInfoVisitor {
 
 	public DefaultThreadDumpPrinter(PrintStream out) {
 		this.out = out;
+	}
+
+	public static String print(ThreadItemInfoVisitable obj) {
+		if (obj == null) {
+			return null;
+		}
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(buffer);
+		DefaultThreadDumpPrinter dumpPrinter = new DefaultThreadDumpPrinter(out);
+		obj.visit(dumpPrinter);
+		out.flush();
+		return buffer.toString();
 	}
 
 	// implements ThreadLineInfoVisitor
@@ -141,10 +156,10 @@ public class DefaultThreadDumpPrinter implements ThreadItemInfoVisitor {
 	}
 
 	public void caseMethodThreadLineInfo(MethodThreadLineInfo p) {
-		if (ThreadDumpUtils.isJavaLangObjectWait(p)) {
-			println("\t... wait java.lang.Object");
-			return;
-		}
+//		if (ThreadDumpUtils.isJavaLangObjectWait(p)) {
+//			println("\t... wait java.lang.Object");
+//			return;
+//		}
 
 		String location;
 		if (p.getLocationClass() != null) {
@@ -197,6 +212,11 @@ public class DefaultThreadDumpPrinter implements ThreadItemInfoVisitor {
 	}
 
 	@Override
+	public void caseEliminatedThreadLineInfo(EliminatedThreadLineInfo info) {
+		println("\t- eliminated <" + info.getType() + "> (a " + info.getEliminated() + ") at " + info.getClassName());
+	}
+	
+	@Override
 	public void caseClassHistogramInfo(ClassHistogramInfo p) {
 		println("ClassHistogramInfo");
 		for (ClassHistogramItemInfo elt : p.getClassItems()) {
@@ -234,5 +254,6 @@ public class DefaultThreadDumpPrinter implements ThreadItemInfoVisitor {
 	protected void println(String text) {
 		out.println(text);
 	}
+
 
 }
