@@ -2,7 +2,9 @@ package org.cmdb4j.overthere.tomcat;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import javax.xml.bind.JAXBContext;
@@ -11,6 +13,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.stream.StreamSource;
+
+import org.cmdb4j.overthere.BashParseUtils;
+import org.cmdb4j.overthere.BashParseUtils.ShellVars;
 
 import com.xebialabs.overthere.OverthereConnection;
 import com.xebialabs.overthere.OverthereFile;
@@ -100,4 +105,51 @@ public class RemoteDirTomcat {
 		}
 	}
 	
+	public String fetchBinStartupFile() {
+		String scriptExtension = connection.getHostOperatingSystem().getScriptExtension();
+		OverthereFile file = connection.getFile(remoteDir + "/bin/startup" + scriptExtension);
+		byte[] content = OverthereUtils.read(file);
+		return new String(content);
+	}
+
+	public String fetchBinSetenvFile() {
+		String scriptExtension = connection.getHostOperatingSystem().getScriptExtension();
+		OverthereFile file = connection.getFile(remoteDir + "/bin/setenv" + scriptExtension);
+		if (!file.exists()) {
+			return null;
+		}
+		byte[] content = OverthereUtils.read(file);
+		return new String(content);
+	}
+	
+	public static class EnvVarsAndJvmArgs {
+		public ShellVars shellVars = new ShellVars();
+		public Map<String,String> jvmArgs = new LinkedHashMap<>();
+	}
+	
+	
+	public EnvVarsAndJvmArgs parseDetectEnvVarsAndJvmArgs(String startupFileContent, String setenvFileContent) {
+		EnvVarsAndJvmArgs res = new EnvVarsAndJvmArgs();
+		String scriptExtension = connection.getHostOperatingSystem().getScriptExtension();
+		if (scriptExtension.equals(".sh")) {
+			// boolean seemsStdStartup = startupFileContent.endsWith("exec \"$PRGDIR\"/\"$EXECUTABLE\" start \"$@\"");
+			// parse env vars
+			BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, startupFileContent);
+			if (setenvFileContent != null) {
+				BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, setenvFileContent);
+			}
+			
+			// parse jvm args -D ... (directly in java cmmand or in JAVA_ARGS= ...)
+			// TODO 
+			
+		} else {
+			// .bat 
+			// really use Windows for tomcat on prod?
+			// not supported (ever) yet
+		}
+		return res;
+	}
+
+	
+
 }
