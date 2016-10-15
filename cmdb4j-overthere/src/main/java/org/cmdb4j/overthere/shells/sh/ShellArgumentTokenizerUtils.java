@@ -45,7 +45,7 @@ import java.util.LinkedList;
  * translated so that the tokenized arguments have the same meaning. Since all
  * methods are static, the class is declared abstract to prevent instantiation.
  */
-public abstract class ArgumentTokenizer {
+public class ShellArgumentTokenizerUtils {
 
 	private static final int NO_TOKEN_STATE = 0;
 	private static final int NORMAL_TOKEN_STATE = 1;

@@ -15,7 +15,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.cmdb4j.overthere.BashParseUtils;
 import org.cmdb4j.overthere.BashParseUtils.ShellVars;
-import org.cmdb4j.overthere.shells.sh.ArgumentTokenizer;
+import org.cmdb4j.overthere.shells.sh.ShellArgumentTokenizerUtils;
 
 import com.xebialabs.overthere.OverthereConnection;
 import com.xebialabs.overthere.OverthereFile;
@@ -153,12 +153,12 @@ public class RemoteDirTomcat {
 			// parse jvm args (directly in java command or in CATALINA_OPTS, JAVA_OPTS= ...)
 			String catalinaOpts = res.shellVars.getLocalOrEnvVar("CATALINA_OPTS");
 			if (catalinaOpts != null) {
-				List<String> argsList = ArgumentTokenizer.tokenize(catalinaOpts);
+				List<String> argsList = ShellArgumentTokenizerUtils.tokenize(catalinaOpts);
 				res.jvmArgs.addAll(argsList);
 			}
 			String javaOpts = res.shellVars.getLocalOrEnvVar("JAVA_OPTS");
 			if (javaOpts != null) {
-				List<String> argsList = ArgumentTokenizer.tokenize(javaOpts);
+				List<String> argsList = ShellArgumentTokenizerUtils.tokenize(javaOpts);
 				res.jvmArgs.addAll(argsList);
 			}
 			
