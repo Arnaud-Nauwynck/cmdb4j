@@ -15,8 +15,11 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.cmdb4j.overthere.BashParseUtils;
 import org.cmdb4j.overthere.BashParseUtils.ShellVars;
+import org.cmdb4j.overthere.jvm.JvmArgsUtils;
+import org.cmdb4j.overthere.jvm.JvmArgsUtils.JvmArgs;
 import org.cmdb4j.overthere.shells.sh.ShellArgumentTokenizerUtils;
 
+import com.xebialabs.overthere.OperatingSystemFamily;
 import com.xebialabs.overthere.OverthereConnection;
 import com.xebialabs.overthere.OverthereFile;
 import com.xebialabs.overthere.util.OverthereUtils;
@@ -124,7 +127,8 @@ public class RemoteDirTomcat {
 	
 	public static class EnvVarsAndJvmArgs {
 		public ShellVars shellVars = new ShellVars();
-		public List<String> jvmArgs = new ArrayList<>();
+		public List<String> javaArgs = new ArrayList<>();
+		public JvmArgs jvmArgs = new JvmArgs(); 
 	}
 	
 	protected Function<String,String> fileLoader() {
@@ -140,39 +144,73 @@ public class RemoteDirTomcat {
 	
 	public EnvVarsAndJvmArgs parseDetectEnvVarsAndJvmArgs(String startupFileContent, String setenvFileContent) {
 		EnvVarsAndJvmArgs res = new EnvVarsAndJvmArgs();
-		String scriptExtension = connection.getHostOperatingSystem().getScriptExtension();
-		if (scriptExtension.equals(".sh")) {
+		OperatingSystemFamily os = connection.getHostOperatingSystem();
+		Function<String,String> fileLoader = fileLoader();
+		String fileSep = os.getFileSeparator();
+		String binDir = remoteDir + fileSep + "bin";
+		switch(os) {
+		case UNIX:
 			// boolean seemsStdStartup = startupFileContent.endsWith("exec \"$PRGDIR\"/\"$EXECUTABLE\" start \"$@\"");
 			// parse env vars
-			Function<String,String> fileLoader = fileLoader();
-			BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, startupFileContent, remoteDir + "/bin", fileLoader);
+			BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, startupFileContent, binDir, fileLoader);
 			if (setenvFileContent != null) {
-				BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, setenvFileContent, remoteDir + "/bin", fileLoader);
+				BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, setenvFileContent, binDir, fileLoader);
 			}
-			
-			// parse jvm args (directly in java command or in CATALINA_OPTS, JAVA_OPTS= ...)
-			String catalinaOpts = res.shellVars.getLocalOrEnvVar("CATALINA_OPTS");
-			if (catalinaOpts != null) {
-				List<String> argsList = ShellArgumentTokenizerUtils.tokenize(catalinaOpts);
-				res.jvmArgs.addAll(argsList);
-			}
-			String javaOpts = res.shellVars.getLocalOrEnvVar("JAVA_OPTS");
-			if (javaOpts != null) {
-				List<String> argsList = ShellArgumentTokenizerUtils.tokenize(javaOpts);
-				res.jvmArgs.addAll(argsList);
-			}
-			
-			// TODO ..  detect std jvm args "-X*", and java args "-D*" 
-			
-		} else if (scriptExtension.equals(".bat")) { 
+			break;
+		case WINDOWS:
 			// really use Windows for tomcat on prod?
-			// not supported (ever) yet
-		} else {
-			// unrecognised script extension
+			// not supported yet
+			break;
+		case ZOS:
+		default:
+			// TODO ..
 		}
+		
+		// parse jvm args (directly in java command or in CATALINA_OPTS, JAVA_OPTS= ...)
+		String catalinaOpts = res.shellVars.getLocalOrEnvVar("CATALINA_OPTS");
+		if (catalinaOpts != null) {
+			List<String> argsList = ShellArgumentTokenizerUtils.tokenize(catalinaOpts);
+			res.javaArgs.addAll(argsList);
+		}
+		String javaOpts = res.shellVars.getLocalOrEnvVar("JAVA_OPTS");
+		if (javaOpts != null) {
+			List<String> argsList = ShellArgumentTokenizerUtils.tokenize(javaOpts);
+			res.javaArgs.addAll(argsList);
+		}
+		
+		// detect std jvm args "-X*", and java args "-D*" 
+		JvmArgsUtils.parseJvmArgs(res.jvmArgs, res.javaArgs);
+		
 		return res;
 	}
 
-	
+	public int getPid() {
+		int pid = 0;
+		OverthereFile catalinaPidFile = connection.getFile(remoteDir + "/logs/catalina.pid");
+		if (catalinaPidFile.exists()) {
+			byte[] content = OverthereUtils.read(catalinaPidFile);
+			try {
+				pid = Integer.parseInt(new String(content));
+			} catch(NumberFormatException ex) {
+				pid = 0;
+			}
+			if (pid != 0) {
+				// detect if stale pid file
+				OperatingSystemFamily os = connection.getHostOperatingSystem();
+				switch(os) {
+				case UNIX:
+					OverthereFile procFile = connection.getFile("/proc/" + pid);
+					if (! procFile.exists()) {
+						pid = 0; // detected stale pid file!  => remove it?
+					}
+				case WINDOWS:
+				case ZOS:
+				default:
+					// TODO ..
+				}
+			}
+		}
+		return pid;
+	}
 
 }

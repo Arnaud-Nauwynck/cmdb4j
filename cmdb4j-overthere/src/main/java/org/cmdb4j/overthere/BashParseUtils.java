@@ -35,6 +35,7 @@ public class BashParseUtils {
 	
 	public static void heuristicDetectShellVarsFromScript(ShellVars res, String script, String dir, Function<String,String> fileLoader) {
 		script = "\n" + script; // HACK to force detect vars on new line
+		script = script.replace("\\\n", ""); // line escape continuation
 		Map<String,String> envVars = res.envVars;
 		Map<String,String> localScriptVars = res.localScriptVars;
 		Pattern anyVarPattern = Pattern.compile("(\\n\\s*export\\s+(\\w+)=([^\\n]*))"  //example: 'export VAR="value"' 

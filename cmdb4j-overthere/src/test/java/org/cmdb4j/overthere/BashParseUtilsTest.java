@@ -78,6 +78,16 @@ public class BashParseUtilsTest {
 	}
 	
 	@Test
+	public void testHeuristicDetectShellVarsFromScript_local_multiline() {
+		String script1 = "LOCALVAR1=LOCALVALUE1\\\n"
+				+ "   :LOCALVALUE2";
+		ShellVars res = new ShellVars();
+		BashParseUtils.heuristicDetectShellVarsFromScript(res, script1);
+		Assert.assertNull(res.envVars.get("LOCALVAR1"));
+		Assert.assertEquals("LOCALVALUE1   :LOCALVALUE2", res.localScriptVars.get("LOCALVAR1")); //TODO should be trimed??
+	}
+	
+	@Test
 	public void testHeuristicDetectShellVarsFromScript_varExport() {
 		String script1 = "VAR2=VALUE2; export VAR2\n";
 		ShellVars res = new ShellVars();
