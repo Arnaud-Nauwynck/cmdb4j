@@ -2,9 +2,8 @@ package org.cmdb4j.overthere.tomcat;
 
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import javax.xml.bind.JAXBContext;
@@ -16,6 +15,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.cmdb4j.overthere.BashParseUtils;
 import org.cmdb4j.overthere.BashParseUtils.ShellVars;
+import org.cmdb4j.overthere.shells.sh.ArgumentTokenizer;
 
 import com.xebialabs.overthere.OverthereConnection;
 import com.xebialabs.overthere.OverthereFile;
@@ -124,9 +124,19 @@ public class RemoteDirTomcat {
 	
 	public static class EnvVarsAndJvmArgs {
 		public ShellVars shellVars = new ShellVars();
-		public Map<String,String> jvmArgs = new LinkedHashMap<>();
+		public List<String> jvmArgs = new ArrayList<>();
 	}
 	
+	protected Function<String,String> fileLoader() {
+		return x -> {
+			OverthereFile file = connection.getFile(x);
+			if (!file.exists() || !file.canRead()) {
+				return null;
+			}	
+			byte[] content = OverthereUtils.read(file);
+			return new String(content);
+		};
+	}
 	
 	public EnvVarsAndJvmArgs parseDetectEnvVarsAndJvmArgs(String startupFileContent, String setenvFileContent) {
 		EnvVarsAndJvmArgs res = new EnvVarsAndJvmArgs();
@@ -134,18 +144,31 @@ public class RemoteDirTomcat {
 		if (scriptExtension.equals(".sh")) {
 			// boolean seemsStdStartup = startupFileContent.endsWith("exec \"$PRGDIR\"/\"$EXECUTABLE\" start \"$@\"");
 			// parse env vars
-			BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, startupFileContent);
+			Function<String,String> fileLoader = fileLoader();
+			BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, startupFileContent, remoteDir + "/bin", fileLoader);
 			if (setenvFileContent != null) {
-				BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, setenvFileContent);
+				BashParseUtils.heuristicDetectShellVarsFromScript(res.shellVars, setenvFileContent, remoteDir + "/bin", fileLoader);
 			}
 			
-			// parse jvm args -D ... (directly in java cmmand or in JAVA_ARGS= ...)
-			// TODO 
+			// parse jvm args (directly in java command or in CATALINA_OPTS, JAVA_OPTS= ...)
+			String catalinaOpts = res.shellVars.getLocalOrEnvVar("CATALINA_OPTS");
+			if (catalinaOpts != null) {
+				List<String> argsList = ArgumentTokenizer.tokenize(catalinaOpts);
+				res.jvmArgs.addAll(argsList);
+			}
+			String javaOpts = res.shellVars.getLocalOrEnvVar("JAVA_OPTS");
+			if (javaOpts != null) {
+				List<String> argsList = ArgumentTokenizer.tokenize(javaOpts);
+				res.jvmArgs.addAll(argsList);
+			}
 			
-		} else {
-			// .bat 
+			// TODO ..  detect std jvm args "-X*", and java args "-D*" 
+			
+		} else if (scriptExtension.equals(".bat")) { 
 			// really use Windows for tomcat on prod?
 			// not supported (ever) yet
+		} else {
+			// unrecognised script extension
 		}
 		return res;
 	}

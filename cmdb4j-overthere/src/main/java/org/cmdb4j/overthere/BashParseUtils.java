@@ -3,6 +3,7 @@ package org.cmdb4j.overthere;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +13,14 @@ public class BashParseUtils {
 	public static class ShellVars {
 		public Map<String,String> envVars = new LinkedHashMap<>();
 		public Map<String,String> localScriptVars = new LinkedHashMap<>();
+		
+		public String getLocalOrEnvVar(String var) {
+			String res = localScriptVars.get(var);
+			if (res == null) {
+				res = envVars.get(var);
+			}
+			return res;
+		}
 	}
 	
 	/**
@@ -21,6 +30,10 @@ public class BashParseUtils {
 	 * @return
 	 */
 	public static void heuristicDetectShellVarsFromScript(ShellVars res, String script) {
+		heuristicDetectShellVarsFromScript(res, script, null, null);
+	}
+	
+	public static void heuristicDetectShellVarsFromScript(ShellVars res, String script, String dir, Function<String,String> fileLoader) {
 		script = "\n" + script; // HACK to force detect vars on new line
 		Map<String,String> envVars = res.envVars;
 		Map<String,String> localScriptVars = res.localScriptVars;
@@ -28,6 +41,7 @@ public class BashParseUtils {
 				+ "|(\\n\\s*(\\w+)=([^\\n]*)\\s*;\\s*export\\s+([^\\n]*))"  // example:  'VAR="value" ; export VAR"'
 				+ "|(\\n\\s*(\\w+)=([^\\n]*))" // example: 'VAR="value"'
 				+ "|(\\n\\s*export\\s+([^\\n]*))" // example: 'export VAR'
+				+ "|((source|\\.)\\s+([^\\n]*))" // example: "source ./bin/another-setenv.sh"
 				);
 		Matcher matcher = anyVarPattern.matcher(script);
 		for(int pos =  0; matcher.find(pos); ) {
@@ -36,6 +50,7 @@ public class BashParseUtils {
 			String lineVarValueExport = matcher.group(4);
 			String lineVarValue = matcher.group(8);
 			String lineExportVar = matcher.group(11);
+			String lineSourceScript = matcher.group(13);
 			
 			if (lineExportVarValue != null) {
 				// detected line1: 'export VAR="value"' 
@@ -69,6 +84,36 @@ public class BashParseUtils {
 				if (exportedValue != null) {
 					envVars.put(var, exportedValue);
 				} // else suspect error
+			} else if (lineSourceScript != null) {
+				// detected 'source setenv.sh'
+				String sourceScriptFile = matcher.group(15);
+				sourceScriptFile = unquoteEval(sourceScriptFile, res);
+				if (fileLoader != null) {
+					String sourceScriptContent;
+					try {
+						// load sourced script file content (as relative in dir)
+						String sourceScriptPath = (dir != null && !dir.isEmpty())? dir + "/" + sourceScriptFile : sourceScriptFile;
+						sourceScriptContent = fileLoader.apply(sourceScriptPath);
+					} catch(Exception ex) {
+						// error: Failed to load sourced file
+						sourceScriptContent = null;
+					}
+						
+					if (sourceScriptContent != null) {
+						String relativeScriptDir = dir;
+						int lastSlash = sourceScriptFile.lastIndexOf('/');
+						if (lastSlash != -1) {
+							relativeScriptDir = sourceScriptContent.substring(0, lastSlash);
+							if (relativeScriptDir.equals(".")) {
+								relativeScriptDir = "";
+							}
+						}
+						String childDir = (dir != null && !dir.isEmpty())? dir + "/" + relativeScriptDir : relativeScriptDir;
+						// recurse
+						heuristicDetectShellVarsFromScript(res, sourceScriptContent, childDir, fileLoader);
+					} // else error: no sourced file
+					
+				}
 			}
 			
 			pos = matcher.end(); // + 1;
@@ -199,4 +244,5 @@ public class BashParseUtils {
 		}
 		return res.toString();
 	}
+	
 }

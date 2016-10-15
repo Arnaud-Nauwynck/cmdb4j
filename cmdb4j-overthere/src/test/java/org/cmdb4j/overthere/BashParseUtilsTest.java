@@ -1,6 +1,7 @@
 package org.cmdb4j.overthere;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import org.cmdb4j.overthere.BashParseUtils.ShellVars;
 import org.junit.Assert;
@@ -113,6 +114,26 @@ public class BashParseUtilsTest {
 		ShellVars res = new ShellVars();
 		BashParseUtils.heuristicDetectShellVarsFromScript(res, script1);
 		Assert.assertEquals("VALUE4a:VALUE4b:VALUE4c", res.localScriptVars.get("CONCATVAR4"));
+	}
+	
+	@Test
+	public void testHeuristicDetectShellVarsFromScript_source() {
+		String script1 = "source another-sentenv1.sh\n"
+				+ ". src/test/data/another-sentenv2.sh\n"
+				;
+		Function<String,String> scriptLoader = x -> {
+			if (x.equals("another-sentenv1.sh")) {
+				return "export ANOTHER_SETENV1_VAR1=VALUE1\n";
+			} else if (x.equals("src/test/data/another-sentenv2.sh")) {
+				return "export ANOTHER_SETENV2_VAR1=VALUE1\n";
+			} else {
+				return null;
+			}
+		};
+		ShellVars res = new ShellVars();
+		BashParseUtils.heuristicDetectShellVarsFromScript(res, script1, "", scriptLoader);
+		Assert.assertEquals("VALUE1", res.envVars.get("ANOTHER_SETENV1_VAR1"));
+		Assert.assertEquals("VALUE1", res.envVars.get("ANOTHER_SETENV2_VAR1"));
 	}
 	
 
