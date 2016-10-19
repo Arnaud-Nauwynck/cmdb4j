@@ -46,6 +46,12 @@ public class OverthereProcessUtils {
 		return new ProcessOutErrResult(exitCode, stdoutConsumer.getBuffer(), stderrConsumer.getBuffer());
 	}
 
+	public static OverthereProcess startProcess(OverthereConnection conn, String cmd, String... args) {
+		CmdLine cmdLine = buildCmdLine(cmd, args);
+		OverthereProcess process = conn.startProcess(cmdLine);
+		return process;
+	}
+	
 	public static CmdLine buildCmdLine(String cmd, String... args) {
 		CmdLine cmdLine = new CmdLine();
 		cmdLine.addArgument(cmd);
