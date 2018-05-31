@@ -4,6 +4,23 @@ public enum SearchHitFilterDecision {
 
 	ACCEPT, REJECT, UNKNOWN;
 
+	public static SearchHitFilterDecision parse(String text) {
+		if (text == null) {
+			return UNKNOWN;
+		}
+		String lower = text.toLowerCase();
+		switch(lower) {
+		case "accept": return ACCEPT;
+		case "reject": return REJECT;
+		case "unknown": return UNKNOWN;
+		default: return UNKNOWN;
+		}
+	}
+	
+	public static SearchHitFilterDecision acceptOrReject(boolean val) {
+		return (val)? ACCEPT : REJECT;
+	}
+	
 	public SearchHitFilterDecision inverse() {
 		switch(this) {
 		case ACCEPT: return REJECT;

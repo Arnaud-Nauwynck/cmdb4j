@@ -33,6 +33,7 @@ public class SearchHitFilterTest {
 		SearchHitFilter[] filterClones = new SearchHitFilter[filtersCount];
 		for(int i = 0; i < filtersCount; i++) {
 			filterJsonTrees[i] = mapper.valueToTree(filters[i]);
+			System.out.println("f[" + i + "]= " + filterJsonTrees[i]);
 			filterClones[i] = mapper.treeToValue(filterJsonTrees[i], SearchHitFilter.class);
 		}
 		// Post-check
@@ -40,4 +41,10 @@ public class SearchHitFilterTest {
 			Assert.assertEquals(filters[i], filterClones[i]);
 		}
 	}
+	
+	
+	@Test
+	public void testMapJson2() throws Exception {
+	}
+
 }

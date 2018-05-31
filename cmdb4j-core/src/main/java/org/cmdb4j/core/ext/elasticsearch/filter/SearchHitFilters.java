@@ -96,7 +96,7 @@ public final class SearchHitFilters {
 
 		@Override
 		public String toString() {
-			return "EqualsField[" + field + " == " + value + "]";
+			return field + " = '" + value + "'";
 		}
 		
 	}
@@ -181,7 +181,7 @@ public final class SearchHitFilters {
 		
 		@Override
 		public String toString() {
-			return "PatternField[" + field + " matches? '" + pattern.pattern() + "']";
+			return field + " /~/ '" + pattern.pattern() + "'";
 		}
 
 	}
@@ -248,6 +248,42 @@ public final class SearchHitFilters {
 		public TemplatizedTokenKeyPath getTokensPattern() {
 			return tokensPattern;
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((field == null) ? 0 : field.hashCode());
+			result = prime * result + ((value == null) ? 0 : value.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			TemplatePatternSearchHitFilter other = (TemplatePatternSearchHitFilter) obj;
+			if (field == null) {
+				if (other.field != null)
+					return false;
+			} else if (!field.equals(other.field))
+				return false;
+			if (value == null) {
+				if (other.value != null)
+					return false;
+			} else if (!value.equals(other.value))
+				return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return field + " ~ '" + value + "' (: "+ tokensPattern + ")";
+		}
 		
 	}
 	
@@ -255,7 +291,7 @@ public final class SearchHitFilters {
 	// ------------------------------------------------------------------------
 	
 	public static class ChainSearchHitFilterElement {
-		boolean include;
+		boolean include; // => cf SearchHitFilterDecision 
 		SearchHitFilter filter;
 		
 		public ChainSearchHitFilterElement(@JsonProperty("include") boolean include, @JsonProperty("filter") SearchHitFilter filter) {
@@ -308,7 +344,7 @@ public final class SearchHitFilters {
 
 		@Override
 		public String toString() {
-			return (include? "include" : "exclude") + " " + filter;
+			return "when " + filter + " then " + (include? "accept" : "reject");
 		}
 		
 	}
@@ -375,7 +411,6 @@ public final class SearchHitFilters {
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			sb.append("FilterChain[\n");
 			final int len = elts.length;
 			for(int i = 0; i < len; i++) {
 				sb.append(elts[i]);
@@ -383,7 +418,6 @@ public final class SearchHitFilters {
 					sb.append("\n");
 				}
 			}
-			sb.append("\n]");
 			return sb.toString();
 		}
 

@@ -13,8 +13,19 @@
 	<packaging>jar</packaging>
 
 	<properties>
-	  	<drools.version>6.5.0.Final</drools.version>
+	  	<drools.version>7.7.0.Final</drools.version>
+	  	<antlr.version>4.7.1</antlr.version>
     </properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+			    <groupId>org.antlr</groupId>
+			    <artifactId>antlr4</artifactId>
+			    <version>${antlr.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
@@ -57,8 +68,13 @@
 	 	<dependency>
 		    <groupId>org.antlr</groupId>
 		    <artifactId>antlr4</artifactId>
-		    <version>4.1</version>
-		</dependency>
+		    <exclusions>
+		    	<exclusion>
+		    		<groupId>org.antlr</groupId>
+		    		<artifactId>antlr-runtime</artifactId>
+		    	</exclusion>
+		    </exclusions>
+	 	</dependency>
 		
   
 	    <dependency>
@@ -75,6 +91,12 @@
 	      <groupId>org.drools</groupId>
 	      <artifactId>drools-compiler</artifactId>
 	      <version>${drools.version}</version>
+	      <exclusions>
+	      	<exclusion>
+	      		<groupId>org.antlr</groupId>
+	      		<artifactId>antlr-runtime</artifactId>
+	      	</exclusion>
+	      </exclusions>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.drools</groupId>
@@ -117,29 +139,64 @@
 
 	<profiles>
 		<profile>
-			<id>antlr4-log</id>
+			<id>antlr4-LogLexer</id>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>org.antlr</groupId>
 						<artifactId>antlr4-maven-plugin</artifactId>
-						<version>4.1</version>
-						<configuration>
-							<grammars>LogLexer.g4</grammars>
-							<arguments>
-								<argument>-package</argument>
-								<argument>org.cmdb4j.core.ext.patterns.tokentemplate</argument>
-								<argument>-o</argument>
-								<argument>${basedir}/src/main/java/org/cmdb4j/core/ext/patterns/tokentemplate</argument>
-							</arguments>
-						</configuration>
+						<version>4.7.1</version>
 						<executions>
 							<execution>
-								<id>generate-sources-antlr4</id>
+								<id>generate-antlr4-LogLexer</id>
 								<phase>generate-sources</phase>
 								<goals>
 									<goal>antlr4</goal>
 								</goals>
+								<configuration>
+									<includes>
+										<include>LogLexer.g4</include>
+									</includes>
+									<arguments>
+										<argument>-package</argument>
+										<argument>org.cmdb4j.core.ext.patterns.tokentemplate</argument>
+										<argument>-o</argument>
+										<argument>${basedir}/src/main/java/org/cmdb4j/core/ext/patterns/tokentemplate</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>antlr4-FilterChain</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.antlr</groupId>
+						<artifactId>antlr4-maven-plugin</artifactId>
+						<version>4.7.1</version>
+						<executions>
+							<execution>
+								<id>generate-antlr4-FilterChain</id>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>antlr4</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>FilterChain.g4</include>
+									</includes>
+									<arguments>
+										<argument>-visitor</argument>
+										<argument>-package</argument>
+										<argument>org.cmdb4j.core.ext.elasticsearch.filter.antlr4</argument>
+										<argument>-o</argument>
+										<argument>${basedir}/src/main/java/org/cmdb4j/core/ext/elasticsearch/filter/antlr4</argument>
+									</arguments>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

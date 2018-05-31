@@ -12,7 +12,6 @@ import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.PatternFieldSea
 import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.StrictAcceptSearchHitFilter;
 import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.StrictRejectSearchHitFilter;
 import org.cmdb4j.core.ext.elasticsearch.filter.SearchHitFilters.TemplatePatternSearchHitFilter;
-import org.cmdb4j.core.ext.patterns.tokentemplate.TemplatizedTokenKeyPath;
 import org.elasticsearch.search.SearchHit;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -20,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
-@JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="type")
+@JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="type")
 @JsonSubTypes({
 	@JsonSubTypes.Type(value=EqualsFieldSearchHitFilter.class, name="fieldEq"),
     @JsonSubTypes.Type(value=PatternFieldSearchHitFilter.class, name="fieldMatch"),
@@ -53,7 +52,13 @@ public abstract class SearchHitFilter {
 	public static SearchHitFilter chainFilters(ChainSearchHitFilterElement... chainElts) {
 		return new ChainSearchHitFilter(chainElts);
 	}
-	public static ChainSearchHitFilter chainFilters(boolean include0, SearchHitFilter filter0, boolean include1, SearchHitFilter filter1) {
+	public static ChainSearchHitFilter chainFilters(boolean include0, SearchHitFilter filter0) {
+		return new ChainSearchHitFilter(new ChainSearchHitFilterElement[]{
+				new ChainSearchHitFilterElement(include0, filter0)
+		});
+	}
+	public static ChainSearchHitFilter chainFilters(boolean include0, SearchHitFilter filter0, 
+			boolean include1, SearchHitFilter filter1) {
 		return new ChainSearchHitFilter(new ChainSearchHitFilterElement[]{
 				new ChainSearchHitFilterElement(include0, filter0),
 				new ChainSearchHitFilterElement(include1, filter1)
