@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.an.fxtree.format.json.FxJsonUtils;
 import fr.an.fxtree.format.json.jackson.Fx2JacksonUtils;
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.model.FxNode;
 
 public class EnvTemplateDescrDTOMapper {
@@ -27,12 +28,13 @@ public class EnvTemplateDescrDTOMapper {
     // ------------------------------------------------------------------------
 
     public EnvTemplateDescr fromDTO(EnvTemplateDescrDTO src) {
+    	FxSourceLoc source = new FxSourceLoc("env-template", src.getName());
         List<EnvTemplateParamDescr> paramDescriptions = new ArrayList<>();
         src.getParamDescriptions().forEach(p -> {
             paramDescriptions.add(paramDescrDTOMapper.fromDTO(p));
         });
-        Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties());
-        FxNode rawNode = Fx2JacksonUtils.jsonNodeToFxTree(src.getRawNode());
+        Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties(), source);
+        FxNode rawNode = Fx2JacksonUtils.jsonNodeToFxTree(src.getRawNode(), source);
         return new EnvTemplateDescr(src.getName(), src.getDisplayName(), src.getComment(), 
             paramDescriptions, extraProperties, rawNode);
     }

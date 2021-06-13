@@ -29,10 +29,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>fr.an.utils</groupId>
-			<artifactId>dyn-adapter</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>fr.an.fxtree</groupId>
 			<artifactId>fx-tree</artifactId>
 		</dependency>

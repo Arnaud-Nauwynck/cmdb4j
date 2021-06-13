@@ -37,6 +37,7 @@ import fr.an.fxtree.format.FxFileUtils;
 import fr.an.fxtree.impl.helper.FxNodeCopyVisitor;
 import fr.an.fxtree.impl.helper.FxNodeValueUtils;
 import fr.an.fxtree.impl.model.mem.FxMemRootDocument;
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.model.FxArrayNode;
 import fr.an.fxtree.model.FxChildWriter;
 import fr.an.fxtree.model.FxNode;
@@ -324,7 +325,8 @@ public class EnvDirsResourceRepositories {
             // merge descr "rawNode" with nodes from "**/env.yaml"
             FxArrayNode mergeRawNode = scannedRawRootNodes;
             if (mergeRawNode == null) {
-                mergeRawNode = new FxMemRootDocument().setContentArray();
+                FxSourceLoc source = new FxSourceLoc("", templateName);
+				mergeRawNode = new FxMemRootDocument(source).setContentArray(source);
             }
             FxNode descrRawNode = res.getRawNode();
             if (descrRawNode != null) {
@@ -428,8 +430,9 @@ public class EnvDirsResourceRepositories {
     }
 
     protected FxArrayNode scanAndAppendRawContents(File envDir, String envName) {
-        FxMemRootDocument rawEnvDoc = new FxMemRootDocument();
-        FxArrayNode rawRootNode = rawEnvDoc.contentWriter().addArray();
+        FxSourceLoc source = new FxSourceLoc("", envName);
+        FxMemRootDocument rawEnvDoc = new FxMemRootDocument(source);
+        FxArrayNode rawRootNode = rawEnvDoc.contentWriter().addArray(source);
         FxChildWriter rawNodesWriter = rawRootNode.insertBuilder();
         
         recursiveScanAndConcatenateRelativeFiles(rawNodesWriter, envDir, envName, envName + "/");
@@ -499,14 +502,17 @@ public class EnvDirsResourceRepositories {
         }
         
         // read json/yaml, and convert to raw in-memory tree
-        FxNode tmpContent = FxFileUtils.readTree(file);
+        FxSourceLoc source = new FxSourceLoc("", file.getPath()); // TODO relative..
+
+        FxNode tmpContent = FxFileUtils.readTree(file, source);
         
         // recursive replace "relativeId", and "id" by prepending current pathId
         // FxReplaceNodeCopyVisitor.copyWithReplaceTo(dest, template, varReplacements);
         FxNodeCopyVisitor relativeIdTransformCopier = new FxNodeCopyVisitor() {
             @Override
             public FxNode visitObj(FxObjNode src, FxChildWriter out) {
-                FxObjNode res = out.addObj();
+            	FxSourceLoc source = src.getSourceLoc();
+                FxObjNode res = out.addObj(source);
                 for (Iterator<Map.Entry<String, FxNode>> iter = src.fields(); iter.hasNext();) {
                     Entry<String, FxNode> srcFieldEntry = iter.next();
                     String fieldname = srcFieldEntry.getKey();
@@ -517,7 +523,7 @@ public class EnvDirsResourceRepositories {
                         String id = pathId + relativeId;
                         // replace field name "relativeId" by "id" + prepend content value by pathId
                         // example:  { relativeId: "a/b" } => { id: "pathId/a/b" }
-                        res.put("id", id);
+                        res.put("id", id, source);
                     } else if ("id".equals(fieldname)) {
                         String srcId = FxNodeValueUtils.nodeToString(srcValue);
                         String id;
@@ -532,7 +538,7 @@ public class EnvDirsResourceRepositories {
                         } else {
                             id = envName + "/" + srcId;
                         }
-                        res.put("id", id);
+                        res.put("id", id, source);
                     } else {
                         // recurse copy object field value
                         FxChildWriter outChildAdder = res.putBuilder(fieldname);
@@ -586,7 +592,8 @@ public class EnvDirsResourceRepositories {
                 continue;
             if (file.isFile() && fileName.startsWith(TEMPLATE_PARAM_BASEFILENAME) && FxFileUtils.isSupportedFileExtension(file)) {
                 // read json/yaml, and merge into parameter builder
-                FxObjNode tmpContent = (FxObjNode) FxFileUtils.readTree(file);
+            	FxSourceLoc source = new FxSourceLoc("", file.getName());
+                FxObjNode tmpContent = (FxObjNode) FxFileUtils.readTree(file, source);
                 envTemplateInstanceParametersDTOMapper.parseMergeNode(res, tmpContent);
             }
         }

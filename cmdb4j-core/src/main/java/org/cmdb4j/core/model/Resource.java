@@ -13,14 +13,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.map.Flat3Map;
 import org.cmdb4j.core.model.reflect.ResourceType;
 import org.cmdb4j.core.util.CmdbAssertUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import fr.an.dynadapter.alt.IAdapterAlternativesManager;
-import fr.an.dynadapter.alt.ItfId;
 import fr.an.fxtree.model.FxObjNode;
 
 /**
@@ -52,12 +49,6 @@ public class Resource {
         
     protected Set<String> tags = new LinkedHashSet<String>();
 
-    /**
-     * cached created adapters, using <code>IAdapterAlternativesManager.getAdapter(itf, this)</code>
-     */
-    @SuppressWarnings("unchecked")
-    protected Map<ItfId<?>,Object> cachedAdapters = (Map<ItfId<?>,Object>) new Flat3Map();
-    
     // ------------------------------------------------------------------------
 
     public Resource(ResourceId id, ResourceType type, FxObjNode objData) {
@@ -92,9 +83,6 @@ public class Resource {
 
     public void setObjData(FxObjNode p) {
         this.objData = p;
-        synchronized (cachedAdapters) {
-            this.cachedAdapters.clear();
-        }
     }
 
     protected Map<ResourceId,Resource> getOrCreateRelationship(ResourceRelationshipType relationshipType) {
@@ -309,27 +297,6 @@ public class Resource {
             }
         }
         return res;
-    }
-    
-    private static Object NULL_MARKER = new Object();
-    
-    @SuppressWarnings("unchecked")
-    public <T> T getAdapter(ItfId<T> itfId, IAdapterAlternativesManager<ResourceType> adapterManager) {
-        synchronized (cachedAdapters) {
-            Object tmpres = cachedAdapters.get(itfId);
-            if (tmpres == NULL_MARKER) {
-                return null;
-            }
-            T res;
-            if (tmpres == null) {
-                res = adapterManager.getAdapter(this, itfId);
-                tmpres = (res != null)? res : NULL_MARKER;
-                cachedAdapters.put(itfId, tmpres);
-            } else {
-                res = (T) tmpres;
-            }
-            return res;
-        }
     }
     
     // ------------------------------------------------------------------------

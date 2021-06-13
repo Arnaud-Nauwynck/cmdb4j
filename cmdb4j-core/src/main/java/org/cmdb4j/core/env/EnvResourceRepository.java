@@ -26,6 +26,7 @@ import fr.an.fxtree.impl.helper.FxObjNodeWithIdAndTypeTreeScanner;
 import fr.an.fxtree.impl.helper.FxObjValueHelper;
 import fr.an.fxtree.impl.helper.FxReplaceNodeCopyVisitor;
 import fr.an.fxtree.impl.model.mem.FxMemRootDocument;
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.impl.stdfunc.FxPhaseRecursiveEvalFunc;
 import fr.an.fxtree.model.FxNode;
 import fr.an.fxtree.model.FxObjNode;
@@ -159,7 +160,8 @@ public class EnvResourceRepository {
 		if (templateParams == null) {
 			res = rawTemplateRootNode;
 		} else {
-			FxMemRootDocument templateReplDoc = new FxMemRootDocument();
+			FxSourceLoc source = new FxSourceLoc("template-param", "");
+			FxMemRootDocument templateReplDoc = new FxMemRootDocument(source);
 			FxReplaceNodeCopyVisitor.copyWithReplaceTo(templateReplDoc.contentWriter(), rawTemplateRootNode,
 					templateParams.getParameters());
 			res = templateReplDoc.getContent();
@@ -175,7 +177,8 @@ public class EnvResourceRepository {
 		ctx.putVariable("env", envName);
 		ctx.putVariableAll(registerCtxVars);
 
-		FxMemRootDocument processedDoc = new FxMemRootDocument();
+		FxSourceLoc source = FxSourceLoc.newFrom("phase0", rawRootNode.getSourceLoc());
+		FxMemRootDocument processedDoc = new FxMemRootDocument(source);
 		// *** eval rawRootNode -> rootNode by evaluating recursive functions
 		// for "phase0", ... ***
 		FxPhaseRecursiveEvalFunc.evalPhases(processedDoc.contentWriter(), phases, ctx, rawRootNode, funcRegistry);

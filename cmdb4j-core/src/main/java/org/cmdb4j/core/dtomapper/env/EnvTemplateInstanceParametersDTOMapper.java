@@ -12,6 +12,7 @@ import fr.an.fxtree.format.json.jackson.Fx2JacksonUtils;
 import fr.an.fxtree.impl.helper.FxNodeCopyVisitor;
 import fr.an.fxtree.impl.helper.FxNodeValueUtils;
 import fr.an.fxtree.impl.model.mem.FxMemRootDocument;
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.model.FxNode;
 import fr.an.fxtree.model.FxObjNode;
 
@@ -25,8 +26,9 @@ public class EnvTemplateInstanceParametersDTOMapper {
         if (src == null) {
             return null;
         }
-        Map<String,FxNode> parameters = Fx2JacksonUtils.jsonNodesToFxTrees(src.getParameters());
-        Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties());
+    	FxSourceLoc source = new FxSourceLoc("env-instance", "");
+        Map<String,FxNode> parameters = Fx2JacksonUtils.jsonNodesToFxTrees(src.getParameters(), source);
+        Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties(), source);
         return new EnvTemplateInstanceParameters(src.getEnvName(), src.getSourceTemplateName(), parameters, extraProperties);
     }
 
@@ -60,22 +62,23 @@ public class EnvTemplateInstanceParametersDTOMapper {
         
         // extract "params" and "metaparams", concatenate to result
         FxObjNode paramsNode = FxNodeValueUtils.getObjOrThrow(src, PROP_parameters);
-        res.putAllParameters(paramsNode.fieldsHashMapCopy());
+        res.putAllParameters(paramsNode.fieldsMap());
 
         FxObjNode metaParamsNode = FxNodeValueUtils.getObjOrNull(src, PROP_extraProperties);
         if (metaParamsNode != null) {
-            res.putAllExtraPropreties(metaParamsNode.fieldsHashMapCopy());
+            res.putAllExtraPropreties(metaParamsNode.fieldsMap());
         }
     }
 
     public FxObjNode formatNode(EnvTemplateInstanceParameters src) {
-        FxObjNode res = new FxMemRootDocument().setContentObj();
-        res.put(PROP_sourceTemplateName, src.getSourceTemplateName());
+    	FxSourceLoc source = new FxSourceLoc("env-instance", "");
+        FxObjNode res = new FxMemRootDocument(source).setContentObj(source);
+        res.put(PROP_sourceTemplateName, src.getSourceTemplateName(), source);
         
-        FxObjNode paramsNode = res.putObj(PROP_parameters);
+        FxObjNode paramsNode = res.putObj(PROP_parameters, source);
         FxNodeCopyVisitor.copyChildMapTo(paramsNode, src.getParameters());
         
-        FxObjNode metaParamsNode = res.putObj(PROP_extraProperties);
+        FxObjNode metaParamsNode = res.putObj(PROP_extraProperties, source);
         FxNodeCopyVisitor.copyChildMapTo(metaParamsNode, src.getExtraProperties());
         
         return res;

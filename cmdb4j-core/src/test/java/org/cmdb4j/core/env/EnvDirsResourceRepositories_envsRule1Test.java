@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import fr.an.fxtree.format.yaml.FxYamlUtils;
 import fr.an.fxtree.impl.helper.FxObjNodeWithIdAndTypeTreeScanner;
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.impl.stdfunc.FxStdFuncs;
 import fr.an.fxtree.model.FxNode;
 
@@ -35,7 +36,8 @@ public class EnvDirsResourceRepositories_envsRule1Test {
         // Assert.assertEquals(, resources.size());
         
         // compare with expected implicit resources from rules..
-        FxNode expectedNodes = FxYamlUtils.readTree(new File(baseEnvsDir, envName + "/env.implicit-expected.txt"));
+        String filePath = envName + "/env.implicit-expected.txt";
+		FxNode expectedNodes = FxYamlUtils.readTree(new File(baseEnvsDir, filePath), new FxSourceLoc("", filePath));
         FxObjNodeWithIdAndTypeTreeScanner.scanConsumeFxNodesWithIdTypeObj(expectedNodes, (expectedId, expectedTypeName, expectedObjData) -> {
 			ResourceId expectedResourceId = ResourceId.valueOf(envName + "/" + expectedId);
 			ResourceType expectedType = resourceTypeRepository.getOrCreateType(expectedTypeName);

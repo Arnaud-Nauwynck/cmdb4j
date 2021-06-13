@@ -1,8 +1,6 @@
 package org.cmdb4j.core.model.reflect;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -19,14 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
-import fr.an.dynadapter.alt.AdapterAlternativesManager;
-import fr.an.dynadapter.alt.IAdapterAlternativeFactory;
-import fr.an.dynadapter.alt.IAdapterAlternativesManager;
-import fr.an.dynadapter.alt.IAdapterAlternativesManagerSPI;
-import fr.an.dynadapter.alt.ItfAlternativeId;
-import fr.an.dynadapter.alt.ItfId;
-import fr.an.dynadapter.typehiera.ITypeHierarchy;
 
 /**
  * 
@@ -68,13 +58,7 @@ public class ResourceTypeRepository {
      * internal for AdapterAlternativesManager
      */
     private InnerTypeHierarchy innerTypeHierarchy = new InnerTypeHierarchy();
-    
-    /**
-     * Manager for AdapterFactory .. to register new interface capabilities on existing types
-     * (similar to eclipse PlaftormObject / IAdaptable / AdapterManager ... but with dynamic support)
-     */
-    private AdapterAlternativesManager<ResourceType> adapterManager = new AdapterAlternativesManager<>(innerTypeHierarchy);
-    
+        
     /**
      * thread safety: copy on write
      */
@@ -172,78 +156,6 @@ public class ResourceTypeRepository {
         }
     }
     
-    // query for adapter / AdapterFactory alternative support / ItfId support
-    // ------------------------------------------------------------------------
-    
-    public IAdapterAlternativesManager<ResourceType> getAdapterManager() {
-        return adapterManager;
-    }
-
-    public <T> T getAdapter(Resource adaptable, ItfId<T> interfaceId) {
-        return adapterManager.getAdapter(adaptable, interfaceId);
-    }
-
-    public <T> T getAdapter(Resource adaptable, ItfAlternativeId<T> interfaceAlternativeId) {
-        return adapterManager.getAdapter(adaptable, interfaceAlternativeId);
-    }
-
-    public Collection<ResourceType> computeDataTypesHavingAdapterItf(ItfId<?> interfaceId) {
-        Collection<ResourceType> res = new ArrayList<>();
-        for(ResourceType resourceType : name2types.values()) {
-            Set<String> adapterAlternatives = adapterManager.getAdapterAlternatives(resourceType, interfaceId);
-            if (!adapterAlternatives.isEmpty()) {
-                res.add(resourceType);
-            }
-        }
-        return res;
-    }
-    
-    // expose IAdapterAlternativesManagerSPI (wrap with proxy to fire change events)
-    // => delegate all methods + fire events
-    // ------------------------------------------------------------------------
-    
-    public IAdapterAlternativesManagerSPI<ResourceType> getAdapterManagerSPI() {
-        return new IAdapterAlternativesManagerSPI<ResourceType>() {
-            @Override
-            public void registerAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
-                adapterManager.registerAdapters(factory, adaptableType);
-                fireChangeEvent(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(null, factory, adaptableType));
-            }
-            @Override
-            public void unregisterAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
-                adapterManager.unregisterAdapters(factory, adaptableType);
-                fireChangeEvent(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(factory, null, adaptableType));
-            }
-            @Override
-            public void registerAdapters(Collection<AdapterAltFactoryRegistration<ResourceType>> registrations) {
-                adapterManager.registerAdapters(registrations);
-                List<ResourceTypeRepositoryChange> chgs = new ArrayList<>();
-                for(AdapterAltFactoryRegistration<ResourceType> e : registrations) {
-                    chgs.add(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(null, e.factory, e.adaptableDataType));
-                }
-                fireChangeEvent(ResourceTypeRepositoryChange.newCompositeResourceTypeRepositoryChange(chgs));
-            }
-            @Override
-            public void unregisterAdapters(Collection<AdapterAltFactoryRegistration<ResourceType>> registrations) {
-                adapterManager.unregisterAdapters(registrations);
-                List<ResourceTypeRepositoryChange> chgs = new ArrayList<>();
-                for(AdapterAltFactoryRegistration<ResourceType> e : registrations) {
-                    chgs.add(ResourceTypeRepositoryChange.newResourceAdapterFactoryChange(e.factory, null, e.adaptableDataType));
-                }
-                fireChangeEvent(ResourceTypeRepositoryChange.newCompositeResourceTypeRepositoryChange(chgs));
-            }
-            @Override
-            public void flushLookup() {
-                adapterManager.flushLookup();
-                // fire event?
-            }
-        };
-    }
-    
-    /** same as getAdapterManagerSPI().registerAdapters() */
-    public void registerAdapters(IAdapterAlternativeFactory factory, ResourceType adaptableType) {
-        getAdapterManagerSPI().registerAdapters(factory, adaptableType);
-    }
     
     // (cached) helper for TypeHierarchy 
     // ------------------------------------------------------------------------
@@ -300,20 +212,20 @@ public class ResourceTypeRepository {
     
     // ------------------------------------------------------------------------
 
-    private class InnerTypeHierarchy implements ITypeHierarchy<ResourceType> {
+    private class InnerTypeHierarchy { // implements ITypeHierarchy<ResourceType> {
 
-        @Override
+//        @Override
         public ResourceType dataTypeOf(Object obj) {
             Resource resource = (Resource) obj;
             return resource.getType();
         }
 
-        @Override
+//        @Override
         public ResourceType[] computeSuperTypesOrder(ResourceType type) {
             return type.computeSuperTypesOrder();
         }
 
-        @Override
+//        @Override
         public void flushLookup() {
         }
         

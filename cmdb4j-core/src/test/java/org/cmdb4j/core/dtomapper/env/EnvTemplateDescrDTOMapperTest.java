@@ -3,12 +3,12 @@ package org.cmdb4j.core.dtomapper.env;
 import java.io.File;
 
 import org.cmdb4j.core.dto.env.EnvTemplateDescrDTO;
-import org.cmdb4j.core.dtomapper.env.EnvTemplateDescrDTOMapper;
 import org.cmdb4j.core.env.EnvTemplateDescr;
 import org.junit.Test;
 
 import fr.an.fxtree.format.FxFileUtils;
 import fr.an.fxtree.format.json.FxJsonUtils;
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.impl.util.FxNodeCheckUtils;
 import fr.an.fxtree.model.FxNode;
 
@@ -19,7 +19,10 @@ public class EnvTemplateDescrDTOMapperTest {
     @Test
     public void testFromDTO_toDto_fromFxTree_toFxTree() {
         // Prepare
-        FxNode fxNode = FxFileUtils.readTree(new File("src/test/java/org/cmdb4j/core/env/impl/template-descr1.json"));
+    	String filePath = "src/test/java/org/cmdb4j/core/env/impl/template-descr1.json";
+    	File file = new File(filePath);
+    	FxSourceLoc source = new FxSourceLoc("", filePath);
+		FxNode fxNode = FxFileUtils.readTree(file, source);
         // Perform
         EnvTemplateDescrDTO dto = FxJsonUtils.treeToValue(EnvTemplateDescrDTO.class, fxNode);
         EnvTemplateDescr descr = sut.fromDTO(dto); 

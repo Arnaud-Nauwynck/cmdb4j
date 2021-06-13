@@ -6,8 +6,6 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
-import fr.an.dynadapter.alt.IAdapterAlternativeFactory;
-
 /**
  * Event class hierarchy for change elements in ResourceType repository:
  * <PRE>
@@ -71,11 +69,6 @@ public abstract class ResourceTypeRepositoryChange {
             ResourceType previousSuperType, ResourceType newSuperType,
             Collection<ResourceType> previousInterfaces, Collection<ResourceType> newInterfaces) {
         return new ResourceTypeHierarchyChange(target, previousSuperType, newSuperType, previousInterfaces, newInterfaces);
-    }
-    
-    public static ResourceAdapterFactoryChange newResourceAdapterFactoryChange(IAdapterAlternativeFactory prevAdapterFactory, IAdapterAlternativeFactory newAdapterFactory,
-            ResourceType adaptableBaseResourceType) {
-        return new ResourceAdapterFactoryChange(prevAdapterFactory, newAdapterFactory, adaptableBaseResourceType);
     }
     
     public static CompositeResourceTypeRepositoryChange newCompositeResourceTypeRepositoryChange(List<ResourceTypeRepositoryChange> elements) {
@@ -211,46 +204,6 @@ public abstract class ResourceTypeRepositoryChange {
         }
     }
     
-    /**
-     * Change event for AdapterFactory added/remove on an adaptable ResourceType(so applicable for all sub-classes of adaptable..)
-     * 
-     * thread safety: immutable class, temporary object not to be kept by listeners
-     */
-    public static class ResourceAdapterFactoryChange extends ResourceTypeRepositoryChange {
-        
-        protected final IAdapterAlternativeFactory prevAdapterFactory;
-        protected final IAdapterAlternativeFactory newAdapterFactory;
-        protected final ResourceType adaptableBaseResourceType;
-
-        protected ResourceAdapterFactoryChange(
-                IAdapterAlternativeFactory prevAdapterFactory, IAdapterAlternativeFactory newAdapterFactory,
-                ResourceType adaptableBaseResourceType) {
-            super(adaptableBaseResourceType.getOwner());
-            this.prevAdapterFactory = prevAdapterFactory;
-            this.newAdapterFactory = newAdapterFactory;
-            this.adaptableBaseResourceType = adaptableBaseResourceType;
-        }
-        
-        public IAdapterAlternativeFactory getPrevAdapterFactory() {
-            return prevAdapterFactory;
-        }
-
-        public IAdapterAlternativeFactory getNewAdapterFactory() {
-            return newAdapterFactory;
-        }
-
-        public ResourceType getAdaptableBaseResourceType() {
-            return adaptableBaseResourceType;
-        }
-
-
-        @Override
-        public String toString() {
-            return "ResourceAdapterFactoryChange [adaptableBaseResourceType=" + adaptableBaseResourceType
-                    + ", adapterFactory prev:" + prevAdapterFactory + ", new:" + newAdapterFactory + "]";
-        }
-        
-    }
     
     /**
      * composite (design-pattern) for ResourceTypeRepositoryChange  

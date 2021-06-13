@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableSet;
 
 import fr.an.fxtree.format.FxFileUtils;
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.impl.stdfunc.FxStdFuncs;
 import fr.an.fxtree.model.FxNode;
 import fr.an.fxtree.model.func.FxNodeFuncRegistry;
@@ -34,7 +35,8 @@ public class EnvResourceRepositoryTest {
             targetEnvDir.mkdirs();
         }
         File srcEnvDir = new File(baseEnvsDir, "DEV1");
-        FxNode rawTemplateRootNode = FxFileUtils.readTree(new File(srcEnvDir, "env.yaml"));
+        String envFilePath = "env.yaml";
+		FxNode rawTemplateRootNode = FxFileUtils.readTree(new File(srcEnvDir, envFilePath), new FxSourceLoc("", envFilePath));
         sut = new EnvResourceRepository(envRepositories, "DEV1", targetEnvDir, null, rawTemplateRootNode);
         sut.init();
     }
