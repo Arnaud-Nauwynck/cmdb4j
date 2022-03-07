@@ -6,8 +6,9 @@ import java.util.Map;
 
 import org.cmdb4j.core.dto.env.EnvTemplateDescrDTO;
 import org.cmdb4j.core.dto.env.EnvTemplateParamDescrDTO;
-import org.cmdb4j.core.env.EnvTemplateDescr;
-import org.cmdb4j.core.env.EnvTemplateParamDescr;
+import org.cmdb4j.core.env.input.ResourceFileContent;
+import org.cmdb4j.core.env.template.EnvTemplateDescr;
+import org.cmdb4j.core.env.template.EnvTemplateParamDescr;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -27,35 +28,39 @@ public class EnvTemplateDescrDTOMapper {
 
     // ------------------------------------------------------------------------
 
-    public EnvTemplateDescr fromDTO(EnvTemplateDescrDTO src) {
-    	FxSourceLoc source = new FxSourceLoc("env-template", src.getName());
+    public EnvTemplateDescr fromDTO(EnvTemplateDescrDTO src, List<ResourceFileContent> contents) {
         List<EnvTemplateParamDescr> paramDescriptions = new ArrayList<>();
-        src.getParamDescriptions().forEach(p -> {
-            paramDescriptions.add(paramDescrDTOMapper.fromDTO(p));
-        });
-        Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties(), source);
-        FxNode rawNode = Fx2JacksonUtils.jsonNodeToFxTree(src.getRawNode(), source);
+        List<EnvTemplateParamDescrDTO> srcParamDescriptions = src.getParamDescriptions();
+        if (srcParamDescriptions != null && !srcParamDescriptions.isEmpty()) {
+            for(EnvTemplateParamDescrDTO srcParamDescr : srcParamDescriptions) {
+                paramDescriptions.add(paramDescrDTOMapper.fromDTO(srcParamDescr));
+            }
+        }
+        FxSourceLoc srcLoc = new FxSourceLoc("env-template", src.getName());
+        Map<String,FxNode> extraProperties = Fx2JacksonUtils.jsonNodesToFxTrees(src.getExtraProperties(), srcLoc);
         return new EnvTemplateDescr(src.getName(), src.getDisplayName(), src.getComment(), 
-            paramDescriptions, extraProperties, rawNode);
+            paramDescriptions, extraProperties, contents);
     }
 
     public EnvTemplateDescrDTO toDTO(EnvTemplateDescr src) {
         List<EnvTemplateParamDescrDTO> paramDescriptions = new ArrayList<>();
-        src.getParamDescriptions().forEach(p -> {
-            paramDescriptions.add(paramDescrDTOMapper.toDTO(p));
-        });
+        List<EnvTemplateParamDescr> srcParamDescriptions = src.getParamDescriptions();
+        if (srcParamDescriptions != null && !srcParamDescriptions.isEmpty()) {
+            for(EnvTemplateParamDescr srcParamDescr : srcParamDescriptions) {
+                paramDescriptions.add(paramDescrDTOMapper.toDTO(srcParamDescr));
+            }
+        }
         Map<String,JsonNode> extraProperties = Fx2JacksonUtils.fxTreesToJsonNodes(src.getExtraProperties());
-        JsonNode rawNode = Fx2JacksonUtils.fxTreeToJsonNode(src.getRawNode());
         return new EnvTemplateDescrDTO(src.getName(), src.getDisplayName(), src.getComment(), 
-            paramDescriptions, extraProperties, rawNode);
+            paramDescriptions, extraProperties);
     }
 
     /** parse FxNode -> EnvTemplateDescr */
-    public EnvTemplateDescr fromFxTree(String envName, FxNode src) {
+    public EnvTemplateDescr fromFxTree(String envName, FxNode src, List<ResourceFileContent> contents) {
         // use FxNode->DTO mapping + DTO->Obj copy (shorter equivalent than hand-parsing FxNode..) 
         EnvTemplateDescrDTO tmpres = FxJsonUtils.treeToValue(EnvTemplateDescrDTO.class, src);
         tmpres.setName(envName);
-        return fromDTO(tmpres);
+        return fromDTO(tmpres, contents);
     }
 
     /** format EnvTemplateDescr -> FxNode */

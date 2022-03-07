@@ -55,4 +55,12 @@ public class IOUtils {
 		return props;
 	}
 
+    public static byte[] readAllBytes(File file) {
+        try {
+            return Files.readAllBytes(file.toPath());
+        } catch(IOException ex) {
+            throw new RuntimeException("Failed to read file content '" + file + "'", ex);
+        }
+    }
+
 }

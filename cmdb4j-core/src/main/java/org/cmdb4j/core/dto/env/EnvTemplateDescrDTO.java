@@ -27,8 +27,6 @@ public class EnvTemplateDescrDTO implements Serializable {
 
     private Map<String,JsonNode> extraProperties = new LinkedHashMap<>();
 
-    private JsonNode rawNode;
-
     // ------------------------------------------------------------------------
     
     public EnvTemplateDescrDTO() {
@@ -36,14 +34,13 @@ public class EnvTemplateDescrDTO implements Serializable {
     
     public EnvTemplateDescrDTO(String name, String displayName, String comment,
             List<EnvTemplateParamDescrDTO> paramDescriptions, 
-            Map<String, JsonNode> extraProperties, JsonNode rawNode) {
+            Map<String, JsonNode> extraProperties) {
         this();
         this.name = name;
         this.displayName = displayName;
         this.comment = comment;
         this.paramDescriptions = paramDescriptions;
         this.extraProperties = extraProperties;
-        this.rawNode = rawNode;
     }
 
     // ------------------------------------------------------------------------
@@ -102,16 +99,7 @@ public class EnvTemplateDescrDTO implements Serializable {
         this.extraProperties.put(key, value);
     }
     
-    public JsonNode getRawNode() {
-        return rawNode;
-    }
-    
-    public void setRawNode(JsonNode rawNode) {
-        this.rawNode = rawNode;
-    }
-    
     // ------------------------------------------------------------------------
-    
     @Override
     public String toString() {
         return "EnvTemplateDescrDTO[" + name + "]";

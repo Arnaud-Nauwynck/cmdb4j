@@ -2,7 +2,6 @@ package org.cmdb4j.core.util;
 
 import java.util.List;
 
-import org.cmdb4j.core.util.PathId;
 import org.junit.Assert;
 import org.junit.Test;
 

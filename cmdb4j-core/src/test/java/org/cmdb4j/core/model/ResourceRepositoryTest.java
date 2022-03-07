@@ -13,6 +13,8 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
+
 public class ResourceRepositoryTest {
 
     protected ResourceTypeRepository typeRepo = new ResourceTypeRepository(); 
@@ -23,14 +25,16 @@ public class ResourceRepositoryTest {
     protected ResourceType webserverType = types1.webserverType;
     protected ResourceType dirServerType = types1.dirFileServerType;
     protected ResourceId tc1Id = ResourceId.valueOf("DEV1/host1/tc1");
-    protected Resource tc1 = new Resource(tc1Id, tomcatType, null);
-    protected Resource tc2 = new Resource(ResourceId.valueOf("DEV1/host1/tc2"), tomcatType, null);
-    protected Resource dirServer1 = new Resource(ResourceId.valueOf("DEV1/host1/dir1"), dirServerType, null);
+
+	private FxSourceLoc loc = FxSourceLoc.inMem();
+    protected Resource tc1 = new Resource(tc1Id, tomcatType, null, loc);
+    protected Resource tc2 = new Resource(ResourceId.valueOf("DEV1/host1/tc2"), tomcatType, null, loc);
+    protected Resource dirServer1 = new Resource(ResourceId.valueOf("DEV1/host1/dir1"), dirServerType, null, loc);
     
     // protected TstResourceTypes2 types2 = new TstResourceTypes2(typeRepo);
     protected ResourceType jettyType = typeRepo.getOrCreateType("jetty"); // does not extends webserver yet... cf new Types2
-    protected Resource jetty1 = new Resource(ResourceId.valueOf("DEV1/host1/jetty1"), jettyType, null);
-    protected Resource tc3 = new Resource(ResourceId.valueOf("DEV1/host1/tc3"), tomcatType, null);
+    protected Resource jetty1 = new Resource(ResourceId.valueOf("DEV1/host1/jetty1"), jettyType, null, loc);
+    protected Resource tc3 = new Resource(ResourceId.valueOf("DEV1/host1/tc3"), tomcatType, null, loc);
     
     protected ResourceRepository sut = new ResourceRepository(typeRepo);
     

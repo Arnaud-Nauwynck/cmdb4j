@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
  * fields  definition are optionnals ... and can be added/removed dynamically
  * superType / superInterfaces can also be added/removed dynamically
  * 
- * It is expected that types are loaded at startup from plugin conributions fragments,
+ * It is expected that types are loaded at startup from plugin contributions fragments,
  * then type should not change often but this is perfectly valid to do so, 
  * in particular for adding new optional fields, and adding new adapterFactories (pluggin support)
  * 

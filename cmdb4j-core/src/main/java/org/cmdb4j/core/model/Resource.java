@@ -18,7 +18,9 @@ import org.cmdb4j.core.util.CmdbAssertUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import fr.an.fxtree.impl.model.mem.FxSourceLoc;
 import fr.an.fxtree.model.FxObjNode;
+import lombok.Getter;
 
 /**
  * CMDB Resource element. 
@@ -39,46 +41,41 @@ public class Resource {
     public static final ResourceRelationshipType REL_notify = REL_subscribe.inv();
 
     
+    @Getter
     private final ResourceId id;
 
+    @Getter
     private final ResourceType type;
     
+    @Getter
     protected FxObjNode objData;
-        
+
+    @Getter
+    protected FxSourceLoc declarationLocation;
+    
     protected Map<String,Map<ResourceId,Resource>> relationships = new LinkedHashMap<>();
         
     protected Set<String> tags = new LinkedHashSet<String>();
 
     // ------------------------------------------------------------------------
 
-    public Resource(ResourceId id, ResourceType type, FxObjNode objData) {
+    public Resource(ResourceId id, ResourceType type, FxObjNode objData, FxSourceLoc declarationLocation) {
         this.id = id;
         this.type = type;
         this.objData = objData;
+        this.declarationLocation = declarationLocation;
     }
 
     // ------------------------------------------------------------------------
-
-    public final ResourceId getId() {
-        return id;
-    }
 
     @JsonIgnore
     public final String getIdAsString() {
         return id != null? id.toString() : null;
     }
 
-    public ResourceType getType() {
-        return type;
-    }
-
     @JsonIgnore
     public String getTypeName() {
         return type != null? type.getName() : null;
-    }
-
-    public FxObjNode getObjData() {
-        return objData;
     }
 
     public void setObjData(FxObjNode p) {

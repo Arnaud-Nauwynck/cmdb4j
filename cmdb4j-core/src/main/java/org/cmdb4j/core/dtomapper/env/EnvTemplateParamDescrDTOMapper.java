@@ -3,7 +3,7 @@ package org.cmdb4j.core.dtomapper.env;
 import java.util.Map;
 
 import org.cmdb4j.core.dto.env.EnvTemplateParamDescrDTO;
-import org.cmdb4j.core.env.EnvTemplateParamDescr;
+import org.cmdb4j.core.env.template.EnvTemplateParamDescr;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

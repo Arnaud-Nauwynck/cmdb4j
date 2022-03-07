@@ -26,12 +26,6 @@ import org.cmdb4j.core.util.PathId;
  *             param.properties
  *         team2/
  *         ..  
- *         per-zone/
- *           Amer/
- *             param.properties
- *           Europe/
- *             param.properties
- *           ..
  *           
  *       prod/
  *         team1/
@@ -46,7 +40,6 @@ import org.cmdb4j.core.util.PathId;
  *  /DEV1   (env 1 for DEV)
  *  /UAT1   (env 1 for User Acceptance Test)
  *  /INT1   (env 1 for Integration)
- *  /QNR1   (env 1 for Quality Non Regression)
  *  /PROD   ... the one
  *  /ISOPROD1   (env 1 for PROD-like app versions, day minus 1 databases)
  *  
