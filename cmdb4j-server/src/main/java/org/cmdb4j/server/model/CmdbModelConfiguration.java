@@ -3,7 +3,6 @@ package org.cmdb4j.server.model;
 
 import java.io.File;
 
-import org.cmdb4j.core.env.CmdbEnv;
 import org.cmdb4j.core.env.CmdbEnvRepository;
 import org.cmdb4j.core.env.DynStoreService;
 import org.cmdb4j.core.env.input.CmdbInputsSource;

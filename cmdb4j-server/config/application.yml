@@ -1,0 +1,6 @@
+
+baseWorkDir: 'config'
+
+envsInputYamlFile: 'config/env-inputs.yml'
+
+passwordPropertiesFile: 'config/password.properties'

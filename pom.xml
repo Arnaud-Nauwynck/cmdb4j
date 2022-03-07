@@ -8,6 +8,9 @@
 	<packaging>pom</packaging>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	
 		<overthere.version>4.4.1</overthere.version>
 		<es.version>2.3.5</es.version>
 	</properties>
@@ -45,12 +48,12 @@
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
-				<version>1.7.10</version>
+				<version>1.7.36</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.1.2</version>
+				<version>1.2.11</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>

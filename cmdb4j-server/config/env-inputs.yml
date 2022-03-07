@@ -1,0 +1,12 @@
+
+inputDirs:
+  - name: input1
+    checkoutDir: 'config/input1'
+    # scmUrl:
+    # scmUserName:
+    # scmUserCredential:
+    dept: dept1
+    team: team1
+    # includes: []
+    # excludes: []
+    
